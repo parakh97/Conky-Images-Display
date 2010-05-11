@@ -377,6 +377,7 @@ _cid_proceed_download_cover (gpointer p)
         {
             bCurrentlyDownloadingXML = FALSE;
             bCurrentlyDownloading = FALSE;
+            musicData.cover_exist = FALSE;
             cid_debug ("Téléchargement impossible");
             cid_stop_measure_timer (pMeasureTimer);
             return FALSE;
@@ -388,8 +389,12 @@ _cid_proceed_download_cover (gpointer p)
     {
         bCurrentlyDownloadingXML = FALSE;
         bCurrentlyDownloading = FALSE;
+        musicData.cover_exist = TRUE;
         cid_display_image(DEFAULT_DOWNLOADED_IMAGE_LOCATION);
         cid_stop_measure_timer (pMeasureTimer);
+        if (musicData.playing_cover)
+            g_free (musicData.playing_cover);
+        musicData.playing_cover = g_strdup (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
         return FALSE;
     }
     
@@ -404,19 +409,23 @@ _check_cover_is_present (gpointer data)
     {
         cid_display_image(musicData.playing_cover);
         musicData.cover_exist = TRUE;
-        musicData.iSidCheckCover = 0;
         return FALSE;
-    } else if (cid->iCheckIter > cid->iTimeToWait && cid->bDownload) {
-        if (pMeasureTimer) 
+    } 
+    else if (cid->iCheckIter > cid->iTimeToWait) 
+    {
+        if (cid->bDownload)
         {
-            if (cid_measure_is_running(pMeasureTimer))
-                cid_stop_measure_timer(pMeasureTimer);
-            if (cid_measure_is_active(pMeasureTimer))
-                cid_free_measure_timer(pMeasureTimer);
-        }
-        pMeasureTimer = cid_new_measure_timer (2 SECONDES, NULL, NULL, (CidUpdateTimerFunc) _cid_proceed_download_cover, NULL);
+            if (pMeasureTimer) 
+            {
+                if (cid_measure_is_running(pMeasureTimer))
+                    cid_stop_measure_timer(pMeasureTimer);
+                if (cid_measure_is_active(pMeasureTimer))
+                    cid_free_measure_timer(pMeasureTimer);
+            }
+            pMeasureTimer = cid_new_measure_timer (2 SECONDES, NULL, NULL, (CidUpdateTimerFunc) _cid_proceed_download_cover, NULL);
         
-        cid_launch_measure (pMeasureTimer);
+            cid_launch_measure (pMeasureTimer);
+        }
         
         return FALSE;
     } 

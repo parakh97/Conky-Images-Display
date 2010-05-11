@@ -452,7 +452,7 @@ cid_save_data ()
     
     if (cid->pWindow!=NULL)
         cid_get_data();
-    /*
+    
     // [System] configuration
     g_key_file_set_integer (cid->pKeyFile, "System", "PLAYER", cid->iPlayer);
     g_key_file_set_integer (cid->pKeyFile, "System", "INTER", cid->iInter/1000);
@@ -479,14 +479,14 @@ cid_save_data ()
     g_key_file_set_integer (cid->pKeyFile, "Options", "DELAY", cid->iTimeToWait);
     g_key_file_set_integer (cid->pKeyFile, "Options", "D_SIZE", cid->iImageSize);
     g_key_file_set_boolean (cid->pKeyFile, "Options", "B_UNSTABLE", cid->bUnstable);
-    */
+    
     // [Behaviour] configuration
     gint pSize[2] = {cid->iWidth,cid->iHeight};
     gsize iReadSize = sizeof (pSize) / sizeof (*pSize);
     g_key_file_set_integer_list (cid->pKeyFile, "Behaviour", "SIZE", pSize, iReadSize);
     g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_X",cid->iPosX);
     g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_Y",cid->iPosY);
-    /*
+    
     g_key_file_set_double (cid->pKeyFile, "Behaviour", "ROTATION",(cid->dRotate));
     g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "COLOR", (cid->dColor), cid->gColorSize);
     g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", (cid->dFlyingColor), cid->gFlyingColorSize);
@@ -509,7 +509,7 @@ cid_save_data ()
     g_key_file_set_string (cid->pKeyFile, "MPD", "MPD_PASS", cEncrypted);
     g_free (cEncrypted);
     g_key_file_set_integer (cid->pKeyFile, "MPD", "MPD_PORT", cid->mpd_port);
-    */
+    
     cid_write_keys_to_file (cid->pKeyFile, cid->cConfFile);
 }
 

@@ -114,6 +114,8 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
     FILE * fp = fopen(DEFAULT_XML_LOCATION, "w"); 
     curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
     curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
+    //curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
+
     curl_easy_perform(handle);
     fclose(fp);
     curl_easy_cleanup(handle);
@@ -135,6 +137,8 @@ cid_download_missing_cover (const gchar *cURL, const gchar *cDestPath)
     FILE * fp = fopen(cDestPath, "w"); 
     curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
     curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
+    //curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
+
     curl_easy_perform(handle);
     fclose(fp);
     curl_easy_cleanup(handle);

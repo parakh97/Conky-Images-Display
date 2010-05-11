@@ -42,7 +42,7 @@ cid_display_image(gchar *image)
         cairo_surface_destroy (cid->p_cPreviousSurface);
         cid->p_cPreviousSurface = NULL;
     }
-    if (cid->iAnimationType == CID_FADE_IN_OUT && cid->bRunAnimation)
+    if (cid->iAnimationType == CID_FADE_IN_OUT && cid->bRunAnimation && cid->p_cSurface)
         cid->p_cPreviousSurface = cairo_surface_reference(cid->p_cSurface);
         
     if (cid->p_cSurface) 
@@ -60,11 +60,13 @@ cid_display_image(gchar *image)
             musicData.playing_cover = g_strdup(image);
         }
         musicData.cover_exist = TRUE;
+        
         if (musicData.iSidCheckCover != 0) 
         {
             g_source_remove (musicData.iSidCheckCover);
             musicData.iSidCheckCover = 0;
         }
+        
     } 
     else 
     {
@@ -489,14 +491,13 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
         
         // Si on utilise le fondu, et qu'on a un alpha <1 on dessine nos 2 surfaces :)
         if (cid->p_cPreviousSurface!=NULL && cid->iAnimationType == CID_FADE_IN_OUT 
-            && cid->dFadeInOutAlpha < 1 && cid->bAnimation) {
+            && cid->dFadeInOutAlpha < 1 && cid->bAnimation) 
+        {
             cairo_set_source_surface (cr, cid->p_cPreviousSurface, 0, 0);
             cairo_paint_with_alpha (cr, 1-cid->dFadeInOutAlpha);
             
             cairo_set_source_surface (cr, cid->p_cSurface, 0, 0);
             cairo_paint_with_alpha (cr, cid->dFadeInOutAlpha);
-            
-            
         } 
         else 
         {
@@ -505,8 +506,7 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
         }
         cairo_restore (cr); 
     } 
-    else 
-    if (!cid->bCurrentlyFlying)
+    else if (!cid->bCurrentlyFlying)
     {
         cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
         cairo_save (cr);

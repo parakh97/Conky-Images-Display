@@ -233,6 +233,8 @@ main ( int argc, char **argv )
 
     cid = g_malloc0 (sizeof(*cid));
     
+    curl_global_init(CURL_GLOBAL_ALL);
+    
     int i;
     GString *sCommandString = g_string_new (argv[0]);
     for (i = 1; i < argc; i ++) 
@@ -275,7 +277,6 @@ main ( int argc, char **argv )
     // Si on est ici, c'est qu'on a coupé la boucle GTK
     // Du coup, on en profite pour faire un peu de ménage
     // histoire de pas laisser la baraque dans un sale etat
-    fprintf (stdout, "pass: %s\n", cid->mpd_pass);
     cid_key_file_free();
     cid_free_musicData();
     cid_free_main_structure (cid);

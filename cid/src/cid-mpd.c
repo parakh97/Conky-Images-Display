@@ -182,7 +182,7 @@ cid_mpd_cover ()
         if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
         {
             cid->iCheckIter = 0;
-            if (musicData.iSidCheckCover == 0 && cid->iPlayer != PLAYER_NONE) 
+            if (cid->iPlayer != PLAYER_NONE) 
             {
                 cid_debug ("l'image n'existe pas encore => on boucle.\n");
                 musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, (gpointer) NULL);
@@ -232,6 +232,13 @@ cid_disconnect_from_mpd ()
     cid_display_image (NULL);
 }
 
+static void
+cid_reconnect_mpd (gint iInter)
+{
+    cid_connect_to_mpd (iInter);
+    cid_display_image (musicData.playing_cover);
+}
+
 void 
 _playPause_mpd (void) 
 {
@@ -272,6 +279,6 @@ cid_build_mpd_menu (void)
     cid->pMonitorList->p_fNext = _next_mpd;
     cid->pMonitorList->p_fPrevious = _previous_mpd;
     cid->pMonitorList->p_fAddToQueue = NULL;
-    cid->p_fConnectHandler = cid_connect_to_mpd;
+    cid->p_fConnectHandler = cid_reconnect_mpd;
     cid->p_fDisconnectHandler = cid_disconnect_from_mpd;
 }

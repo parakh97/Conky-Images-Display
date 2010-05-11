@@ -12,6 +12,7 @@
 
 #include <signal.h>
 #include <pthread.h>
+#include <curl/curl.h>
 
 #include "cid-amarok.h"
 #include "cid-amarok2.h"
