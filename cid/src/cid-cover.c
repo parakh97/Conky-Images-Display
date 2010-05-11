@@ -23,46 +23,7 @@ gboolean bCurrentlyDownloadingXML = FALSE;
 #ifdef LIBXML_READER_ENABLED
 
 int ret;
-int flag, found;
-
-gchar *URL;
-gchar *TAB_IMAGE_SIZES[] = {"medium","large"};
-
-/**
- * Lit les noeuds du fichier en cours de parsage
- * @param reader le noeud courrant
- * @param imageSize Noeud que l'on cherche
- */
-static void 
-cid_process_node (xmlTextReaderPtr reader, gchar **cValue) 
-{
-    const xmlChar *name, *value;
-
-    name = xmlTextReaderConstName(reader);
-    if (name == NULL)
-        name = BAD_CAST "--";
-
-        value = xmlTextReaderConstValue(reader);
-        if ((strcmp(name,TAB_IMAGE_SIZES[cid->iImageSize])==0 || flag) && !found) 
-        {
-            //printf("node: %s ", name);
-        if (value == NULL)
-            cid_message ("");
-        else {
-            cid_message ("%s\n", value);
-            found=TRUE;
-            *cValue=g_strdup(value);
-        }
-        if (strcmp(name,"#text")!=0) 
-        {
-            flag=TRUE;
-        } 
-        else 
-        {
-            flag=FALSE;
-        }
-    }
-}
+gchar *TAB_IMAGE_SIZES[] = {"large","extralarge"};
 
 /**
  * Parse le fichier XML passé en argument
@@ -70,95 +31,59 @@ cid_process_node (xmlTextReaderPtr reader, gchar **cValue)
  * @param filename URI du fichier à lire
  * @param imageSize Taille de l'image que l'on souhaite
  */
-void 
-cid_stream_file(const char *filename, gchar **cValue) 
-{
-    /*
-    * this initialize the library and check potential ABI mismatches
-    * between the version it was compiled for and the actual shared
-    * library used.
-    */
-    LIBXML_TEST_VERSION
-    
-    xmlTextReaderPtr reader;
-    flag = FALSE;
-    found=FALSE;
-
-    reader = xmlReaderForFile(filename, NULL, 0);
-    if (reader != NULL) 
-    {
-        ret = xmlTextReaderRead(reader);
-        while (ret == 1) 
-        {
-            cid_process_node (reader,cValue);
-            ret = xmlTextReaderRead(reader);
-        }
-        xmlFreeTextReader(reader);
-        if (ret != 0) 
-        {
-            cid_warning ("%s : failed to parse\n", filename);
-        }
-    } 
-    else 
-    {
-        cid_warning ("Unable to open %s\n", filename);
-    }
-    /*
-     * Cleanup function for the XML library.
-     */
-    xmlCleanupParser();
-    /*
-     * this is to debug memory for regression tests
-     */
-    xmlMemoryDump();
-}
-
 void
-cid_test_xml ()
+cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, ...)
 {
     xmlDocPtr doc;
-    doc = xmlParseFile(TEST_XML);
-    if (doc == NULL) {
-        fprintf(stderr, "Document XML invalide\n");
+    *cValue = NULL;
+    va_list args;
+    va_start(args,xpath);
+    doc = xmlParseFile(filename);
+    if (doc == NULL) 
+    {
+        cid_warning ("Document XML invalide");
         return;
     }
     // Initialisation de l'environnement XPath
     xmlXPathInit();
     // Création du contexte
-    xmlXPathContextPtr ctxt = xmlXPathNewContext(doc); // doc est un xmlDocPtr représentant notre catalogue
-    if (ctxt == NULL) {
-        fprintf(stderr, "Erreur lors de la création du contexte XPath\n");
+    xmlXPathContextPtr ctxt = xmlXPathNewContext(doc);
+    if (ctxt == NULL) 
+    {
+        cid_warning ( "Erreur lors de la création du contexte XPath");
         return;
     }
+    
     // Evaluation de l'expression XPath
-    char *cXPath = NULL;
-    asprintf (&cXPath, "//image[@size='%s']/text()",TAB_IMAGE_SIZES[cid->iImageSize]);
+    //gchar *cXPath = g_strdup_printf (xpath,cid->iImageSize == MEDIUM_IMAGE ? "large" : "extralarge"/*TAB_IMAGE_SIZES[cid->iImageSize]*/);
+    gchar *cXPath = g_strdup_vprintf (xpath, args);
     xmlXPathObjectPtr xpathRes = xmlXPathEvalExpression(cXPath, ctxt);
-    //xmlXPathObjectPtr xpathRes = xmlXPathEvalExpression("count(//image[size=large])", ctxt);
-    free (cXPath);
-    if (xpathRes == NULL) {
-        fprintf(stderr, "Erreur sur l'expression XPath\n");
+    g_free (cXPath);
+    if (xpathRes == NULL) 
+    {
+        cid_warning ( "Erreur sur l'expression XPath");
         return;
     }
     
     // Manipulation du résultat
-    if (xpathRes->type == XPATH_NODESET) {
+    if (xpathRes->type == XPATH_NODESET) 
+    {
         int i;
-        printf("Produits dont le prix est inférieur à 10 Euros :\n");
-        for (i = 0; i < xpathRes->nodesetval->nodeNr; i++) {
-            xmlNodePtr n = xpathRes->nodesetval->nodeTab[i];
-            if (n->type == XML_TEXT_NODE || n->type == XML_CDATA_SECTION_NODE) {
-                printf("- %s\n", n->content);
+        if (xpathRes->nodesetval != NULL)
+        {
+            for (i = 0; i < xpathRes->nodesetval->nodeNr; i++) 
+            {
+                xmlNodePtr n = xpathRes->nodesetval->nodeTab[i];
+                if (n->type == XML_TEXT_NODE || n->type == XML_CDATA_SECTION_NODE) 
+                {
+                    *cValue = g_strdup (n->content);
+                }
             }
         }
     }
     
-    /*
-    if (xpathRes->type == XPATH_NUMBER) {
-        printf("Nombre de produits dans le catalogue : %.0f\n", xmlXPathCastToNumber(xpathRes));
-    }
-    */
     // Libération de la mémoire
+    va_end (args);
     xmlXPathFreeObject(xpathRes);
     xmlXPathFreeContext(ctxt);
     xmlFreeDoc(doc);
@@ -167,31 +92,26 @@ cid_test_xml ()
 gboolean 
 cid_get_xml_file (const gchar *artist, const gchar *album) 
 {
+    cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+    
     if (g_strcasecmp("Unknown",artist)==0 || g_strcasecmp("Unknown",album)==0 ||
         g_strcasecmp("Inconnu",artist)==0 || g_strcasecmp("Inconnu",album)==0)
         return FALSE;
-        
-    gchar *ar = g_strdup(artist);
-    gchar *al = g_strdup(album);
     
-    cid_str_replace_all_seq(&ar," éèàç","+eeac");
-    
-    gchar *cFileToDownload = g_strdup_printf("%s%s%s&Artist=%s&Album=%s",AMAZON_API_URL_1,LICENCE_KEY,AMAZON_API_URL_2,artist,album);
+    gchar *cURLBegin = g_strdup_printf("%s%s&api_key=%s",LAST_API_URL,LAST_ALBUM,LAST_ID_KEY);
     gchar *cTmpFilePath = g_strdup (DEFAULT_XML_LOCATION);
     
-    /*
-    gchar *cCommand = g_strdup_printf ("rm %s >/dev/null 2>&1", DEFAULT_DOWNLOADED_IMAGE_LOCATION);
-    if (!system (cCommand)) return FALSE;
-    g_free (cCommand);
-    */
-    cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
-    //cCommand = g_strdup_printf ("wget \"%s\" -O '%s-bis' -t 2 -T 2 > /dev/null 2>&1 && mv %s-bis %s", cFileToDownload, cTmpFilePath, cTmpFilePath, cTmpFilePath);
-    //cid_debug ("%s\n",cCommand);
-    //system (cCommand);
-    //cid_launch_command (cCommand);
     CURL *handle = curl_easy_init(); 
-    curl_easy_setopt(handle, CURLOPT_URL, "http://annonces.ebay.fr/");
-    FILE * fp = fopen("test.html", "w"); 
+    gchar *cArtistClean = curl_easy_escape (handle, artist, 0);
+    gchar *cAlbumClean = curl_easy_escape (handle, album, 0);
+    gchar *cURLArgs = g_strdup_printf ("&artist=%s&album=%s", cArtistClean, cAlbumClean);
+    gchar *cURLFull = g_strdup_printf ("%s%s", cURLBegin, cURLArgs);
+    g_free (cURLArgs);
+    g_free (cArtistClean);
+    g_free (cAlbumClean);
+    g_free (cURLBegin);
+    curl_easy_setopt(handle, CURLOPT_URL, cURLFull);
+    FILE * fp = fopen(DEFAULT_XML_LOCATION, "w"); 
     curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
     curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
     curl_easy_perform(handle);
@@ -199,26 +119,26 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
     curl_easy_cleanup(handle);
 
     bCurrentlyDownloadingXML = TRUE;
-    //g_free (cCommand);
+    
     g_free (cTmpFilePath);
-    g_free (cFileToDownload);
+    g_free (cURLFull);
+    
     return TRUE;
 }
 
 gboolean 
 cid_download_missing_cover (const gchar *cURL, const gchar *cDestPath) 
 {
-    gchar *cCommand = g_strdup_printf ("wget \"%s\" -O '%s-bis' -t 2 -T 2 > /dev/null 2>&1 && mv %s-bis %s", cURL, cDestPath, cDestPath, cDestPath);
-    cid_debug ("%s\n",cCommand);
-    //system (cCommand);
-    cid_launch_command (cCommand);
     bCurrentlyDownloading = TRUE;
-    g_free (cCommand);
-    /*
-    cCommand = g_strdup_printf ("rm %s >/dev/null 2>&1", DEFAULT_XML_LOCATION);
-    if (!system (cCommand)) return FALSE;
-    g_free (cCommand);
-    */
+    CURL *handle = curl_easy_init ();
+    curl_easy_setopt(handle, CURLOPT_URL, cURL);
+    FILE * fp = fopen(cDestPath, "w"); 
+    curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
+    curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
+    curl_easy_perform(handle);
+    fclose(fp);
+    curl_easy_cleanup(handle);
+    
     cid_remove_file (DEFAULT_XML_LOCATION);
     return TRUE;
 }

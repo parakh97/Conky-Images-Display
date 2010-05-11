@@ -38,7 +38,7 @@ cid_mpd_cover ()
         }
     }
     
-    // On verifie qu'il n'y a pas d'erreurs
+    // On verifie qu'il n'y ait pas d'erreurs
     if (conn->error)
     {
         cid_warning ("MPD error: %s",conn->errorStr);
@@ -110,7 +110,7 @@ cid_mpd_cover ()
             continue;
         }
         
-        if (musicData.playing_uri != NULL && strcmp (musicData.playing_uri,song->file) == 0)
+        if (musicData.playing_uri != NULL && strcmp (musicData.playing_uri,song->file) == 0) 
             return cont;
         
         g_free (musicData.playing_artist);

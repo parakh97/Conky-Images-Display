@@ -315,6 +315,21 @@ main ( int argc, char **argv )
     //printf("size: %d\n",cid_datatable_length(test));
     //cid_datatable_foreach(test,(CidDataAction)cid_datacase_print,NULL);
     //cid_free_datatable(&test);
+    /*
+    cid_get_xml_file ("john butler trio","april uprising");
+    gchar *cImageURL = NULL;
+    cid_get_cover_url (DEFAULT_XML_LOCATION,&cImageURL);
+    cid_debug ("URL : %s",cImageURL);
+    if (cImageURL != NULL) 
+    {
+        cid_download_missing_cover (cImageURL,DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        g_free (cImageURL);
+    } 
+    else 
+    {
+        fprintf (stdout, "no file to download\n");
+    }
+    */
     fprintf (stdout,"Bye !\n");    
 
     return ret;

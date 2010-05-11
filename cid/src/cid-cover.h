@@ -24,18 +24,15 @@ G_BEGIN_DECLS
 #define DEFAULT_DOWNLOADED_IMAGE_LOCATION "/tmp/default.jpg"
 
 #define LAST_ID_KEY "941340dc17f3e2704c5b06ebf845e98e"
+#define SECRET_ID_KEY "4f46fa5c4a8d4eaf794cdb6ff7bff2ea"
 #define LAST_API_URL "http://ws.audioscrobbler.com/2.0/?method="
 #define LAST_ARTIST "artist.getinfo"
 #define LAST_ALBUM "album.getinfo"
-//&api_key=
+
+#define LAST_XPATH "//image[@size='%s']/text()"
+
 #define TEST_XML "../data/test.xml"
 
-/**
- * Lit les noeuds du fichier en cours de parsage
- * @param reader le noeud courrant
- * @param imageSize Noeud que l'on cherche
- */
-static void cid_process_node (xmlTextReaderPtr reader, gchar **cValue);
 
 /**
  * Parse le fichier XML passé en argument
@@ -43,7 +40,9 @@ static void cid_process_node (xmlTextReaderPtr reader, gchar **cValue);
  * @param filename URI du fichier à lire
  * @param imageSize Taille de l'image que l'on souhaite
  */
-void cid_stream_file(const char *filename, gchar **cValue);
+void cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, ...);
+
+#define cid_get_cover_url(filename,cValue) cid_search_xml_xpath(filename,cValue,LAST_XPATH,cid->iImageSize==MEDIUM_IMAGE?"large":"extralarge")
 
 /**
  * Recupere le fichier xml sur amazon.
@@ -60,9 +59,6 @@ gboolean cid_get_xml_file (const gchar *artist, const gchar *album);
  * @return succes du telechargement.
  */
 gboolean cid_download_missing_cover (const gchar *cURL, const gchar *cDestPath);
-
-
-void cid_test_xml ();
 
 G_END_DECLS
 #endif

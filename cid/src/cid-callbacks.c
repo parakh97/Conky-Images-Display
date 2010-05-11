@@ -358,7 +358,7 @@ _cid_proceed_download_cover (gpointer p)
 
     // Avant tout, on dl le xml
     if (!bCurrentlyDownloadingXML && !bCurrentlyDownloading) 
-        cid_get_xml_file(musicData.playing_artist,musicData.playing_album);
+        cid_get_xml_file (musicData.playing_artist,musicData.playing_album);
 
     // Quand on a le xml, on dl la pochette
     if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS) && !bCurrentlyDownloading) 
@@ -366,18 +366,18 @@ _cid_proceed_download_cover (gpointer p)
         if (cImageURL)
             g_free(cImageURL);
         cImageURL = NULL;
-        cid_stream_file(DEFAULT_XML_LOCATION,&cImageURL);
+        cid_get_cover_url (DEFAULT_XML_LOCATION,&cImageURL);
         cid_debug ("URL : %s",cImageURL);
-        if (cImageURL) 
+        if (cImageURL != NULL) 
         {
-            cid_download_missing_cover(cImageURL,DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+            cid_download_missing_cover (cImageURL,DEFAULT_DOWNLOADED_IMAGE_LOCATION);
             bCurrentlyDownloadingXML = FALSE;
         } 
         else 
         {
             bCurrentlyDownloadingXML = FALSE;
             bCurrentlyDownloading = FALSE;
-            cid_debug ("Téléchargement impossible\n");
+            cid_debug ("Téléchargement impossible");
             cid_stop_measure_timer (pMeasureTimer);
             return FALSE;
         }
