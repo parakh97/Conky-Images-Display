@@ -92,7 +92,7 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
 gboolean 
 cid_get_xml_file (const gchar *artist, const gchar *album) 
 {
-    cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+//    cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     
     if (g_strcasecmp("Unknown",artist)==0 || g_strcasecmp("Unknown",album)==0 ||
         g_strcasecmp("Inconnu",artist)==0 || g_strcasecmp("Inconnu",album)==0)
@@ -143,7 +143,7 @@ cid_download_missing_cover (const gchar *cURL, const gchar *cDestPath)
     fclose(fp);
     curl_easy_cleanup(handle);
     
-    cid_remove_file (DEFAULT_XML_LOCATION);
+//    cid_remove_file (DEFAULT_XML_LOCATION);
     return TRUE;
 }
 

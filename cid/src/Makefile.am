@@ -31,9 +31,7 @@ cid_CFLAGS = \
     -DCID_LOCALE_DIR=\""$(datadir)/locale"\"\
     -DCID_GETTEXT_PACKAGE=\""$(GETTEXT_PACKAGE)"\"\
     -W \
-    -Werror \
-    -fno-builtin \
-    -g  
+    -fno-builtin 
 
 cid_LDFLAGS = \
     -Wl,--export-dynamic
