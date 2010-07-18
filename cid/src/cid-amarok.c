@@ -99,8 +99,8 @@ get_amarock_musicData ()
 gboolean 
 cid_download_amarok_cover (gpointer data) 
 {
-    cid->iCheckIter++;
-    if (cid->iCheckIter > cid->iTimeToWait) 
+    cid->runtime->iCheckIter++;
+    if (cid->runtime->iCheckIter > cid->config->iTimeToWait) 
     {
         if (pMeasureTimer) 
         {
@@ -126,7 +126,7 @@ cid_check_amarok_cover_exists (gchar *cURI)
     {
         g_free (cCleanURI);
         g_free (cSplitedURI);
-        cid->iCheckIter = 0;
+        cid->runtime->iCheckIter = 0;
         g_timeout_add (1000, (GSourceFunc) cid_download_amarok_cover, (gpointer) NULL);
         return g_strdup(DEFAULT_IMAGE);
     }
@@ -153,7 +153,7 @@ cid_amarok_cover()
                 cid_display_image (cid_check_amarok_cover_exists(musicData.playing_cover));
             else
                 cid_display_image (DEFAULT_IMAGE);
-            cid_animation(cid->iAnimationType);
+            cid_animation(cid->config->iAnimationType);
         } 
     }
         
@@ -163,23 +163,23 @@ cid_amarok_cover()
 void 
 cid_amarok_pipe (gint iInter) 
 {
-    cid->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_amarok_cover, NULL, NULL);
+    cid->runtime->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_amarok_cover, NULL, NULL);
 }
 
 void 
 cid_disconnect_from_amarok () 
 {
     cont = FALSE;
-    if (cid->bPipeRunning)
-        g_source_remove (cid->iPipe);
-    cid->bPipeRunning = FALSE;
+    if (cid->runtime->bPipeRunning)
+        g_source_remove (cid->runtime->iPipe);
+    cid->runtime->bPipeRunning = FALSE;
 }
 
 void 
 cid_connect_to_amarok(gint iInter) 
 {
     cont = TRUE;
-    cid->bPipeRunning = TRUE;
+    cid->runtime->bPipeRunning = TRUE;
     cid_display_image(DEFAULT_IMAGE);
     cid_amarok_pipe (iInter);   
 }
@@ -208,8 +208,8 @@ _previous_amarok (void)
 void 
 cid_build_amarok_menu (void) 
 {
-    cid->pMonitorList->p_fPlayPause = _playPause_amarok;
-    cid->pMonitorList->p_fNext = _next_amarok;
-    cid->pMonitorList->p_fPrevious = _previous_amarok;
-    cid->pMonitorList->p_fAddToQueue = NULL;
+    cid->runtime->pMonitorList->p_fPlayPause = _playPause_amarok;
+    cid->runtime->pMonitorList->p_fNext = _next_amarok;
+    cid->runtime->pMonitorList->p_fPrevious = _previous_amarok;
+    cid->runtime->pMonitorList->p_fAddToQueue = NULL;
 }

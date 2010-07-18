@@ -22,74 +22,74 @@ static CidMeasure *pMeasureTimerFocus = NULL;
 gboolean 
 cid_fade_in_out (void *ptr) 
 {
-    cid->iCurrentlyDrawing = 1;
-    cid->bAnimation = TRUE;
+    cid->runtime->iCurrentlyDrawing = 1;
+    cid->runtime->bAnimation = TRUE;
     
-    if (cid->dFadeInOutAlpha > .99)
-        cid->dFadeInOutAlpha = 0;
+    if (cid->runtime->dFadeInOutAlpha > .99)
+        cid->runtime->dFadeInOutAlpha = 0;
         
-    cid->dFadeInOutAlpha += IN_OUT_VARIATION * cid->iAnimationSpeed;
+    cid->runtime->dFadeInOutAlpha += IN_OUT_VARIATION * cid->config->iAnimationSpeed;
     
     CID_REDRAW;
     
-    cid->iCurrentlyDrawing = 0;
+    cid->runtime->iCurrentlyDrawing = 0;
     
-    cid->bAnimation = cid->dFadeInOutAlpha < .99;
-    if (!cid->bAnimation)
+    cid->runtime->bAnimation = cid->runtime->dFadeInOutAlpha < .99;
+    if (!cid->runtime->bAnimation)
         cid_stop_measure_timer(pMeasureTimerAnimation);
-    return cid->bAnimation;
+    return cid->runtime->bAnimation;
 }
 
 /* On change la couleur de fond de la fenêtre au passage de la souris */
 gboolean 
 cid_focus_in(void *ptr) 
 {
-    cid->iCurrentlyDrawing = 1;
-    cid->bFocusAnimation = TRUE;
+    cid->runtime->iCurrentlyDrawing = 1;
+    cid->runtime->bFocusAnimation = TRUE;
     
-    cid->dAlpha += cid->dFocusVariation * FADE_VARIATION;
-    cid->dAnimationProgress = cid->dAlpha / (cid->dFocusVariation > 0 ? 
-        cid->dFlyingColor[3]-cid->dColor[3] : cid->dColor[3]-cid->dFlyingColor[3]);
+    cid->config->dAlpha += cid->runtime->dFocusVariation * FADE_VARIATION;
+    cid->runtime->dAnimationProgress = cid->config->dAlpha / (cid->runtime->dFocusVariation > 0 ? 
+        cid->config->dFlyingColor[3]-cid->config->dColor[3] : cid->config->dColor[3]-cid->config->dFlyingColor[3]);
     
     CID_REDRAW;
     
-    cid->iCurrentlyDrawing = 0;
+    cid->runtime->iCurrentlyDrawing = 0;
     
-    cid->bFocusAnimation = cid->dFocusVariation>0 ? 
-        cid->dAlpha < cid->dFlyingColor[3] : cid->dAlpha > cid->dFlyingColor[3];
-    if (!cid->bFocusAnimation) 
+    cid->runtime->bFocusAnimation = cid->runtime->dFocusVariation>0 ? 
+        cid->config->dAlpha < cid->config->dFlyingColor[3] : cid->config->dAlpha > cid->config->dFlyingColor[3];
+    if (!cid->runtime->bFocusAnimation) 
         cid_stop_measure_timer(pMeasureTimerFocus);
-    return cid->bFocusAnimation;
+    return cid->runtime->bFocusAnimation;
 }
 
 /* On restaure la couleur de fond d'origine lorsqu'on quitte la fenêtre */
 gboolean 
 cid_focus_out(void *ptr) 
 {
-    cid->iCurrentlyDrawing = 1;
+    cid->runtime->iCurrentlyDrawing = 1;
     
-    cid->bFocusAnimation = TRUE;
+    cid->runtime->bFocusAnimation = TRUE;
     
-    cid->dAlpha -= cid->dFocusVariation * FADE_VARIATION;
-    cid->dAnimationProgress = cid->dAlpha / (cid->dFocusVariation > 0 ? 
-        cid->dFlyingColor[3]-cid->dColor[3] : cid->dColor[3]-cid->dFlyingColor[3]);
+    cid->config->dAlpha -= cid->runtime->dFocusVariation * FADE_VARIATION;
+    cid->runtime->dAnimationProgress = cid->config->dAlpha / (cid->runtime->dFocusVariation > 0 ? 
+        cid->config->dFlyingColor[3]-cid->config->dColor[3] : cid->config->dColor[3]-cid->config->dFlyingColor[3]);
 
-    if (cid->dFocusVariation>0 ? cid->dAlpha <= cid->dColor[3] : cid->dAlpha >= cid->dColor[3]) 
+    if (cid->runtime->dFocusVariation>0 ? cid->config->dAlpha <= cid->config->dColor[3] : cid->config->dAlpha >= cid->config->dColor[3]) 
     {
-        cid->dRed = cid->dColor[0];
-        cid->dGreen = cid->dColor[1];
-        cid->dBlue = cid->dColor[2];
+        cid->config->dRed = cid->config->dColor[0];
+        cid->config->dGreen = cid->config->dColor[1];
+        cid->config->dBlue = cid->config->dColor[2];
     }
     
     CID_REDRAW;
     
-    cid->iCurrentlyDrawing = 0;
-    cid->bCurrentlyFlying = cid->dFocusVariation>0 ? 
-        cid->dAlpha > cid->dColor[3] : cid->dAlpha < cid->dColor[3];
-    cid->bFocusAnimation = cid->bCurrentlyFlying;
-    if (!cid->bFocusAnimation)
+    cid->runtime->iCurrentlyDrawing = 0;
+    cid->runtime->bCurrentlyFlying = cid->runtime->dFocusVariation>0 ? 
+        cid->config->dAlpha > cid->config->dColor[3] : cid->config->dAlpha < cid->config->dColor[3];
+    cid->runtime->bFocusAnimation = cid->runtime->bCurrentlyFlying;
+    if (!cid->runtime->bFocusAnimation)
         cid_stop_measure_timer(pMeasureTimerFocus);
-    return cid->bCurrentlyFlying;
+    return cid->runtime->bCurrentlyFlying;
 }
 
 /* On appelle la fonction adéquate selon qu'on "expose" ou non la fenêtre */
@@ -99,18 +99,18 @@ cid_focus (GtkWidget *pWidget, GdkEventExpose *event, gpointer *userdata)
 
     gboolean bFocusIn = GPOINTER_TO_INT (&userdata[0]);
     
-    cid_info ("CID is currently focused %s.\n", bFocusIn ? "in" : "out");
+    cid_info ("CID is currently focused %s.", bFocusIn ? "in" : "out");
     
-    if (cid->bShowAbove)
+    if (cid->config->bShowAbove)
         gtk_window_set_keep_below (GTK_WINDOW (cid->pWindow), !bFocusIn);
     
     if (bFocusIn) 
     {
-        cid->bCurrentlyFlying = TRUE;
+        cid->runtime->bCurrentlyFlying = TRUE;
         // On change la couleur du fond par celle choisie
-        cid->dRed = cid->dFlyingColor[0];
-        cid->dGreen = cid->dFlyingColor[1];
-        cid->dBlue = cid->dFlyingColor[2];
+        cid->config->dRed = cid->config->dFlyingColor[0];
+        cid->config->dGreen = cid->config->dFlyingColor[1];
+        cid->config->dBlue = cid->config->dFlyingColor[2];
         // Coloration "smoothie"
         cid_animation(CID_FOCUS_IN);
     } else 
@@ -121,24 +121,24 @@ cid_focus (GtkWidget *pWidget, GdkEventExpose *event, gpointer *userdata)
 gboolean 
 cid_rotate_on_changing_song (void *ptr) 
 {
-    cid->iCurrentlyDrawing = 1;
-    cid->bAnimation = TRUE;
+    cid->runtime->iCurrentlyDrawing = 1;
+    cid->runtime->bAnimation = TRUE;
     
-    if (cid->dAngle < 360) 
+    if (cid->runtime->dAngle < 360) 
     {
-        cid->dAngle += (1.0 * cid->iAnimationSpeed);
+        cid->runtime->dAngle += (1.0 * cid->config->iAnimationSpeed);
         CID_REDRAW;
     } 
     else 
     {
-        cid->bAnimation = FALSE;
-        cid->dAngle = 0;
+        cid->runtime->bAnimation = FALSE;
+        cid->runtime->dAngle = 0;
         cid_stop_measure_timer(pMeasureTimerAnimation);
     }
 
-    cid->iCurrentlyDrawing = 0;
+    cid->runtime->iCurrentlyDrawing = 0;
     
-    return cid->bAnimation;
+    return cid->runtime->bAnimation;
 }
 
 /* on lance un thread pour une animation */
@@ -220,27 +220,27 @@ cid_animation (AnimationType iAnim)
 {
     switch(iAnim) {
         case CID_ROTATE:
-            if (cid->bRunAnimation && !cid->bAnimation)
-                if (cid->bThreaded)
+            if (cid->config->bRunAnimation && !cid->runtime->bAnimation)
+                if (cid->config->bThreaded)
                     cid_threaded_animation(iAnim,1 SECONDES/25);
                 else 
                     g_timeout_add_full (-50, 1 SECONDES/25, (GSourceFunc) cid_rotate_on_changing_song, NULL, NULL);
             break;
         case CID_FADE_IN_OUT:
-            if (cid->bRunAnimation && !cid->bAnimation)
-                if (cid->bThreaded)
+            if (cid->config->bRunAnimation && !cid->runtime->bAnimation)
+                if (cid->config->bThreaded)
                     cid_threaded_animation(iAnim,1 SECONDES/12);
                 else
                     g_timeout_add_full (-50, 1 SECONDES/12, (GSourceFunc) cid_fade_in_out, NULL, NULL);
             break;
         case CID_FOCUS_IN:
-            if (cid->bThreaded)
+            if (cid->config->bThreaded)
                 cid_threaded_animation(iAnim,1 SECONDES/12);
             else 
                 g_timeout_add (1 SECONDES/12, (GSourceFunc) cid_focus_in, NULL);
             break;
         case CID_FOCUS_OUT:
-            if (cid->bThreaded)
+            if (cid->config->bThreaded)
                 cid_threaded_animation(iAnim,1 SECONDES/12);
             else 
                 g_timeout_add (1 SECONDES/12, (GSourceFunc) cid_focus_out, NULL);

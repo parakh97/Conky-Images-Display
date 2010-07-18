@@ -21,7 +21,7 @@ G_BEGIN_DECLS
 #define OLD_CONFIG_FILE ".cidrc"
 
 /* Alias pour récupérer l'URI de l'image par défaut */
-#define DEFAULT_IMAGE cid->cDefaultImage
+#define DEFAULT_IMAGE cid->config->cDefaultImage
 
 #define TESTING_COVER "default.svg"
 #define TESTING_FILE "cid.conf"

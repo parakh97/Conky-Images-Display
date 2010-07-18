@@ -62,7 +62,7 @@ gint cid_get_int_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gbo
  * Fonction qui charge la configuration .
  * @param f fichier de configuration à lire.
  */
-int cid_read_config (const char *f, gpointer *pData);
+int cid_read_config (CidMainContainer **pCid, const char *f);
 
 /**
  * vérifie que le fichier de configuration existe.
@@ -73,7 +73,7 @@ void cid_check_file (const char *f);
 /**
  * sauvegarde les données de cid
  */
-void cid_save_data ();
+void cid_save_data (CidMainContainer **pCid);
 
 /**
  * sauvegarde les clés dans le fichier de configurations.
@@ -86,22 +86,22 @@ void cid_write_keys_to_file (GKeyFile *pKeyFile, const gchar *cConfFilePath);
  * vérifie la version du fichier de configuration.
  * @param f path du fichier à vérifier.
  */
-gboolean cid_check_conf_file_version (const gchar *f);
+gboolean cid_check_conf_file_version (CidMainContainer **pCid, const gchar *f);
 
 /**
  * Permet de recharger la configuration lorsqu'on applique des changement via le GUI.
  */
-void cid_read_config_after_update (const char *f, gpointer *pData);
+void cid_read_config_after_update (CidMainContainer **pCid, const char *f);
 
 /**
  * Lit le fichier de configuration donne en parametre.
  */
-void cid_read_key_file (const gchar *f);
+void cid_read_key_file (CidMainContainer **pCid, const gchar *f);
 
 /**
  * Permet de libérer le fichier de clés
  */
-void cid_key_file_free(void);
+void cid_key_file_free(CidMainContainer **pCid);
 
 G_END_DECLS
 #endif

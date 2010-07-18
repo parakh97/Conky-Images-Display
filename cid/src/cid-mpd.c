@@ -17,7 +17,7 @@
 
 extern CidMainContainer *cid;
 
-static gboolean cont;
+static gboolean cont, first;
 static mpd_Connection *conn = NULL;
 
 gboolean
@@ -82,11 +82,18 @@ cid_mpd_cover ()
     
     if (status->state == MPD_STATUS_STATE_STOP || status->state == MPD_STATUS_STATE_UNKNOWN)
     {
-        musicData.opening = FALSE;
-        mpd_freeStatus(status);
-        cid_display_image (DEFAULT_IMAGE);
+        if (bOldState!=musicData.playing || first)
+        {
+            musicData.opening = FALSE;
+            first = FALSE;
+            mpd_freeStatus(status);
+            cid_set_state_icon();
+            cid_display_image (DEFAULT_IMAGE);
+        }
         return cont;
     }
+    
+    first = FALSE;
     
     mpd_freeStatus(status);
     
@@ -111,7 +118,11 @@ cid_mpd_cover ()
         }
         
         if (musicData.playing_uri != NULL && strcmp (musicData.playing_uri,song->file) == 0) 
+        {
+            if (bOldState!=musicData.playing)
+                cid_display_image (musicData.playing_cover);
             return cont;
+        }
         
         g_free (musicData.playing_artist);
         if (song->artist)
@@ -181,8 +192,8 @@ cid_mpd_cover ()
         g_free (cSongDir);
         if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
         {
-            cid->iCheckIter = 0;
-            if (cid->iPlayer != PLAYER_NONE) 
+            cid->runtime->iCheckIter = 0;
+            if (cid->config->iPlayer != PLAYER_NONE) 
             {
                 cid_debug ("l'image n'existe pas encore => on boucle.\n");
                 musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, (gpointer) NULL);
@@ -198,7 +209,7 @@ cid_mpd_cover ()
               musicData.playing_cover);
     
     cid_display_image (musicData.playing_cover);
-    cid_animation(cid->iAnimationType);
+    cid_animation(cid->config->iAnimationType);
     
     return cont;
 }
@@ -206,16 +217,17 @@ cid_mpd_cover ()
 void 
 cid_mpd_pipe (gint iInter) 
 {
-    cid->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_mpd_cover, NULL, NULL);
+    cid->runtime->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_mpd_cover, NULL, NULL);
 }
 
 void 
 cid_connect_to_mpd (gint iInter)
 {
     cont = TRUE;
-    cid->bPipeRunning = TRUE;
+    first = TRUE;
+    cid->runtime->bPipeRunning = TRUE;
     cid_mpd_cover ();
-    cid->bConnected = TRUE;
+    cid->runtime->bConnected = TRUE;
     cid_mpd_pipe (iInter);   
 }
 
@@ -223,10 +235,10 @@ void
 cid_disconnect_from_mpd ()
 {
     cont = FALSE;
-    cid->bConnected = FALSE;
-    if (cid->bPipeRunning)
-        g_source_remove (cid->iPipe);
-    cid->bPipeRunning = FALSE;
+    cid->runtime->bConnected = FALSE;
+    if (cid->runtime->bPipeRunning)
+        g_source_remove (cid->runtime->iPipe);
+    cid->runtime->bPipeRunning = FALSE;
     musicData.opening = FALSE;
     musicData.playing = FALSE;
     cid_display_image (NULL);
@@ -275,10 +287,10 @@ _previous_mpd (void)
 void 
 cid_build_mpd_menu (void)
 {
-    cid->pMonitorList->p_fPlayPause = _playPause_mpd;
-    cid->pMonitorList->p_fNext = _next_mpd;
-    cid->pMonitorList->p_fPrevious = _previous_mpd;
-    cid->pMonitorList->p_fAddToQueue = NULL;
+    cid->runtime->pMonitorList->p_fPlayPause = _playPause_mpd;
+    cid->runtime->pMonitorList->p_fNext = _next_mpd;
+    cid->runtime->pMonitorList->p_fPrevious = _previous_mpd;
+    cid->runtime->pMonitorList->p_fAddToQueue = NULL;
     cid->p_fConnectHandler = cid_reconnect_mpd;
     cid->p_fDisconnectHandler = cid_disconnect_from_mpd;
 }

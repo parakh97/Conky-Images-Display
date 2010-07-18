@@ -14,6 +14,7 @@
 #include <gtk/gtk.h>
 #include <ctype.h>
 #include "cid-struct.h"
+#include "cid-X-utilities.h"
 
 G_BEGIN_DECLS
 
@@ -66,7 +67,7 @@ int cid_sortie(int code);
  * @param nombre d'arguments
  * @param tableau de chaines contenant la liste des arguments
  */
-void cid_read_parameters (int argc, char **argv);
+void cid_read_parameters (int *argc, char ***argv);
 
 /**
  * definit la niveau de verbosite

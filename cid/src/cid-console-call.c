@@ -43,7 +43,7 @@ cid_console_get_string_with_error_full (const gchar *cCommand, gchar *cDefault, 
         setError(error,CID_CONSOLE_UNREACHABLE, cCommand);
         return cDefault;
     }
-    gchar *cRead = (gchar *) malloc (512*sizeof(gchar));
+    gchar *cRead = g_malloc (512*sizeof(gchar));
     if (!fgets(cRead,512,pPipe)) 
     {
         setError(error,CID_CONSOLE_CANT_READ_PIPE, cCommand);
@@ -67,7 +67,7 @@ cid_console_get_int_with_error_full (const gchar *cCommand, gint iDefault, CIDEr
         setError(error,CID_CONSOLE_UNREACHABLE, cCommand);
         return iDefault;
     }
-    gchar *cRead = (gchar *) malloc (128*sizeof(gchar));
+    gchar *cRead = g_malloc (128*sizeof(gchar));
     if (!fgets(cRead,128,pPipe)) 
     {
         setError(error,CID_CONSOLE_CANT_READ_PIPE, cCommand);
@@ -92,7 +92,7 @@ cid_console_get_boolean_with_error_full (const gchar *cCommand, gboolean bDefaul
         setError(error,CID_CONSOLE_UNREACHABLE, cCommand);
         return bDefault;
     }
-    gchar *cRead = (gchar *) malloc (64*sizeof(gchar));
+    gchar *cRead = g_malloc (64*sizeof(gchar));
     if (!fgets(cRead,64,pPipe)) 
     {
         setError(error,CID_CONSOLE_CANT_READ_PIPE, cCommand);

@@ -31,7 +31,9 @@ cid_CFLAGS = \
     -DCID_LOCALE_DIR=\""$(datadir)/locale"\"\
     -DCID_GETTEXT_PACKAGE=\""$(GETTEXT_PACKAGE)"\"\
     -W \
-    -fno-builtin 
+    -Werror \
+    -fno-builtin \
+    -g  
 
 cid_LDFLAGS = \
     -Wl,--export-dynamic
@@ -82,6 +84,8 @@ cid_SOURCES = \
     cid-rhythmbox.h \
     cid-utilities.c \
     cid-utilities.h \
+    cid-X-utilities.c \
+    cid-X-utilities.h \
     libmpdclient.c \
     libmpdclient.h
     
@@ -124,5 +128,6 @@ cidsubinclude_HEADERS = \
     cid-rhythmbox.h \
     cid-struct.h \
     cid-utilities.h \
+    cid-X-utilities.h \
     libmpdclient.h
 

@@ -15,6 +15,8 @@
 G_BEGIN_DECLS
 ///\______ Structures de donnees
 typedef struct _CidMainContainer CidMainContainer;
+typedef struct _CidConfig CidConfig;
+typedef struct _CidRuntime CidRuntime;
 typedef struct _CidLabelDescription CidLabelDescription;
 typedef struct _CidControlFunctionsList CidControlFunctionsList;
 typedef struct _CidDataTable CidDataTable;
@@ -28,7 +30,7 @@ typedef struct _CidVisitCard CidVisitCard;
 typedef struct _CidInternalModule CidInternalModule;
 
 ///\______ Encapsulations
-typedef void (* CidReadConfigFunc) (gchar *cConfFile, gpointer *data);
+typedef void (* CidReadConfigFunc) (CidMainContainer **pCid, gchar *cConfFile);
 typedef void (* CidControlFunction) (void);
 typedef void (* CidManagePlaylistFunction) (gchar *cSong);
 typedef void (* CidDataAction) (CidDataCase *pCase, gpointer *pData);
@@ -192,6 +194,76 @@ struct _CidMainContainer {
     // cairo context
     cairo_t *p_cContext;
     
+    // configuration
+    CidConfig *config;
+    
+    // runtime
+    CidRuntime *runtime;
+    
+    // keyFile
+    GKeyFile *pKeyFile;
+    
+    // handler connexion/deconnexion
+    CidConnectPlayer p_fConnectHandler;
+    CidDisconnectPlayer p_fDisconnectHandler;
+    
+    ///\__ Dimensions de l'ecran
+    int XScreenWidth;
+    int XScreenHeight;
+    
+    /// MPD specific config
+    gchar *mpd_dir;
+    gchar *mpd_host;
+    gchar *mpd_pass;
+    gint mpd_port;
+};
+
+struct _CidRuntime {
+    // currently drawing
+    gint iCurrentlyDrawing;
+    // temps ecoule avant le telechargement
+    gint iCheckIter;
+    // position en x du curseur
+    gint iCursorX;
+    // position en y du curseur
+    gint iCursorY;
+    
+    // avancement de l'animation
+    gdouble dAnimationProgress;
+    
+    // pipe
+    guint iPipe;
+    
+    // fonctions de monitoring
+    CidControlFunctionsList *pMonitorList;
+    
+    // current animation angle
+    gdouble dAngle;
+    // variation focus
+    gdouble dFocusVariation;
+    // alpha pour le fade in
+    gdouble dFadeInOutAlpha;
+    // CID lancé ?
+    gboolean bRunning;
+    // animation en cours ?
+    gboolean bAnimation;
+    // animation de focus en cours ?
+    gboolean bFocusAnimation;
+    // lecteur en lecture ?
+    gboolean bCurrentlyPlaying;
+    // survol de cid ?
+    gboolean bCurrentlyFlying;
+    // La fenetre de conf est ouverte ?
+    gboolean bBlockedWidowActive;
+    // Est-ce qu'un panneau de configuration est deja present ?
+    gboolean bConfFilePanel;
+    // On a lance un pipe ?
+    gboolean bPipeRunning;
+    // On est connecte au lecteur ?
+    gboolean bConnected;
+};
+
+struct _CidConfig {
     // largeur de cid
     gint iWidth;
     // hauteur de cid
@@ -202,30 +274,16 @@ struct _CidMainContainer {
     gint iPosY;
     // interval par défaut
     gint iInter;
-    // currently drawing
-    gint iCurrentlyDrawing;
     // temps avant de telecharger les pochettes manquantes
     gint iTimeToWait;
-    // temps ecoule avant le telechargement
-    gint iCheckIter;
     // taille des images "extras"
     gint iExtraSize;
     // taille des images prev/next
     gint iPrevNextSize;
     // taille des images play/pause big
     gint iPlayPauseSize;
-    // position en x du curseur
-    gint iCursorX;
-    // position en y du curseur
-    gint iCursorY;
     // vitesse de l'animation
     gint iAnimationSpeed;
-    
-    // avancement de l'animation
-    gdouble dAnimationProgress;
-    
-    // pipe
-    guint iPipe;
     
     // lecteur a monitorer
     PlayerIndice iPlayer;
@@ -233,8 +291,6 @@ struct _CidMainContainer {
     AnimationType iAnimationType;
     // taille des covers à télécharger
     ImageSizes iImageSize;
-    // fonctions de monitoring
-    CidControlFunctionsList *pMonitorList;
     // couleur des symboles
     SymbolColor iSymbolColor;
     
@@ -259,14 +315,8 @@ struct _CidMainContainer {
     gdouble dGreen;
     // bleu
     gdouble dBlue;
-    // current animation angle
-    gdouble dAngle;
-    // variation focus
-    gdouble dFocusVariation;
     // taille de la police
     gdouble dPoliceSize;
-    // alpha pour le fade in
-    gdouble dFadeInOutAlpha;
     
     // image par défaut
     gchar *cDefaultImage;
@@ -287,26 +337,16 @@ struct _CidMainContainer {
     gboolean bAllDesktop;
     // télécharger les pochettes manquantes ?
     gboolean bDownload;
-    // CID lancé ?
-    gboolean bRunning;
-    // animation en cours ?
-    gboolean bAnimation;
-    // animation de focus en cours ?
-    gboolean bFocusAnimation;
     // on autorise l'animation ?
     gboolean bRunAnimation;
     // on autorise le monitoring du player ?
     gboolean bMonitorPlayer;
-    // lecteur en lecture ?
-    gboolean bCurrentlyPlaying;
     // animation threadee ?
     gboolean bThreaded;
     // mode developpeur ?
     gboolean bDevMode;
     // options instables ?
     gboolean bUnstable;
-    // survol de cid ?
-    gboolean bCurrentlyFlying;
     // afficher le statut
     gboolean bPlayerState;
     // on affiche un masque au survol ?
@@ -315,22 +355,14 @@ struct _CidMainContainer {
     gboolean bDisplayTitle;
     // CID en mode de secours ?
     gboolean bSafeMode;
-    // La fenetre de conf est ouverte ?
-    gboolean bBlockedWidowActive;
     // On a active/desactive les options instables ?
     gboolean bChangedTestingConf;
-    // Est-ce qu'un panneau de configuration est deja present ?
-    gboolean bConfFilePanel;
-    // On a lance un pipe ?
-    gboolean bPipeRunning;
     // Afficher les controles ?
     gboolean bDisplayControl;
     // Passe cid au premier plan lors d'un survol ?
     gboolean bShowAbove;
     // On ne fait que configurer cid ?
     gboolean bConfigPanel;
-    // On est connecte au lecteur ?
-    gboolean bConnected;
 
     
     // taille de la couleur
@@ -341,23 +373,6 @@ struct _CidMainContainer {
     gsize gPlainTextSize;
     // taille de la couleur de contour de police
     gsize gOutlineTextSize;
-    
-    // keyFile
-    GKeyFile *pKeyFile;
-    
-    // handler connexion/deconnexion
-    CidConnectPlayer p_fConnectHandler;
-    CidDisconnectPlayer p_fDisconnectHandler;
-    
-    ///\__ Dimensions de l'ecran
-    int XScreenWidth;
-    int XScreenHeight;
-    
-    /// MPD specific config
-    gchar *mpd_dir;
-    gchar *mpd_host;
-    gchar *mpd_pass;
-    gint mpd_port;
 };
 
 struct _CidLabelDescription {

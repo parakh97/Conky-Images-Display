@@ -60,7 +60,7 @@ cid_config_panel_destroyed (void)
     {
         cid_debug ("plus de panneaux de config\n");
         iNbConfigDialogs = 0;
-        cid->bConfFilePanel = FALSE;
+        cid->runtime->bConfFilePanel = FALSE;
     }
 }
 
@@ -73,7 +73,7 @@ cid_edit_conf_file_with_panel (GtkWindow *pWindow, gchar *cConfFilePath, const g
 gboolean 
 on_delete_main_gui (GMainLoop *pBlockingLoop) 
 {
-    cid_debug ("%s (%x)\n", __func__, (unsigned int)pBlockingLoop);
+    cid_debug ("%s (%x)\n", __func__, (unsigned int)(long)pBlockingLoop);
     if (pBlockingLoop != NULL) 
     {
         cid_debug ("dialogue detruit, on sort de la boucle\n");
@@ -86,7 +86,8 @@ on_delete_main_gui (GMainLoop *pBlockingLoop)
 gboolean 
 cid_edit_conf_file_core (GtkWindow *pWindow, gchar *cConfFilePath, const gchar *cTitle, int iWindowWidth, int iWindowHeight, gchar iIdentifier, gchar *cPresentedGroup, CidReadConfigFunc pConfigFunc, gchar *cGettextDomain) 
 {
-    if (/*s_pDialog*/cid->pConfigPanel != NULL && cid->bConfFilePanel) 
+    //CidMainContainer *cid = pData[0];
+    if (/*s_pDialog*/cid->pConfigPanel != NULL && cid->runtime->bConfFilePanel) 
     {
         return FALSE;
     }
@@ -107,17 +108,17 @@ cid_edit_conf_file_core (GtkWindow *pWindow, gchar *cConfFilePath, const gchar *
     
     GPtrArray *pDataGarbage = g_ptr_array_new ();
 
-    cid->pConfigPanel = cid_generate_ihm_from_keyfile (pKeyFile, cTitle, pWindow, &pWidgetList, (pConfigFunc != NULL)&&!cid->bSafeMode, iIdentifier, cPresentedGroup, cGettextDomain, pDataGarbage);
+    cid->pConfigPanel = cid_generate_ihm_from_keyfile (pKeyFile, cTitle, pWindow, &pWidgetList, (pConfigFunc != NULL)&&!cid->config->bSafeMode, iIdentifier, cPresentedGroup, cGettextDomain, pDataGarbage);
 
     g_return_val_if_fail (cid->pConfigPanel != NULL, FALSE);
-    cid->bConfFilePanel = TRUE;
+    cid->runtime->bConfFilePanel = TRUE;
     
     if (iWindowWidth != 0 && iWindowHeight != 0)
         gtk_window_resize (GTK_WINDOW (cid->pConfigPanel), iWindowWidth, iWindowHeight);
         
     gtk_window_present (GTK_WINDOW (cid->pConfigPanel));
     
-    gpointer *user_data = g_new (gpointer, 12);
+    gpointer *user_data = g_new (gpointer, 13);
     user_data[0] = pKeyFile;
     user_data[1] = pWidgetList;
     user_data[2] = cConfFilePath;
@@ -129,16 +130,17 @@ cid_edit_conf_file_core (GtkWindow *pWindow, gchar *cConfFilePath, const gchar *
     user_data[8] = GINT_TO_POINTER (iWindowHeight);
     user_data[9] = GINT_TO_POINTER ((int) iIdentifier);
     user_data[10] = pDataGarbage;
+    user_data[11] = cid;
         
     g_signal_connect (cid->pConfigPanel, "response", G_CALLBACK (_cid_user_action_on_config), user_data);
     g_signal_connect (cid->pConfigPanel, "delete-event", G_CALLBACK (_cid_user_action_on_config), user_data);
     
-    if (cid->bSafeMode) 
+    if (cid->config->bSafeMode) 
     {
-        cid->bBlockedWidowActive = TRUE;
+        cid->runtime->bBlockedWidowActive = TRUE;
         GMainLoop *pBlockingLoop = g_main_loop_new (NULL, FALSE);
         g_object_set_data (G_OBJECT (cid->pConfigPanel), "loop", pBlockingLoop);
-        user_data[11] = pBlockingLoop;
+        user_data[12] = pBlockingLoop;
         
         cid_debug ("debut de boucle bloquante ...\n");
         GDK_THREADS_LEAVE ();
@@ -257,11 +259,11 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
         if (cGroupComment != NULL) 
         {
             cGroupComment[strlen(cGroupComment)-1] = (gchar)'\0';
-            gchar *str = (gchar *)strrchr (cGroupComment, '[');
+            gchar *str = (gchar *)(long)strrchr (cGroupComment, '[');
             if (str != NULL) 
             {
                 cSmallGroupIcon = str+1;
-                str = (gchar *)strrchr (cSmallGroupIcon, ']');
+                str = (gchar *)(long)strrchr (cSmallGroupIcon, ']');
                 if (str != NULL)
                     *str = '\0';
             }
@@ -397,7 +399,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 }
                 //g_print ("cUsefulComment : %s\n", cUsefulComment);
 
-                pTipString = (gchar *)strchr (cUsefulComment, '{');
+                pTipString = (gchar *)(long)strchr (cUsefulComment, '{');
                 if (pTipString != NULL) 
                 {
                     if (*(pTipString-1) == '\n')
@@ -407,7 +409,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
 
                     pTipString ++;
 
-                    gchar *pTipEnd = (gchar *)strrchr (pTipString, '}');
+                    gchar *pTipEnd = (gchar *)(long)strrchr (pTipString, '}');
                     if (pTipEnd != NULL)
                         *pTipEnd = '\0';
                 }
@@ -425,7 +427,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 } else
                     pEventBox = NULL;
 
-                if (*cUsefulComment != '\0' && strcmp (cUsefulComment, "...") != 0 && iElementType != 'F' && iElementType != 'X' && (iElementType != 't' || (iElementType == 't' && cid->bTesting))) 
+                if (*cUsefulComment != '\0' && strcmp (cUsefulComment, "...") != 0 && iElementType != 'F' && iElementType != 'X' && (iElementType != 't' || (iElementType == 't' && cid->config->bTesting))) 
                 {
                         pLabel = gtk_label_new (dgettext (cGettextDomain, cUsefulComment));
                         GtkWidget *pAlign = gtk_alignment_new (0., 0.5, 0., 0.);
@@ -458,7 +460,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 pSubWidgetList = NULL;
                 bAddBackButton = FALSE;
 
-                if (iElementType=='t' && cid->bTesting)
+                if (iElementType=='t' && cid->config->bTesting)
                     iElementType = iHiddenType;
 
                 switch (iElementType) {

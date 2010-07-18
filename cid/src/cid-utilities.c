@@ -12,8 +12,8 @@
 #include "cid-callbacks.h"
 #include "cid-messages.h"
 #include "cid-constantes.h"
+#include "cid-X-utilities.h"
 
-#include <X11/Xlib.h>
 #include <errno.h>
 #ifdef HAVE_LIBCRYPT
 /* libC crypt */
@@ -29,8 +29,6 @@ static char DES_crypt_key[64] =
 extern CidMainContainer *cid;
 extern int ret;
 
-static Display *s_XDisplay = NULL;
-
 /* Fonction de sortie en cas d'erreur, avec affichage d'un
    éventuel message d'erreur */
 int 
@@ -38,7 +36,7 @@ cid_sortie(int code)
 {
     cid_disconnect_player ();
     
-    if (cid->bRunning)
+    if (cid->runtime->bRunning)
         gtk_main_quit ();
     ret = code;
     return code;
@@ -104,10 +102,10 @@ cid_free_main_structure (CidMainContainer *pCid)
         cairo_surface_destroy(pCid->p_cPause_big);
     if (pCid->p_cNext)
         cairo_surface_destroy(pCid->p_cPrev);
-    if (pCid->cConfFile)
-        g_free(pCid->cConfFile);
-    if (pCid->cVerbosity)
-        g_free(pCid->cVerbosity);
+    if (pCid->config->cConfFile)
+        g_free(pCid->config->cConfFile);
+    if (pCid->config->cVerbosity)
+        g_free(pCid->config->cVerbosity);
         
     pCid->pWindow = NULL;
     pCid->p_cSurface = NULL;
@@ -118,8 +116,8 @@ cid_free_main_structure (CidMainContainer *pCid)
     pCid->p_cPlay_big = NULL;
     pCid->p_cPause_big = NULL;
     pCid->p_cPrev = NULL;
-    pCid->cConfFile = NULL;
-    pCid->cVerbosity = NULL;
+    pCid->config->cConfFile = NULL;
+    pCid->config->cVerbosity = NULL;
     
     g_free (pCid);
     pCid = NULL;
@@ -159,7 +157,7 @@ cid_remove_file (const gchar* cFilePath)
 {
     if (remove(cFilePath) == -1)
     {
-        cid_warning ("Error while removing %s: %s",cFilePath,strerror (errno));
+        cid_warning ("Error while removing %s",cFilePath);
     }
 }
 /*
@@ -177,17 +175,44 @@ cid_read_string(char* chaine)
 */
 
 void 
-cid_read_parameters (int argc, char **argv) 
+cid_read_parameters (int *argc, char ***argv) 
 {
     
-    GError *erreur = NULL;
-    gboolean bPrintVersion = FALSE, bTestingMode = FALSE, bDebugMode = FALSE, bSafeMode = FALSE, bCafe = FALSE, bConfigPanel = FALSE;
+    GError *erreur;
+    gboolean bPrintVersion = FALSE, bTestingMode = FALSE, bDebugMode = FALSE, 
+    bSafeMode = FALSE, bCafe = FALSE, bConfigPanel = FALSE;
     gchar *cConfFile = NULL;
     
-    GOptionEntry TableDesOptions[] =
+    int i=0;
+    for (; i<*argc; i++) 
+    {
+        if (strcmp((*argv)[i], "coin-coin" ) == 0) 
+        {
+            fprintf (stdout,COIN_COIN);
+            exit (CID_EXIT_SUCCESS);
+        }
+        if (strcmp((*argv)[i], "coin" ) == 0) 
+        {
+            fprintf (stdout,COIN);
+            exit (CID_EXIT_SUCCESS);
+        }
+        if (strcmp((*argv)[i], "dev" ) == 0) 
+        {
+            fprintf (stdout,"/!\\ CAUTION /!\\\nDevelopment mode !\n");
+            if (cid->config->cConfFile)
+                g_free (cid->config->cConfFile);
+            if (DEFAULT_IMAGE)
+                g_free (DEFAULT_IMAGE);
+            cid->config->cConfFile = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_FILE);
+            DEFAULT_IMAGE = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_COVER);
+            cid->config->bDevMode = TRUE;
+        }
+    }
+    
+    GOptionEntry entries[] =
     {
         {"log", 'l', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING,
-            &cid->cVerbosity,
+            &cid->config->cVerbosity,
             dgettext (CID_GETTEXT_PACKAGE, "log verbosity (debug,info,message,warning,error) default is warning."), NULL},
         {"config", 'c', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_FILENAME,
             &cConfFile,
@@ -209,7 +234,8 @@ cid_read_parameters (int argc, char **argv)
             dgettext (CID_GETTEXT_PACKAGE, "do you want a cup of coffee?"), NULL},
         {"version", 'v', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
             &bPrintVersion,
-            dgettext (CID_GETTEXT_PACKAGE, "print version and quit."), NULL}
+            dgettext (CID_GETTEXT_PACKAGE, "print version and quit."), NULL},
+        { NULL, 0, 0, 0, NULL, NULL, NULL }
     };
 
     GOptionContext *context = g_option_context_new ("");
@@ -218,31 +244,29 @@ Its goal is to display the cover of the song which \
 is currently playing in the player you chooseon the \
 desktop like conky does with other informations.\n\
 You can use it with the following options:\n"));
-    g_option_context_add_main_entries (context, TableDesOptions, NULL);
-    g_option_context_parse (context, &argc, &argv, &erreur);
-    
-    if (erreur != NULL) 
+    g_option_context_add_main_entries (context, entries, CID_GETTEXT_PACKAGE);
+    if (!g_option_context_parse (context, argc, argv, &erreur))
     {
         cid_exit (CID_ERROR_READING_ARGS, "ERROR : %s\n", erreur->message);
     }
     
     if (bSafeMode) 
     {
-        cid->bSafeMode = TRUE;
+        cid->config->bSafeMode = TRUE;
         fprintf (stdout,"Safe Mode\n");
     }
     
     if (bConfigPanel)
     {
-        cid->bConfigPanel = TRUE;
-        cid->bSafeMode = TRUE;
+        cid->config->bConfigPanel = TRUE;
+        cid->config->bSafeMode = TRUE;
     }
     
     if (bDebugMode) 
     {
-        if (cid->cVerbosity)
-            g_free (cid->cVerbosity);
-        cid->cVerbosity = g_strdup ("debug");
+        if (cid->config->cVerbosity)
+            g_free (cid->config->cVerbosity);
+        cid->config->cVerbosity = g_strdup ("debug");   
     }
 
     if (bPrintVersion) 
@@ -270,40 +294,14 @@ You can use it with the following options:\n"));
 
     if (bTestingMode) 
     {
-        cid->bTesting = TRUE;
-    }
-    
-    int i=0;
-    for (; i<argc; i++) 
-    {
-        if (strcmp(argv[i], "coin-coin" ) == 0) 
-        {
-            fprintf (stdout,COIN_COIN);
-            exit (CID_EXIT_SUCCESS);
-        }
-        if (strcmp(argv[i], "coin" ) == 0) 
-        {
-            fprintf (stdout,COIN);
-            exit (CID_EXIT_SUCCESS);
-        }
-        if (strcmp(argv[i], "dev" ) == 0) 
-        {
-            fprintf (stdout,"/!\\ CAUTION /!\\\nDevelopment mode !\n");
-            if (cid->cConfFile)
-                g_free (cid->cConfFile);
-            if (DEFAULT_IMAGE)
-                g_free (DEFAULT_IMAGE);
-            cid->cConfFile = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_FILE);
-            DEFAULT_IMAGE = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_COVER);
-            cid->bDevMode = TRUE;
-        }
+        cid->config->bTesting = TRUE;
     }
     
     if (cConfFile != NULL)
     {
-        if (cid->cConfFile)
-            g_free (cid->cConfFile);
-        cid->cConfFile = g_strdup (cConfFile);
+        if (cid->config->cConfFile)
+            g_free (cid->config->cConfFile);
+        cid->config->cConfFile = g_strdup (cConfFile);
         g_free (cConfFile);
     }
 }
@@ -393,7 +391,7 @@ gchar *
 cid_toupper (gchar *cSrc) 
 {
     register int t;
-    gchar *cRes = (gchar *)malloc (sizeof(gchar)*strlen(cSrc));
+    gchar *cRes = g_malloc (sizeof(gchar)*strlen(cSrc));
 
     for(t=0; cSrc[t]; ++t)  
     {
@@ -439,14 +437,15 @@ cid_datacontent_new (GType iType, void *value)
         {
             case G_TYPE_STRING:
                 ret->string = NULL;
-                ret->string = g_malloc0(strlen((gchar *) value)*sizeof(gchar)+1);
-                strcpy(ret->string, (gchar *) value);
+                int iLength = strlen((gchar *) value)*sizeof(gchar)+1;
+                ret->string = g_malloc0(iLength);
+                strncpy(ret->string, (gchar *) value, iLength);
                 break;
             case G_TYPE_INT:
-                ret->iNumber = (gint) value;
+                ret->iNumber = (gint)(long) value;
                 break;
             case G_TYPE_BOOLEAN:
-                ret->booleen = (gboolean) value;
+                ret->booleen = (gboolean)(long) value;
                 break;
             default:
                 g_free(ret);
@@ -911,35 +910,14 @@ cid_str_replace_all_seq (gchar **string, gchar *seqFrom, gchar *seqTo)
     }
 }
 
-static int 
-_cid_xerror_handler (Display * pDisplay, XErrorEvent *pXError) 
-{
-    cid_debug ("Erreur (%d, %d, %d) lors d'une requete X sur %d", pXError->error_code, pXError->request_code, pXError->minor_code, pXError->resourceid);
-    return 0;
-}
-
-static void 
-cid_get_X_infos (void) 
-{
-    s_XDisplay = XOpenDisplay (0);
-    
-    XSetErrorHandler (_cid_xerror_handler);
-    
-    Screen *XScreen = XDefaultScreenOfDisplay (s_XDisplay);
-    cid->XScreenWidth  = WidthOfScreen (XScreen);
-    cid->XScreenHeight = HeightOfScreen (XScreen);
-    
-    //g_print ("%dx%d\n",XScreenWidth,XScreenHeight);
-}
-
 void 
 cid_check_position (void) 
 {
     cid_get_X_infos();
-    if (cid->iPosX > (cid->XScreenWidth - cid->iWidth)) cid->iPosX = (cid->XScreenWidth - cid->iWidth);
-    if (cid->iPosY > (cid->XScreenHeight - cid->iHeight)) cid->iPosY = (cid->XScreenHeight - cid->iHeight);
-    if (cid->iPosX < 0) cid->iPosX = 0;
-    if (cid->iPosY < 0) cid->iPosY = 0;
+    if (cid->config->iPosX > (cid->XScreenWidth - cid->config->iWidth)) cid->config->iPosX = (cid->XScreenWidth - cid->config->iWidth);
+    if (cid->config->iPosY > (cid->XScreenHeight - cid->config->iHeight)) cid->config->iPosY = (cid->XScreenHeight - cid->config->iHeight);
+    if (cid->config->iPosX < 0) cid->config->iPosX = 0;
+    if (cid->config->iPosY < 0) cid->config->iPosY = 0;
 }
 
 void 
@@ -1094,7 +1072,7 @@ _url_encode (const gchar * str)
     int lenght = 0;
     // calcul de la taille de la chaine urlEncodée
     do{
-        isValidChar = (char *) strchr(validChars, *s); // caractère valide?
+        isValidChar = (char *)(long) strchr(validChars, *s); // caractère valide?
         if(!isValidChar)
             lenght+=3; // %xx : 3 caractères
         else
@@ -1105,7 +1083,7 @@ _url_encode (const gchar * str)
     ret = t;
     //encodage
     do{
-        isValidChar = (char *) strchr(validChars, *s);
+        isValidChar = (char *)(long) strchr(validChars, *s);
         if(!isValidChar)
             sprintf(t, "%%%2X", *s), t+=3;
         else

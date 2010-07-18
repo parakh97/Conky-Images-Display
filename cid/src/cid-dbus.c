@@ -24,7 +24,7 @@ get_session_connection (void)
         s_pSessionConnexion = dbus_g_bus_get (DBUS_BUS_SESSION, &erreur);
         if (erreur != NULL) 
         {
-            cid_warning ("Attention : %s\n", erreur->message);
+            cid_warning ("Attention : %s", erreur->message);
             g_error_free (erreur);
             s_pSessionConnexion = NULL;
         }
@@ -40,7 +40,7 @@ get_system_connection (void)
         s_pSystemConnexion = dbus_g_bus_get (DBUS_BUS_SYSTEM, &erreur);
         if (erreur != NULL) 
         {
-            cid_warning ("Attention : %s\n", erreur->message);
+            cid_warning ("Attention : %s", erreur->message);
             g_error_free (erreur);
             s_pSystemConnexion = NULL;
         }
@@ -70,7 +70,7 @@ register_service_name (const gchar *cServiceName)
     org_freedesktop_DBus_request_name (pProxy, cServiceName, 0, &request_ret, &erreur);
     if (erreur != NULL) 
     {
-        cid_warning ("Unable to register service: %s\n", erreur->message);
+        cid_warning ("Unable to register service: %s", erreur->message);
         g_error_free (erreur);
     }
 }
@@ -86,7 +86,7 @@ DBusGProxy *
 create_new_session_proxy (const char *name, const char *path, const char *interface) 
 {    DBusGConnection *pConnection = get_session_connection ();
     if (pConnection != NULL)
-        return dbus_g_proxy_new_for_name (
+        return (DBusGProxy *) dbus_g_proxy_new_for_name (
             pConnection,
             name,
             path,
@@ -124,7 +124,7 @@ dbus_detect_application (const gchar *cName)
         &name_list,
         G_TYPE_INVALID))
     {
-        cid_debug ("detection du service %s ...\n", cName);
+        cid_debug ("detection du service %s ...", cName);
         int i;
         for (i = 0; name_list[i] != NULL; i ++) 
         {
@@ -150,7 +150,7 @@ dbus_get_boolean (DBusGProxy *pDbusProxy, const gchar *cParameter)
         G_TYPE_INVALID);
     if (erreur != NULL) 
     {
-        cid_warning ("Attention : %s\n", erreur->message);
+        cid_warning ("Attention : %s", erreur->message);
         g_error_free (erreur);
     }
     return bValue;
@@ -166,7 +166,7 @@ dbus_get_uinteger (DBusGProxy *pDbusProxy, const gchar *cParameter)
         G_TYPE_INVALID);
     if (erreur != NULL) 
     {
-        cid_warning ("Attention : %s\n", erreur->message);
+        cid_warning ("Attention : %s", erreur->message);
         g_error_free (erreur);
     }
     return iValue;
@@ -183,7 +183,7 @@ dbus_get_string (DBusGProxy *pDbusProxy, const gchar *cParameter)
         G_TYPE_INVALID);
     if (erreur != NULL) 
     {
-        cid_warning ("Attention : %s\n", erreur->message);
+        cid_warning ("Attention : %s", erreur->message);
         g_error_free (erreur);
         return NULL;
     }
