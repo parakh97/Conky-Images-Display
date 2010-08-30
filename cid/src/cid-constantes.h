@@ -33,6 +33,8 @@ G_BEGIN_DECLS
 
 #define PLAYLIST_NAME "C.I.D."
 
+#define CID_IMAGES_DB "cid.db"
+
 #define FADE_VARIATION .15
 #define IN_OUT_VARIATION .05
 

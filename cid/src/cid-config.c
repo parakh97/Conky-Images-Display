@@ -45,13 +45,20 @@ cid_check_file (const gchar *f)
             return;
         }
         */
-        gchar *cDirName = g_strdup_printf("%s/.config/cid",g_getenv("HOME"));
-        if (!g_file_test (cDirName,G_FILE_TEST_IS_DIR))
+        CidDataTable *p_folders = cid_create_datatable(G_TYPE_STRING,"%s/.config","%s/.config/cid",G_TYPE_INVALID);
+        CidDataCase *p_temp = p_folders->head;
+        while (p_temp != NULL)
         {
-            cid_debug ("Creating directory: %s",cDirName);
-            mkdir(cDirName,S_IRWXU);
+            gchar *cDirName = g_strdup_printf(p_temp->content->string,g_getenv("HOME"));
+            if (!g_file_test (cDirName,G_FILE_TEST_IS_DIR))
+            {
+                cid_debug ("Creating directory: %s",cDirName);
+                mkdir(cDirName,S_IRWXU);
+            }
+            g_free (cDirName);
+            p_temp = p_temp->next;
         }
-        g_free (cDirName);
+        cid_free_datatable (&p_folders);
         cFileTest = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE) ;
         if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
         {
