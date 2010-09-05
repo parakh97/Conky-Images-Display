@@ -87,7 +87,9 @@ cid_SOURCES = \
     cid-X-utilities.c \
     cid-X-utilities.h \
     libmpdclient.c \
-    libmpdclient.h
+    libmpdclient.h \
+    md5.c \
+    md5.h
     
     
     
@@ -129,5 +131,6 @@ cidsubinclude_HEADERS = \
     cid-struct.h \
     cid-utilities.h \
     cid-X-utilities.h \
-    libmpdclient.h
+    libmpdclient.h \
+    md5.h
 

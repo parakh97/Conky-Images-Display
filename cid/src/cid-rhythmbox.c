@@ -230,7 +230,6 @@ getSongInfos(void)
             CidDataTable *p_tabFiles = cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
                                                             ".folder",".cover","folder","Cover","Folder",
                                                             G_TYPE_INVALID);
-            CidDataCase *p_temp = p_tabFiles->head;
             gchar *cSongPath = g_filename_from_uri (musicData.playing_uri, NULL, NULL);  // on teste d'abord dans le repertoire de la chanson.
             if (cSongPath != NULL)
             {
@@ -238,13 +237,13 @@ getSongInfos(void)
                 g_free (cSongPath);
                 musicData.playing_cover = g_strdup_printf ("%s/%s - %s.jpg", cSongDir, musicData.playing_artist, musicData.playing_album);
                 cid_debug ("   test de %s\n", musicData.playing_cover);
-                while (p_temp != NULL && !g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
-                {
+                BEGIN_FOREACH_DT(p_tabFiles)
+                    if (g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
+                        break;
                     g_free (musicData.playing_cover);
                     musicData.playing_cover = g_strdup_printf ("%s/%s.jpg", cSongDir, p_temp->content->string);
                     cid_debug ("   test de %s\n", musicData.playing_cover);
-                    p_temp = p_temp->next;
-                }
+                END_FOREACH_DT
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
                     cid_debug ("   test de %s (.gnome2)\n", musicData.playing_cover);
@@ -268,7 +267,6 @@ getSongInfos(void)
                     }
                 }
             }
-            cid_free_datatable(&p_tabFiles);
         }
         cid_message ("  playing_cover <- %s\n", musicData.playing_cover);
         

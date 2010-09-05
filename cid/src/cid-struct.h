@@ -17,6 +17,7 @@ G_BEGIN_DECLS
 typedef struct _CidMainContainer CidMainContainer;
 typedef struct _CidConfig CidConfig;
 typedef struct _CidRuntime CidRuntime;
+typedef struct _CidDefault CidDefault;
 typedef struct _CidLabelDescription CidLabelDescription;
 typedef struct _CidControlFunctionsList CidControlFunctionsList;
 typedef struct _CidDataTable CidDataTable;
@@ -200,6 +201,9 @@ struct _CidMainContainer {
     // runtime
     CidRuntime *runtime;
     
+    // valeurs par defaut
+    CidDefault *defaut;
+    
     // keyFile
     GKeyFile *pKeyFile;
     
@@ -324,6 +328,8 @@ struct _CidConfig {
     gchar *cConfFile;
     // verbosité du programme
     gchar *cVerbosity;
+    // Download path
+    gchar *cDLPath;
     
     // caché ?
     gboolean bHide;
@@ -373,6 +379,12 @@ struct _CidConfig {
     gsize gPlainTextSize;
     // taille de la couleur de contour de police
     gsize gOutlineTextSize;
+};
+
+struct _CidDefault {
+    // Download path
+    gchar *cDLPath;
+    
 };
 
 struct _CidLabelDescription {

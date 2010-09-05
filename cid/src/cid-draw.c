@@ -85,7 +85,6 @@ cid_get_cairo_image (char *cImagePath, gdouble iWidth, gdouble iHeight)
     
     cairo_surface_t* pNewSurface = NULL;
     
-    // buffer de pixels après redimenssionement
     GdkPixbuf *nCover;
     nCover = gdk_pixbuf_new_from_file_at_scale (cImagePath,iWidth, iHeight, FALSE, NULL);
     pNewSurface = cid_get_image_from_pixbuf (&nCover);

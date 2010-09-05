@@ -176,19 +176,17 @@ cid_mpd_cover ()
         CidDataTable *p_tabFiles = cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
                                                     ".folder",".cover","folder","Cover","Folder",
                                                     G_TYPE_INVALID);
-        CidDataCase *p_temp = p_tabFiles->head;
         gchar *cSongDir = g_path_get_dirname (cSongPath);
         g_free (cSongPath);
         musicData.playing_cover = g_strdup_printf ("%s/%s - %s.jpg", cSongDir, musicData.playing_artist, musicData.playing_album);
         cid_debug ("   test de %s\n", musicData.playing_cover);
-        while (p_temp != NULL && !g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
-        {
+        BEGIN_FOREACH_DT(p_tabFiles)
+            if (g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
+                break;
             g_free (musicData.playing_cover);
             musicData.playing_cover = g_strdup_printf ("%s/%s.jpg", cSongDir, p_temp->content->string);
             cid_debug ("   test de %s\n", musicData.playing_cover);
-            p_temp = p_temp->next;
-        }
-        cid_free_datatable(&p_tabFiles);
+        END_FOREACH_DT
         g_free (cSongDir);
         if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
         {

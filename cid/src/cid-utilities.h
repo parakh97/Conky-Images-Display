@@ -268,5 +268,17 @@ void cid_decrypt_string( const gchar *cDecryptedString,  gchar **cEncryptedStrin
 
 gchar *_url_encode (const gchar * str);
 
+#define BEGIN_FOREACH_DT(dt) \
+CidDataTable *p_dt=dt; \
+CidDataCase *p_temp=dt->head; \
+while(p_temp!=NULL) \
+{
+
+#define END_FOREACH_DT \
+p_temp=p_temp->next; \
+} \
+cid_free_datatable(&p_dt);
+
+
 G_END_DECLS
 #endif

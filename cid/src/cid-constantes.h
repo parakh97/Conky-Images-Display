@@ -34,6 +34,7 @@ G_BEGIN_DECLS
 #define PLAYLIST_NAME "C.I.D."
 
 #define CID_IMAGES_DB "cid.db"
+#define CID_WEBSITE "http://cid.ziirish.info/"
 
 #define FADE_VARIATION .15
 #define IN_OUT_VARIATION .05

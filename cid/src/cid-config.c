@@ -46,9 +46,7 @@ cid_check_file (const gchar *f)
         }
         */
         CidDataTable *p_folders = cid_create_datatable(G_TYPE_STRING,"%s/.config","%s/.config/cid",G_TYPE_INVALID);
-        CidDataCase *p_temp = p_folders->head;
-        while (p_temp != NULL)
-        {
+        BEGIN_FOREACH_DT(p_folders)
             gchar *cDirName = g_strdup_printf(p_temp->content->string,g_getenv("HOME"));
             if (!g_file_test (cDirName,G_FILE_TEST_IS_DIR))
             {
@@ -56,9 +54,7 @@ cid_check_file (const gchar *f)
                 mkdir(cDirName,S_IRWXU);
             }
             g_free (cDirName);
-            p_temp = p_temp->next;
-        }
-        cid_free_datatable (&p_folders);
+        END_FOREACH_DT
         cFileTest = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE) ;
         if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
         {
@@ -167,7 +163,7 @@ cid_read_config_after_update (CidMainContainer **pCid, const char *f)
         }
     
     
-        cid_run_with_player();
+        cid_run_with_player(pCid);
     }
     
     // Si la couleur des controles change, on les recharge
@@ -350,6 +346,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->iAnimationSpeed = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_SPEED");
     cid->config->bThreaded       = CID_CONFIG_GET_BOOLEAN ("Options", "THREAD");
     cid->config->bDownload       = CID_CONFIG_GET_BOOLEAN ("Options", "DOWNLOAD");
+    cid->config->cDLPath         = CID_CONFIG_GET_STRING_WITH_DEFAULT ("Options", "DL_PATH", cid->defaut->cDLPath);
     cid->config->iImageSize      = CID_CONFIG_GET_INTEGER ("Options", "D_SIZE");
     cid->config->iTimeToWait     = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("Options", "DELAY", DEFAULT_TIMERS);
     cid->config->bUnstable       = cid->config->bTesting && CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options", "B_UNSTABLE", TRUE);
@@ -490,6 +487,10 @@ cid_save_data (CidMainContainer **pCid)
     g_key_file_set_integer (cid->pKeyFile, "Options", "DELAY", cid->config->iTimeToWait);
     g_key_file_set_integer (cid->pKeyFile, "Options", "D_SIZE", cid->config->iImageSize);
     g_key_file_set_boolean (cid->pKeyFile, "Options", "B_UNSTABLE", cid->config->bUnstable);
+    if (strcmp(cid->config->cDLPath,cid->defaut->cDLPath) != 0)
+        g_key_file_set_string (cid->pKeyFile, "Options", "DL_PATH", cid->config->cDLPath);
+    else
+        g_key_file_set_string (cid->pKeyFile, "Options", "DL_PATH", "");
     
     // [Behaviour] configuration
     gint pSize[2] = {cid->config->iWidth,cid->config->iHeight};

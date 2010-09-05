@@ -283,9 +283,9 @@ _cid_about (GtkMenuItem *pMenuItem, gpointer *data)
         "\nConky Images Display (2008-2010)\n version %s",CID_VERSION);
     
 #if GTK_MINOR_VERSION >= 12
-    GtkWidget *pLink = gtk_link_button_new("http://cid.ziirish.info/");
+    GtkWidget *pLink = gtk_link_button_new_with_label (CID_WEBSITE, "Conky Images Display (2008-2010)\n version "CID_VERSION);
     gtk_container_add (GTK_CONTAINER (GTK_DIALOG(pDialog)->vbox), pLink);
-    gtk_link_button_set_uri_hook ((GtkLinkButtonUriFunc) _cid_web_button_clicked, NULL, NULL);
+    //gtk_link_button_set_uri_hook ((GtkLinkButtonUriFunc) _cid_web_button_clicked, NULL, NULL);
 #endif
     
     gchar *cImagePath = g_strdup (CID_DEFAULT_IMAGE);
@@ -310,10 +310,8 @@ _cid_about (GtkMenuItem *pMenuItem, gpointer *data)
     _cid_add_about_page (pNoteBook,
         "Support",
         _("<b>Installation script :</b>\n  Benjamin SANS\n\
-<b>Site (http://cid.freezee.org/) :</b>\n  Charlie MERLAND\n\
-<b>Suggestions/Comments/Beta-Testers :</b>\n  Les forumeurs de ubuntu-fr\
-\n\
-<b>Any suggestion? Leave it on :</b>\n  http://cid.ziirish.info/\n"));
+<b>Site ("CID_WEBSITE") :</b>\n  Charlie MERLAND\n\
+<b>Any suggestion? Leave it on :</b>\n  "CID_WEBSITE"\n"));
     
     gtk_widget_show_all (pDialog);
     gtk_window_set_position (GTK_WINDOW (pDialog), GTK_WIN_POS_CENTER_ALWAYS);

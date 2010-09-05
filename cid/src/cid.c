@@ -68,6 +68,8 @@ cid_init (CidMainContainer *pCid)
     pCid->config->iHint = GDK_WINDOW_TYPE_HINT_TOOLTIP;
 #endif
     
+    pCid->defaut->cDLPath = g_strdup_printf("%s/.cache/cid",g_getenv("HOME"));
+    
     pCid->pKeyFile = NULL;
 }
 
@@ -163,16 +165,12 @@ cid_set_signal_interception (struct sigaction *action)
     sigfillset (&((*action).sa_mask));
     (*action).sa_flags = 0;
     CidDataTable *p_signals = cid_create_datatable(G_TYPE_INT,SIGSEGV,SIGFPE,SIGILL,SIGABRT,SIGINT,SIGTERM,G_TYPE_INVALID);
-    CidDataCase *p_temp = p_signals->head;
-    while (p_temp != NULL)
-    {
+    BEGIN_FOREACH_DT(p_signals)
         if (sigaction (p_temp->content->iNumber, action, NULL) != 0)
         {
             cid_error ("Problem while catching signal %d",p_temp->content->iNumber);
         }
-        p_temp = p_temp->next;
-    }
-    cid_free_datatable (&p_signals);
+    END_FOREACH_DT
 }
 
 static void 
@@ -238,6 +236,7 @@ main ( int argc, char **argv )
     cid = g_malloc0 (sizeof(*cid));
     cid->config = g_malloc0 (sizeof(*(cid->config)));
     cid->runtime = g_malloc0 (sizeof(*(cid->runtime)));
+    cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
     
     curl_global_init(CURL_GLOBAL_ALL);
     
