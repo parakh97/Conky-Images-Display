@@ -12,18 +12,93 @@
 #include "cid-struct.h"
 #include "cid-messages.h"
 #include "cid-utilities.h"
+#include "md5.h"
 
 #include <curl/curl.h>
 
-extern CidMainContainer *cid;
+//extern CidMainContainer *cid;
 
 gboolean bCurrentlyDownloading = FALSE;
 gboolean bCurrentlyDownloadingXML = FALSE;
 
-#ifdef LIBXML_READER_ENABLED
-
 int ret;
 gchar *TAB_IMAGE_SIZES[] = {"large","extralarge"};
+
+#ifdef LIBXML_READER_ENABLED
+
+gboolean 
+cid_get_xml_file (const gchar *artist, const gchar *album) 
+{
+    if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS))
+        cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+    
+    if (g_strcasecmp("Unknown",artist)==0 || g_strcasecmp("Unknown",album)==0 ||
+        g_strcasecmp("Inconnu",artist)==0 || g_strcasecmp("Inconnu",album)==0)
+        return FALSE;
+    
+    gchar *cURLBegin = g_strdup_printf("%s%s&api_key=%s",LAST_API_URL,LAST_ALBUM,LAST_ID_KEY);
+    gchar *cTmpFilePath = g_strdup (DEFAULT_XML_LOCATION);
+    
+    CURL *handle = curl_easy_init(); 
+    gchar *cArtistClean = curl_easy_escape (handle, artist, 0);
+    gchar *cAlbumClean = curl_easy_escape (handle, album, 0);
+    gchar *cURLArgs = g_strdup_printf ("&artist=%s&album=%s", cArtistClean, cAlbumClean);
+    gchar *cURLFull = g_strdup_printf ("%s%s", cURLBegin, cURLArgs);
+    g_free (cURLArgs);
+    g_free (cArtistClean);
+    g_free (cAlbumClean);
+    g_free (cURLBegin);
+    curl_easy_setopt(handle, CURLOPT_URL, cURLFull);
+    FILE * fp = fopen(DEFAULT_XML_LOCATION".tmp", "w"); 
+    curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
+    curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
+    //curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
+    bCurrentlyDownloadingXML = TRUE;
+
+    curl_easy_perform(handle);
+    fclose(fp);
+    curl_easy_cleanup(handle);
+    
+    rename (DEFAULT_XML_LOCATION".tmp",DEFAULT_XML_LOCATION);
+    
+    g_free (cTmpFilePath);
+    g_free (cURLFull);
+    
+    return TRUE;
+}
+
+#else
+
+gboolean 
+cid_get_xml_file (const gchar *artist, const gchar *album) 
+{
+    return FALSE;
+}
+
+#endif
+
+gboolean 
+cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/) 
+{
+    bCurrentlyDownloading = TRUE;
+    CURL *handle = curl_easy_init ();
+    curl_easy_setopt(handle, CURLOPT_URL, cURL);
+    FILE * fp = fopen(DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp", "w"); 
+    curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
+    curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
+    //curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
+
+    curl_easy_perform(handle);
+    fclose(fp);
+    curl_easy_cleanup(handle);
+    
+    rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+    
+    if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS))
+        cid_remove_file (DEFAULT_XML_LOCATION);
+        
+    return TRUE;
+}
 
 /**
  * Parse le fichier XML passé en argument
@@ -88,72 +163,3 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
     xmlXPathFreeContext(ctxt);
     xmlFreeDoc(doc);
 }
-
-gboolean 
-cid_get_xml_file (const gchar *artist, const gchar *album) 
-{
-    cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
-    
-    if (g_strcasecmp("Unknown",artist)==0 || g_strcasecmp("Unknown",album)==0 ||
-        g_strcasecmp("Inconnu",artist)==0 || g_strcasecmp("Inconnu",album)==0)
-        return FALSE;
-    
-    gchar *cURLBegin = g_strdup_printf("%s%s&api_key=%s",LAST_API_URL,LAST_ALBUM,LAST_ID_KEY);
-    gchar *cTmpFilePath = g_strdup (DEFAULT_XML_LOCATION);
-    
-    CURL *handle = curl_easy_init(); 
-    gchar *cArtistClean = curl_easy_escape (handle, artist, 0);
-    gchar *cAlbumClean = curl_easy_escape (handle, album, 0);
-    gchar *cURLArgs = g_strdup_printf ("&artist=%s&album=%s", cArtistClean, cAlbumClean);
-    gchar *cURLFull = g_strdup_printf ("%s%s", cURLBegin, cURLArgs);
-    g_free (cURLArgs);
-    g_free (cArtistClean);
-    g_free (cAlbumClean);
-    g_free (cURLBegin);
-    curl_easy_setopt(handle, CURLOPT_URL, cURLFull);
-    FILE * fp = fopen(DEFAULT_XML_LOCATION, "w"); 
-    curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
-    curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
-    //curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
-
-    curl_easy_perform(handle);
-    fclose(fp);
-    curl_easy_cleanup(handle);
-
-    bCurrentlyDownloadingXML = TRUE;
-    
-    g_free (cTmpFilePath);
-    g_free (cURLFull);
-    
-    return TRUE;
-}
-
-gboolean 
-cid_download_missing_cover (const gchar *cURL, const gchar *cDestPath) 
-{
-    bCurrentlyDownloading = TRUE;
-    CURL *handle = curl_easy_init ();
-    curl_easy_setopt(handle, CURLOPT_URL, cURL);
-    FILE * fp = fopen(cDestPath, "w"); 
-    curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
-    curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
-    //curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
-
-    curl_easy_perform(handle);
-    fclose(fp);
-    curl_easy_cleanup(handle);
-    
-    cid_remove_file (DEFAULT_XML_LOCATION);
-    return TRUE;
-}
-
-#else
-
-gboolean 
-cid_get_xml_file (const gchar *artist, const gchar *album) 
-{
-    return FALSE;
-}
-
-#endif
-

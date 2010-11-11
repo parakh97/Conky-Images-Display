@@ -270,7 +270,7 @@ gchar *_url_encode (const gchar * str);
 
 #define BEGIN_FOREACH_DT(dt) \
 CidDataTable *p_dt=dt; \
-CidDataCase *p_temp=dt->head; \
+CidDataCase *p_temp=p_dt->head; \
 while(p_temp!=NULL) \
 {
 

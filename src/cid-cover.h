@@ -38,9 +38,10 @@ G_BEGIN_DECLS
  * Parse le fichier XML passé en argument
  * à la recherche de l'URL de la pochette
  * @param filename URI du fichier à lire
- * @param imageSize Taille de l'image que l'on souhaite
+ * @param cValue buffer dans lequel placer l'URL
+ * @param xpath expression a rechercher
  */
-void cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, ...);
+void cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar *xpath, ...);
 
 #define cid_get_cover_url(filename,cValue) cid_search_xml_xpath(filename,cValue,LAST_XPATH,cid->config->iImageSize==MEDIUM_IMAGE?"large":"extralarge")
 
@@ -58,7 +59,7 @@ gboolean cid_get_xml_file (const gchar *artist, const gchar *album);
  * @param cDestPath Ou en enregistre la pochette telechargee.
  * @return succes du telechargement.
  */
-gboolean cid_download_missing_cover (const gchar *cURL, const gchar *cDestPath);
+gboolean cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/);
 
 G_END_DECLS
 #endif

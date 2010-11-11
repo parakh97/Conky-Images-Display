@@ -340,7 +340,8 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
 
     // [Options] configuration
     cid->config->bHide           = CID_CONFIG_GET_BOOLEAN ("Options", "HIDE");
-    cid->config->cDefaultImage   = CID_CONFIG_GET_FILE_PATH  ("Options", "IMAGE", cid->config->bDevMode ? TESTING_DIR"/"TESTING_COVER : CID_DEFAULT_IMAGE);
+    cid->config->cDefaultImage   = CID_CONFIG_GET_FILE_PATH  ("Options", "IMAGE", 
+        cid->config->bDevMode ? TESTING_DIR"/"TESTING_COVER : CID_DEFAULT_IMAGE);
     cid->config->bRunAnimation   = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options", "ANIMATION", TRUE);
     cid->config->iAnimationType  = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_TYPE");
     cid->config->iAnimationSpeed = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_SPEED");
@@ -349,7 +350,8 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->cDLPath         = CID_CONFIG_GET_STRING_WITH_DEFAULT ("Options", "DL_PATH", cid->defaut->cDLPath);
     cid->config->iImageSize      = CID_CONFIG_GET_INTEGER ("Options", "D_SIZE");
     cid->config->iTimeToWait     = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("Options", "DELAY", DEFAULT_TIMERS);
-    cid->config->bUnstable       = cid->config->bTesting && CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options", "B_UNSTABLE", TRUE);
+    cid->config->bUnstable       = cid->config->bTesting && CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options",
+                                                            "B_UNSTABLE", TRUE);
     
     // [Behaviour] configuration
     cid->config->iPosX          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_X");

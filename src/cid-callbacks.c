@@ -28,6 +28,7 @@ gboolean bFlyingButton;
 
 static gchar *cImageURL = NULL;
 static CidMeasure *pMeasureTimer = NULL;
+static CidMeasure *pMeasureDownload = NULL;
 
 void 
 cid_interrupt (void) 
@@ -344,6 +345,25 @@ _cid_add_about_page (GtkWidget *pNoteBook, const gchar *cPageLabel, const gchar 
 }
 
 gboolean 
+_cid_check_and_display (gpointer p)
+{
+    // Quand on a la pochette, on l'affiche et on stoppe la boucle
+    if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS)) 
+    {
+        bCurrentlyDownloadingXML = FALSE;
+        bCurrentlyDownloading = FALSE;
+        musicData.cover_exist = TRUE;
+        cid_display_image(DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        cid_free_measure_timer (pMeasureDownload);
+        if (musicData.playing_cover)
+            g_free (musicData.playing_cover);
+        musicData.playing_cover = g_strdup (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+gboolean 
 _cid_proceed_download_cover (gpointer p) 
 {
 
@@ -355,8 +375,9 @@ _cid_proceed_download_cover (gpointer p)
     }
 
     // Avant tout, on dl le xml
-    if (!bCurrentlyDownloadingXML && !bCurrentlyDownloading) 
+    if (!bCurrentlyDownloadingXML && !bCurrentlyDownloading) {
         cid_get_xml_file (musicData.playing_artist,musicData.playing_album);
+    }
 
     // Quand on a le xml, on dl la pochette
     if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS) && !bCurrentlyDownloading) 
@@ -368,8 +389,19 @@ _cid_proceed_download_cover (gpointer p)
         cid_debug ("URL : %s",cImageURL);
         if (cImageURL != NULL) 
         {
-            cid_download_missing_cover (cImageURL,DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+            
+            if (pMeasureDownload) 
+            {
+                if (cid_measure_is_running(pMeasureDownload))
+                    cid_stop_measure_timer(pMeasureDownload);
+                if (cid_measure_is_active(pMeasureDownload))
+                    cid_free_measure_timer(pMeasureDownload);
+            }
+            
             bCurrentlyDownloadingXML = FALSE;
+            //cid_download_missing_cover (cImageURL/*,DEFAULT_DOWNLOADED_IMAGE_LOCATION*/);
+            pMeasureDownload = cid_new_measure_timer (2, NULL, (CidReadTimerFunc) cid_download_missing_cover, (CidUpdateTimerFunc) _cid_check_and_display, cImageURL);
+            cid_launch_measure (pMeasureDownload);
         } 
         else 
         {
@@ -377,25 +409,13 @@ _cid_proceed_download_cover (gpointer p)
             bCurrentlyDownloading = FALSE;
             musicData.cover_exist = FALSE;
             cid_debug ("Téléchargement impossible");
-            cid_stop_measure_timer (pMeasureTimer);
+            cid_free_measure_timer (pMeasureTimer);
             return FALSE;
         }
     }
-
-    // Quand on a la pochette, on l'affiche et on stoppe la boucle
-    if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS)) 
-    {
-        bCurrentlyDownloadingXML = FALSE;
-        bCurrentlyDownloading = FALSE;
-        musicData.cover_exist = TRUE;
-        cid_display_image(DEFAULT_DOWNLOADED_IMAGE_LOCATION);
-        cid_stop_measure_timer (pMeasureTimer);
-        if (musicData.playing_cover)
-            g_free (musicData.playing_cover);
-        musicData.playing_cover = g_strdup (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
-        return FALSE;
-    }
+    /*
     
+    */
     return TRUE;
 }
 
@@ -413,6 +433,7 @@ _check_cover_is_present (gpointer data)
     {
         if (cid->config->bDownload)
         {
+            /*
             if (pMeasureTimer) 
             {
                 if (cid_measure_is_running(pMeasureTimer))
@@ -420,9 +441,14 @@ _check_cover_is_present (gpointer data)
                 if (cid_measure_is_active(pMeasureTimer))
                     cid_free_measure_timer(pMeasureTimer);
             }
-            pMeasureTimer = cid_new_measure_timer (2 SECONDES, NULL, NULL, (CidUpdateTimerFunc) _cid_proceed_download_cover, NULL);
+            //pMeasureTimer = cid_new_measure_timer (2 SECONDES, NULL, (CidReadTimerFunc) _cid_proceed_download_cover, NULL, NULL);
+            
+            pMeasureTimer = cid_new_measure_timer (2, NULL, NULL, (CidUpdateTimerFunc) _cid_proceed_download_cover, NULL);
         
             cid_launch_measure (pMeasureTimer);
+            */
+            //g_timeout_add (2 SECONDES, (GSourceFunc) _cid_proceed_download_cover, NULL);
+            _cid_proceed_download_cover (NULL);
         }
         
         return FALSE;
