@@ -14,7 +14,6 @@
 #include <gtk/gtk.h>
 #include <ctype.h>
 #include "cid-struct.h"
-#include "cid-X-utilities.h"
 
 G_BEGIN_DECLS
 
@@ -267,18 +266,6 @@ void cid_encrypt_string( const gchar *cDecryptedString,  gchar **cEncryptedStrin
 void cid_decrypt_string( const gchar *cDecryptedString,  gchar **cEncryptedString );
 
 gchar *_url_encode (const gchar * str);
-
-#define BEGIN_FOREACH_DT(dt) \
-CidDataTable *p_dt=dt; \
-CidDataCase *p_temp=dt->head; \
-while(p_temp!=NULL) \
-{
-
-#define END_FOREACH_DT \
-p_temp=p_temp->next; \
-} \
-cid_free_datatable(&p_dt);
-
 
 G_END_DECLS
 #endif

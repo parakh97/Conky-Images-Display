@@ -230,6 +230,7 @@ getSongInfos(void)
             CidDataTable *p_tabFiles = cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
                                                             ".folder",".cover","folder","Cover","Folder",
                                                             G_TYPE_INVALID);
+            CidDataCase *p_temp = p_tabFiles->head;
             gchar *cSongPath = g_filename_from_uri (musicData.playing_uri, NULL, NULL);  // on teste d'abord dans le repertoire de la chanson.
             if (cSongPath != NULL)
             {
@@ -237,13 +238,13 @@ getSongInfos(void)
                 g_free (cSongPath);
                 musicData.playing_cover = g_strdup_printf ("%s/%s - %s.jpg", cSongDir, musicData.playing_artist, musicData.playing_album);
                 cid_debug ("   test de %s\n", musicData.playing_cover);
-                BEGIN_FOREACH_DT(p_tabFiles)
-                    if (g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
-                        break;
+                while (p_temp != NULL && !g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
+                {
                     g_free (musicData.playing_cover);
                     musicData.playing_cover = g_strdup_printf ("%s/%s.jpg", cSongDir, p_temp->content->string);
                     cid_debug ("   test de %s\n", musicData.playing_cover);
-                END_FOREACH_DT
+                    p_temp = p_temp->next;
+                }
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
                     cid_debug ("   test de %s (.gnome2)\n", musicData.playing_cover);
@@ -259,14 +260,15 @@ getSongInfos(void)
                 g_free (cSongDir);
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
-                    cid->runtime->iCheckIter = 0;
-                    if (musicData.iSidCheckCover == 0 && cid->config->iPlayer != PLAYER_NONE) 
+                    cid->iCheckIter = 0;
+                    if (musicData.iSidCheckCover == 0 && cid->iPlayer != PLAYER_NONE) 
                     {
                         cid_debug ("l'image n'existe pas encore => on boucle.\n");
                         musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, (gpointer) NULL);
                     }
                 }
             }
+            cid_free_datatable(&p_tabFiles);
         }
         cid_message ("  playing_cover <- %s\n", musicData.playing_cover);
         
@@ -298,7 +300,7 @@ rb_onChangeSong(DBusGProxy *player_proxy,const gchar *uri, gpointer data)
         musicData.opening = TRUE;
         getSongInfos();
         cid_display_image(cid_rhythmbox_cover());
-        cid_animation(cid->config->iAnimationType);
+        cid_animation(cid->iAnimationType);
     } 
     else 
     {
@@ -317,7 +319,7 @@ rb_onChangeSong(DBusGProxy *player_proxy,const gchar *uri, gpointer data)
         musicData.playing_track = 0;
         
         cid_display_image(cid_rhythmbox_cover());
-        cid_animation(cid->config->iAnimationType);
+        cid_animation(cid->iAnimationType);
 
         dbus_detect_rhythmbox();
     }
@@ -336,12 +338,12 @@ rb_onChangeState(DBusGProxy *player_proxy, gboolean a_playing, gpointer data)
 //      g_printerr ("  playing_uri : %s\n", musicData.playing_uri);
         if(musicData.playing) 
         {
-            cid->runtime->bCurrentlyPlaying = TRUE;
+            cid->bCurrentlyPlaying = TRUE;
         //  rhythmbox_set_surface (PLAYER_PLAYING);
         } 
         else 
         {
-            cid->runtime->bCurrentlyPlaying = FALSE;
+            cid->bCurrentlyPlaying = FALSE;
         //  rhythmbox_set_surface (PLAYER_PAUSED);
         }
     }
@@ -417,8 +419,8 @@ _add_to_queue_rhythmbox (gchar *cPath)
 void 
 cid_build_rhythmbox_menu (void) 
 {
-    cid->runtime->pMonitorList->p_fPlayPause = _playPause_rhythmbox;
-    cid->runtime->pMonitorList->p_fNext = _next_rhythmbox;
-    cid->runtime->pMonitorList->p_fPrevious = _previous_rhythmbox;
-    cid->runtime->pMonitorList->p_fAddToQueue = _add_to_queue_rhythmbox;
+    cid->pMonitorList->p_fPlayPause = _playPause_rhythmbox;
+    cid->pMonitorList->p_fNext = _next_rhythmbox;
+    cid->pMonitorList->p_fPrevious = _previous_rhythmbox;
+    cid->pMonitorList->p_fAddToQueue = _add_to_queue_rhythmbox;
 }

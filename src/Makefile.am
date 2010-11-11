@@ -32,8 +32,7 @@ cid_CFLAGS = \
     -DCID_GETTEXT_PACKAGE=\""$(GETTEXT_PACKAGE)"\"\
     -W \
     -Werror \
-    -fno-builtin \
-    -g  
+    -fno-builtin 
 
 cid_LDFLAGS = \
     -Wl,--export-dynamic
@@ -84,12 +83,8 @@ cid_SOURCES = \
     cid-rhythmbox.h \
     cid-utilities.c \
     cid-utilities.h \
-    cid-X-utilities.c \
-    cid-X-utilities.h \
     libmpdclient.c \
-    libmpdclient.h \
-    md5.c \
-    md5.h
+    libmpdclient.h
     
     
     
@@ -130,7 +125,5 @@ cidsubinclude_HEADERS = \
     cid-rhythmbox.h \
     cid-struct.h \
     cid-utilities.h \
-    cid-X-utilities.h \
-    libmpdclient.h \
-    md5.h
+    libmpdclient.h
 

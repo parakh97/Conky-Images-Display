@@ -176,22 +176,24 @@ cid_mpd_cover ()
         CidDataTable *p_tabFiles = cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
                                                     ".folder",".cover","folder","Cover","Folder",
                                                     G_TYPE_INVALID);
+        CidDataCase *p_temp = p_tabFiles->head;
         gchar *cSongDir = g_path_get_dirname (cSongPath);
         g_free (cSongPath);
         musicData.playing_cover = g_strdup_printf ("%s/%s - %s.jpg", cSongDir, musicData.playing_artist, musicData.playing_album);
         cid_debug ("   test de %s\n", musicData.playing_cover);
-        BEGIN_FOREACH_DT(p_tabFiles)
-            if (g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
-                break;
+        while (p_temp != NULL && !g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
+        {
             g_free (musicData.playing_cover);
             musicData.playing_cover = g_strdup_printf ("%s/%s.jpg", cSongDir, p_temp->content->string);
             cid_debug ("   test de %s\n", musicData.playing_cover);
-        END_FOREACH_DT
+            p_temp = p_temp->next;
+        }
+        cid_free_datatable(&p_tabFiles);
         g_free (cSongDir);
         if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
         {
-            cid->runtime->iCheckIter = 0;
-            if (cid->config->iPlayer != PLAYER_NONE) 
+            cid->iCheckIter = 0;
+            if (cid->iPlayer != PLAYER_NONE) 
             {
                 cid_debug ("l'image n'existe pas encore => on boucle.\n");
                 musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, (gpointer) NULL);
@@ -207,7 +209,7 @@ cid_mpd_cover ()
               musicData.playing_cover);
     
     cid_display_image (musicData.playing_cover);
-    cid_animation(cid->config->iAnimationType);
+    cid_animation(cid->iAnimationType);
     
     return cont;
 }
@@ -215,7 +217,7 @@ cid_mpd_cover ()
 void 
 cid_mpd_pipe (gint iInter) 
 {
-    cid->runtime->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_mpd_cover, NULL, NULL);
+    cid->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_mpd_cover, NULL, NULL);
 }
 
 void 
@@ -223,9 +225,9 @@ cid_connect_to_mpd (gint iInter)
 {
     cont = TRUE;
     first = TRUE;
-    cid->runtime->bPipeRunning = TRUE;
+    cid->bPipeRunning = TRUE;
     cid_mpd_cover ();
-    cid->runtime->bConnected = TRUE;
+    cid->bConnected = TRUE;
     cid_mpd_pipe (iInter);   
 }
 
@@ -233,10 +235,10 @@ void
 cid_disconnect_from_mpd ()
 {
     cont = FALSE;
-    cid->runtime->bConnected = FALSE;
-    if (cid->runtime->bPipeRunning)
-        g_source_remove (cid->runtime->iPipe);
-    cid->runtime->bPipeRunning = FALSE;
+    cid->bConnected = FALSE;
+    if (cid->bPipeRunning)
+        g_source_remove (cid->iPipe);
+    cid->bPipeRunning = FALSE;
     musicData.opening = FALSE;
     musicData.playing = FALSE;
     cid_display_image (NULL);
@@ -285,10 +287,10 @@ _previous_mpd (void)
 void 
 cid_build_mpd_menu (void)
 {
-    cid->runtime->pMonitorList->p_fPlayPause = _playPause_mpd;
-    cid->runtime->pMonitorList->p_fNext = _next_mpd;
-    cid->runtime->pMonitorList->p_fPrevious = _previous_mpd;
-    cid->runtime->pMonitorList->p_fAddToQueue = NULL;
+    cid->pMonitorList->p_fPlayPause = _playPause_mpd;
+    cid->pMonitorList->p_fNext = _next_mpd;
+    cid->pMonitorList->p_fPrevious = _previous_mpd;
+    cid->pMonitorList->p_fAddToQueue = NULL;
     cid->p_fConnectHandler = cid_reconnect_mpd;
     cid->p_fDisconnectHandler = cid_disconnect_from_mpd;
 }

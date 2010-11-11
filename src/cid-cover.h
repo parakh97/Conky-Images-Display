@@ -42,7 +42,7 @@ G_BEGIN_DECLS
  */
 void cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, ...);
 
-#define cid_get_cover_url(filename,cValue) cid_search_xml_xpath(filename,cValue,LAST_XPATH,cid->config->iImageSize==MEDIUM_IMAGE?"large":"extralarge")
+#define cid_get_cover_url(filename,cValue) cid_search_xml_xpath(filename,cValue,LAST_XPATH,cid->iImageSize==MEDIUM_IMAGE?"large":"extralarge")
 
 /**
  * Recupere le fichier xml sur amazon.

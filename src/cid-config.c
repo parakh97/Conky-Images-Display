@@ -19,6 +19,8 @@
 #include "cid-constantes.h"
 #include "cid-draw.h"
 
+extern CidMainContainer *cid;
+
 static gint iNbRead = 0;
 static gboolean bChangedDesktop;
 static gboolean bUnvalidKey;
@@ -46,7 +48,9 @@ cid_check_file (const gchar *f)
         }
         */
         CidDataTable *p_folders = cid_create_datatable(G_TYPE_STRING,"%s/.config","%s/.config/cid",G_TYPE_INVALID);
-        BEGIN_FOREACH_DT(p_folders)
+        CidDataCase *p_temp = p_folders->head;
+        while (p_temp != NULL)
+        {
             gchar *cDirName = g_strdup_printf(p_temp->content->string,g_getenv("HOME"));
             if (!g_file_test (cDirName,G_FILE_TEST_IS_DIR))
             {
@@ -54,7 +58,9 @@ cid_check_file (const gchar *f)
                 mkdir(cDirName,S_IRWXU);
             }
             g_free (cDirName);
-        END_FOREACH_DT
+            p_temp = p_temp->next;
+        }
+        cid_free_datatable (&p_folders);
         cFileTest = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE) ;
         if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
         {
@@ -102,7 +108,7 @@ cid_check_file (const gchar *f)
 }
 
 gboolean 
-cid_check_conf_file_version (CidMainContainer **pCid, const gchar *f) 
+cid_check_conf_file_version (const gchar *f) 
 {
     gchar *cCommand=NULL;
     gchar line_f1[80], line_f2[80];
@@ -128,64 +134,63 @@ cid_check_conf_file_version (CidMainContainer **pCid, const gchar *f)
         cid_copy_file(cTmpPath,f);
         g_free (cTmpPath);
         
-        cid_save_data (pCid);
-        cid_read_key_file (pCid, f);
+        cid_save_data ();
+        cid_read_key_file (f);
         return FALSE;
     }
     return TRUE;
 }
 
 void 
-cid_read_config_after_update (CidMainContainer **pCid, const char *f) 
+cid_read_config_after_update (const char *f, gpointer *pData) 
 {
-    CidMainContainer *cid = *pCid;
-    cid_read_config (pCid, f);
+    cid_read_config (f, NULL);
     
     // Si on active les fonctions 'instables', on détruit puis recree la fenetre
-    if ((cid->config->bChangedTestingConf != (cid->config->bUnstable && cid->config->bTesting))) 
+    if ((cid->bChangedTestingConf != (cid->bUnstable && cid->bTesting))) 
     {
-        cid->config->bChangedTestingConf = cid->config->bTesting && cid->config->bUnstable;
+        cid->bChangedTestingConf = cid->bTesting && cid->bUnstable;
         gtk_widget_destroy(cid->pWindow);
         cid_create_main_window();
     }
     
     // Si on change de lecteur
-    if (iPlayerChanged != cid->config->iPlayer) 
+    if (iPlayerChanged != cid->iPlayer) 
     {
         cid_disconnect_player ();
     
         cid_free_musicData();
     
-        if (cid->runtime->pMonitorList) 
+        if (cid->pMonitorList) 
         {
-            //g_slice_free (CidControlFunctionsList,cid->runtime->pMonitorList);
-            cid->runtime->pMonitorList = NULL;
+            //g_slice_free (CidControlFunctionsList,cid->pMonitorList);
+            cid->pMonitorList = NULL;
         }
     
     
-        cid_run_with_player(pCid);
+        cid_run_with_player();
     }
     
     // Si la couleur des controles change, on les recharge
-    if (iSymbolChanged != cid->config->iSymbolColor || iPlayerChanged != cid->config->iPlayer)
+    if (iSymbolChanged != cid->iSymbolColor || iPlayerChanged != cid->iPlayer)
         cid_load_symbols();
     
     cid_check_position();
     
-    gtk_window_move (GTK_WINDOW(cid->pWindow), cid->config->iPosX, cid->config->iPosY);
-    gtk_window_resize (GTK_WINDOW (cid->pWindow), cid->config->iWidth, cid->config->iHeight);
+    gtk_window_move (GTK_WINDOW(cid->pWindow), cid->iPosX, cid->iPosY);
+    gtk_window_resize (GTK_WINDOW (cid->pWindow), cid->iWidth, cid->iHeight);
     
     // Si on change l'affichage
-    if (bChangedDesktop != cid->config->bAllDesktop) 
+    if (bChangedDesktop != cid->bAllDesktop) 
     {
-        if (!cid->config->bAllDesktop)
+        if (!cid->bAllDesktop)
             gtk_window_unstick(GTK_WINDOW(cid->pWindow));
         else
             gtk_window_stick(GTK_WINDOW(cid->pWindow));
     }
     
     // Enfin, si on redimenssionne, on recharge les images
-    if (cid->config->iWidth != iOldWidth || cid->config->iHeight != iOldHeight) 
+    if (cid->iWidth != iOldWidth || cid->iHeight != iOldHeight) 
     {
         cid_display_image (musicData.playing_cover);
         cid_load_symbols();
@@ -193,12 +198,12 @@ cid_read_config_after_update (CidMainContainer **pCid, const char *f)
     
     CID_REDRAW;
     
+    (void) pData;
 }
 
 gboolean 
-cid_load_key_file(CidMainContainer **pCid, const gchar *cFile) 
+cid_load_key_file(const gchar *cFile) 
 {
-    CidMainContainer *cid = *pCid;
     GKeyFileFlags flags;
     GError *error = NULL;
 
@@ -217,9 +222,9 @@ cid_load_key_file(CidMainContainer **pCid, const gchar *cFile)
 }
 
 void 
-cid_key_file_free(CidMainContainer **pCid) 
+cid_key_file_free(void) 
 {
-    g_key_file_free ((*pCid)->pKeyFile);
+    g_key_file_free (cid->pKeyFile);
 }
 
 gboolean 
@@ -305,17 +310,16 @@ cid_free_and_debug_error (GError **error)
 }
 
 void 
-cid_read_key_file (CidMainContainer **pCid, const gchar *f) 
+cid_read_key_file (const gchar *f) 
 {   
-    CidMainContainer *cid = *pCid;
-    if (!cid_load_key_file(pCid, f))
+    if (!cid_load_key_file(f))
         cid_exit(CID_ERROR_READING_FILE,"Key File error");
 
-    bChangedDesktop = cid->config->bAllDesktop;
-    iPlayerChanged  = cid->config->iPlayer;
-    iSymbolChanged  = cid->config->iSymbolColor;
-    iOldWidth       = cid->config->iWidth;
-    iOldHeight      = cid->config->iHeight;
+    bChangedDesktop = cid->bAllDesktop;
+    iPlayerChanged  = cid->iPlayer;
+    iSymbolChanged  = cid->iSymbolColor;
+    iOldWidth       = cid->iWidth;
+    iOldHeight      = cid->iHeight;
     
     gint *pSize;
     gsize iReadSize;
@@ -324,36 +328,35 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     bUnvalidKey = FALSE;
     
     // [System] configuration
-    cid->config->iPlayer         = CID_CONFIG_GET_INTEGER ("System", "PLAYER");
-    cid->config->iInter          = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("System", "INTER", DEFAULT_TIMERS) SECONDES;
-    cid->config->bMonitorPlayer  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "MONITOR", TRUE);
-    cid->config->bPlayerState    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "STATE", TRUE);
-    cid->config->bDisplayTitle   = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "TITLE", TRUE);
-    cid->config->iSymbolColor    = CID_CONFIG_GET_INTEGER ("System", "SYMBOL_COLOR");
-    cid->config->bDisplayControl = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "CONTROLS", TRUE);
-    cid->config->dPoliceSize     = g_key_file_get_double  (cid->pKeyFile, "System", "POLICE_SIZE", &error);
+    cid->iPlayer         = CID_CONFIG_GET_INTEGER ("System", "PLAYER");
+    cid->iInter          = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("System", "INTER", DEFAULT_TIMERS) SECONDES;
+    cid->bMonitorPlayer  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "MONITOR", TRUE);
+    cid->bPlayerState    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "STATE", TRUE);
+    cid->bDisplayTitle   = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "TITLE", TRUE);
+    cid->iSymbolColor    = CID_CONFIG_GET_INTEGER ("System", "SYMBOL_COLOR");
+    cid->bDisplayControl = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "CONTROLS", TRUE);
+    cid->dPoliceSize     = g_key_file_get_double  (cid->pKeyFile, "System", "POLICE_SIZE", &error);
     cid_free_and_debug_error(&error);
-    cid->config->dPoliceColor    = g_key_file_get_double_list (cid->pKeyFile, "System", "POLICE_COLOR", &cid->config->gPlainTextSize, &error);
+    cid->dPoliceColor    = g_key_file_get_double_list (cid->pKeyFile, "System", "POLICE_COLOR", &cid->gPlainTextSize, &error);
     cid_free_and_debug_error(&error);
-    cid->config->dOutlineTextColor = g_key_file_get_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", &cid->config->gOutlineTextSize, &error);
+    cid->dOutlineTextColor = g_key_file_get_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", &cid->gOutlineTextSize, &error);
     cid_free_and_debug_error(&error);
 
     // [Options] configuration
-    cid->config->bHide           = CID_CONFIG_GET_BOOLEAN ("Options", "HIDE");
-    cid->config->cDefaultImage   = CID_CONFIG_GET_FILE_PATH  ("Options", "IMAGE", cid->config->bDevMode ? TESTING_DIR"/"TESTING_COVER : CID_DEFAULT_IMAGE);
-    cid->config->bRunAnimation   = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options", "ANIMATION", TRUE);
-    cid->config->iAnimationType  = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_TYPE");
-    cid->config->iAnimationSpeed = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_SPEED");
-    cid->config->bThreaded       = CID_CONFIG_GET_BOOLEAN ("Options", "THREAD");
-    cid->config->bDownload       = CID_CONFIG_GET_BOOLEAN ("Options", "DOWNLOAD");
-    cid->config->cDLPath         = CID_CONFIG_GET_STRING_WITH_DEFAULT ("Options", "DL_PATH", cid->defaut->cDLPath);
-    cid->config->iImageSize      = CID_CONFIG_GET_INTEGER ("Options", "D_SIZE");
-    cid->config->iTimeToWait     = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("Options", "DELAY", DEFAULT_TIMERS);
-    cid->config->bUnstable       = cid->config->bTesting && CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options", "B_UNSTABLE", TRUE);
+    cid->bHide           = CID_CONFIG_GET_BOOLEAN ("Options", "HIDE");
+    cid->cDefaultImage   = CID_CONFIG_GET_FILE_PATH  ("Options", "IMAGE", cid->bDevMode ? TESTING_DIR"/"TESTING_COVER : CID_DEFAULT_IMAGE);
+    cid->bRunAnimation   = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options", "ANIMATION", TRUE);
+    cid->iAnimationType  = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_TYPE");
+    cid->iAnimationSpeed = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_SPEED");
+    cid->bThreaded       = CID_CONFIG_GET_BOOLEAN ("Options", "THREAD");
+    cid->bDownload       = CID_CONFIG_GET_BOOLEAN ("Options", "DOWNLOAD");
+    cid->iImageSize      = CID_CONFIG_GET_INTEGER ("Options", "D_SIZE");
+    cid->iTimeToWait     = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("Options", "DELAY", DEFAULT_TIMERS);
+    cid->bUnstable       = cid->bTesting && CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options", "B_UNSTABLE", TRUE);
     
     // [Behaviour] configuration
-    cid->config->iPosX          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_X");
-    cid->config->iPosY          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_Y");
+    cid->iPosX          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_X");
+    cid->iPosY          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_Y");
     pSize               = g_key_file_get_integer_list (cid->pKeyFile, "Behaviour", "SIZE", &iReadSize, &error);
     if (cid_free_and_debug_error(&error) || iReadSize != 2)
     {
@@ -368,17 +371,17 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
             cid_exit (CID_ERROR_READING_FILE, "cannot allocate memory");
         }
     }
-    cid->config->dRotate        = g_key_file_get_double  (cid->pKeyFile, "Behaviour", "ROTATION", &error);
+    cid->dRotate        = g_key_file_get_double  (cid->pKeyFile, "Behaviour", "ROTATION", &error);
     cid_free_and_debug_error(&error);
-    cid->config->dColor         = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "COLOR", &cid->config->gColorSize, &error);
+    cid->dColor         = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "COLOR", &cid->gColorSize, &error);
     cid_free_and_debug_error(&error);
-    cid->config->dFlyingColor   = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", &cid->config->gFlyingColorSize, &error);
+    cid->dFlyingColor   = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", &cid->gFlyingColorSize, &error);
     cid_free_and_debug_error(&error);
-    cid->config->bKeepCorners   = CID_CONFIG_GET_BOOLEAN ("Behaviour", "KEEP_CORNERS");
-    cid->config->bAllDesktop    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "ALL_DESKTOP", TRUE);
-    cid->config->bLockPosition  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "LOCK", TRUE);
-    cid->config->bMask          = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "MASK", TRUE);
-    cid->config->bShowAbove     = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "SWITCH_ABOVE", TRUE);
+    cid->bKeepCorners   = CID_CONFIG_GET_BOOLEAN ("Behaviour", "KEEP_CORNERS");
+    cid->bAllDesktop    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "ALL_DESKTOP", TRUE);
+    cid->bLockPosition  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "LOCK", TRUE);
+    cid->bMask          = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "MASK", TRUE);
+    cid->bShowAbove     = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "SWITCH_ABOVE", TRUE);
     
     // MPD configurations
     cid->mpd_dir   = CID_CONFIG_GET_DIR_PATH ("MPD", "MPD_DIR", g_strdup_printf ("%s/Music",g_getenv ("HOME")));
@@ -395,45 +398,43 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     g_free (cEncrypted);
     cid->mpd_port  = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("MPD", "MPD_PORT", 6600);
     
-    cid->config->iWidth = pSize[0] <= MAX_SIZE ? pSize[0] : MAX_SIZE;
-    cid->config->iHeight = pSize[1] <= MAX_SIZE ? pSize[1] : MAX_SIZE;
+    cid->iWidth = pSize[0] <= MAX_SIZE ? pSize[0] : MAX_SIZE;
+    cid->iHeight = pSize[1] <= MAX_SIZE ? pSize[1] : MAX_SIZE;
     
     if (!bUnvalidKey) 
     {
-        cid->config->dRed            = cid->config->dColor[0];
-        cid->config->dGreen          = cid->config->dColor[1];
-        cid->config->dBlue           = cid->config->dColor[2];
-        cid->config->dAlpha          = cid->config->dColor[3];
-        cid->runtime->dFocusVariation = cid->config->dFlyingColor[3]>cid->config->dAlpha ? +1 : -1;
-        cid->config->iExtraSize      = (cid->config->iHeight + cid->config->iWidth)/20;
-        cid->config->iPrevNextSize   = cid->config->iExtraSize * 2;
-        cid->config->iPlayPauseSize  = cid->config->iExtraSize * 3;
+        cid->dRed            = cid->dColor[0];
+        cid->dGreen          = cid->dColor[1];
+        cid->dBlue           = cid->dColor[2];
+        cid->dAlpha          = cid->dColor[3];
+        cid->dFocusVariation = cid->dFlyingColor[3]>cid->dAlpha ? +1 : -1;
+        cid->iExtraSize      = (cid->iHeight + cid->iWidth)/20;
+        cid->iPrevNextSize   = cid->iExtraSize * 2;
+        cid->iPlayPauseSize  = cid->iExtraSize * 3;
     }
     
-    cid_key_file_free(pCid);
+    cid_key_file_free();
 
     if (bUnvalidKey && !bReloaded)
     {
-        cid_save_data (pCid);
-        cid_read_key_file (pCid, f);
+        cid_save_data ();
+        cid_read_key_file (f);
         bReloaded = TRUE;
     }
 }
 
 int 
-cid_read_config (CidMainContainer **pCid, const char *f) 
+cid_read_config (const char *f, gpointer *pData) 
 {
-    CidMainContainer *cid = *pCid;
-    
     cid_info ("Reading file : %s",f);
     
-    if (!cid->config->bDevMode) 
+    if (!cid->bDevMode) 
         cid_check_file (f);
             
-    cid_read_key_file (pCid, f);
+    cid_read_key_file (f);
     
-    if (!cid->config->bDevMode) 
-        cid_check_conf_file_version (pCid, f);
+    if (!cid->bDevMode) 
+        cid_check_conf_file_version (f);
     
     iNbRead++;
 
@@ -441,72 +442,66 @@ cid_read_config (CidMainContainer **pCid, const char *f)
 }
 
 void 
-cid_get_data (CidMainContainer **pCid) 
+cid_get_data () 
 {
-    CidMainContainer *cid = *pCid;
     /* On récupère la position de cid */
-    gtk_window_get_position(GTK_WINDOW (cid->pWindow), &cid->config->iPosX, &cid->config->iPosY);
+    gtk_window_get_position(GTK_WINDOW (cid->pWindow), &cid->iPosX, &cid->iPosY);
     
     /* On récupère la taille de cid */
-    gtk_window_get_size(GTK_WINDOW (cid->pWindow), &cid->config->iWidth, &cid->config->iHeight);
+    gtk_window_get_size(GTK_WINDOW (cid->pWindow), &cid->iWidth, &cid->iHeight);
 }
 
 void 
-cid_save_data (CidMainContainer **pCid) 
+cid_save_data () 
 {
-    CidMainContainer *cid = *pCid;
-    if (!cid_load_key_file(pCid, cid->config->cConfFile))
+    if (!cid_load_key_file(cid->cConfFile))
         cid_exit(CID_ERROR_READING_FILE,"Key File error");
     
     if (cid->pWindow!=NULL)
-        cid_get_data(pCid);
+        cid_get_data();
     
     // [System] configuration
-    g_key_file_set_integer (cid->pKeyFile, "System", "PLAYER", cid->config->iPlayer);
-    g_key_file_set_integer (cid->pKeyFile, "System", "INTER", cid->config->iInter/1000);
-    g_key_file_set_integer (cid->pKeyFile, "System", "SYMBOL_COLOR", cid->config->iSymbolColor);
-    g_key_file_set_boolean (cid->pKeyFile, "System", "MONITOR", cid->config->bMonitorPlayer);
-    g_key_file_set_boolean (cid->pKeyFile, "System", "STATE", cid->config->bPlayerState);
-    g_key_file_set_boolean (cid->pKeyFile, "System", "TITLE", cid->config->bDisplayTitle);
-    g_key_file_set_boolean (cid->pKeyFile, "System", "CONTROLS", cid->config->bDisplayControl);
-    g_key_file_set_double (cid->pKeyFile, "System", "POLICE_SIZE",(cid->config->dPoliceSize));
-    g_key_file_set_double_list (cid->pKeyFile, "System", "POLICE_COLOR", (cid->config->dPoliceColor), cid->config->gPlainTextSize);
-    g_key_file_set_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", (cid->config->dOutlineTextColor), cid->config->gOutlineTextSize);
+    g_key_file_set_integer (cid->pKeyFile, "System", "PLAYER", cid->iPlayer);
+    g_key_file_set_integer (cid->pKeyFile, "System", "INTER", cid->iInter/1000);
+    g_key_file_set_integer (cid->pKeyFile, "System", "SYMBOL_COLOR", cid->iSymbolColor);
+    g_key_file_set_boolean (cid->pKeyFile, "System", "MONITOR", cid->bMonitorPlayer);
+    g_key_file_set_boolean (cid->pKeyFile, "System", "STATE", cid->bPlayerState);
+    g_key_file_set_boolean (cid->pKeyFile, "System", "TITLE", cid->bDisplayTitle);
+    g_key_file_set_boolean (cid->pKeyFile, "System", "CONTROLS", cid->bDisplayControl);
+    g_key_file_set_double (cid->pKeyFile, "System", "POLICE_SIZE",(cid->dPoliceSize));
+    g_key_file_set_double_list (cid->pKeyFile, "System", "POLICE_COLOR", (cid->dPoliceColor), cid->gPlainTextSize);
+    g_key_file_set_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", (cid->dOutlineTextColor), cid->gOutlineTextSize);
 
     // [Options] configuration
-    g_key_file_set_boolean (cid->pKeyFile, "Options", "ANIMATION", cid->config->bRunAnimation);
-    g_key_file_set_boolean (cid->pKeyFile, "Options", "HIDE", cid->config->bHide);
-    if (strcmp(cid->config->cDefaultImage,TESTING_DIR"/"TESTING_COVER)!=0 && strcmp(cid->config->cDefaultImage,CID_DEFAULT_IMAGE)!=0)
-        g_key_file_set_string  (cid->pKeyFile, "Options", "IMAGE", cid->config->cDefaultImage);
+    g_key_file_set_boolean (cid->pKeyFile, "Options", "ANIMATION", cid->bRunAnimation);
+    g_key_file_set_boolean (cid->pKeyFile, "Options", "HIDE", cid->bHide);
+    if (strcmp(cid->cDefaultImage,TESTING_DIR"/"TESTING_COVER)!=0 && strcmp(cid->cDefaultImage,CID_DEFAULT_IMAGE)!=0)
+        g_key_file_set_string  (cid->pKeyFile, "Options", "IMAGE", cid->cDefaultImage);
     else
         g_key_file_set_string  (cid->pKeyFile, "Options", "IMAGE", "");
-    g_key_file_set_boolean (cid->pKeyFile, "Options", "THREAD", cid->config->bThreaded);
-    g_key_file_set_boolean (cid->pKeyFile, "Options", "DOWNLOAD", cid->config->bDownload);
-    g_key_file_set_integer (cid->pKeyFile, "Options", "ANIMATION_TYPE", cid->config->iAnimationType);
-    g_key_file_set_integer (cid->pKeyFile, "Options", "ANIMATION_SPEED", cid->config->iAnimationSpeed);
-    g_key_file_set_integer (cid->pKeyFile, "Options", "DELAY", cid->config->iTimeToWait);
-    g_key_file_set_integer (cid->pKeyFile, "Options", "D_SIZE", cid->config->iImageSize);
-    g_key_file_set_boolean (cid->pKeyFile, "Options", "B_UNSTABLE", cid->config->bUnstable);
-    if (strcmp(cid->config->cDLPath,cid->defaut->cDLPath) != 0)
-        g_key_file_set_string (cid->pKeyFile, "Options", "DL_PATH", cid->config->cDLPath);
-    else
-        g_key_file_set_string (cid->pKeyFile, "Options", "DL_PATH", "");
+    g_key_file_set_boolean (cid->pKeyFile, "Options", "THREAD", cid->bThreaded);
+    g_key_file_set_boolean (cid->pKeyFile, "Options", "DOWNLOAD", cid->bDownload);
+    g_key_file_set_integer (cid->pKeyFile, "Options", "ANIMATION_TYPE", cid->iAnimationType);
+    g_key_file_set_integer (cid->pKeyFile, "Options", "ANIMATION_SPEED", cid->iAnimationSpeed);
+    g_key_file_set_integer (cid->pKeyFile, "Options", "DELAY", cid->iTimeToWait);
+    g_key_file_set_integer (cid->pKeyFile, "Options", "D_SIZE", cid->iImageSize);
+    g_key_file_set_boolean (cid->pKeyFile, "Options", "B_UNSTABLE", cid->bUnstable);
     
     // [Behaviour] configuration
-    gint pSize[2] = {cid->config->iWidth,cid->config->iHeight};
+    gint pSize[2] = {cid->iWidth,cid->iHeight};
     gsize iReadSize = sizeof (pSize) / sizeof (*pSize);
     g_key_file_set_integer_list (cid->pKeyFile, "Behaviour", "SIZE", pSize, iReadSize);
-    g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_X",cid->config->iPosX);
-    g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_Y",cid->config->iPosY);
+    g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_X",cid->iPosX);
+    g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_Y",cid->iPosY);
     
-    g_key_file_set_double (cid->pKeyFile, "Behaviour", "ROTATION",(cid->config->dRotate));
-    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "COLOR", (cid->config->dColor), cid->config->gColorSize);
-    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", (cid->config->dFlyingColor), cid->config->gFlyingColorSize);
-    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "KEEP_CORNERS", cid->config->bKeepCorners);
-    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "ALL_DESKTOP", cid->config->bAllDesktop);
-    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "LOCK", cid->config->bLockPosition);
-    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "MASK", cid->config->bMask);
-    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "SWITCH_ABOVE", cid->config->bShowAbove);
+    g_key_file_set_double (cid->pKeyFile, "Behaviour", "ROTATION",(cid->dRotate));
+    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "COLOR", (cid->dColor), cid->gColorSize);
+    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", (cid->dFlyingColor), cid->gFlyingColorSize);
+    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "KEEP_CORNERS", cid->bKeepCorners);
+    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "ALL_DESKTOP", cid->bAllDesktop);
+    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "LOCK", cid->bLockPosition);
+    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "MASK", cid->bMask);
+    g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "SWITCH_ABOVE", cid->bShowAbove);
 
     // [MPD] configuration
     gchar *cDefaultDir = g_strdup_printf ("%s/Music", g_getenv ("HOME"));
@@ -522,7 +517,7 @@ cid_save_data (CidMainContainer **pCid)
     g_free (cEncrypted);
     g_key_file_set_integer (cid->pKeyFile, "MPD", "MPD_PORT", cid->mpd_port);
     
-    cid_write_keys_to_file (cid->pKeyFile, cid->config->cConfFile);
+    cid_write_keys_to_file (cid->pKeyFile, cid->cConfFile);
 }
 
 void 

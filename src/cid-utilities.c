@@ -12,8 +12,8 @@
 #include "cid-callbacks.h"
 #include "cid-messages.h"
 #include "cid-constantes.h"
-#include "cid-X-utilities.h"
 
+#include <X11/Xlib.h>
 #include <errno.h>
 #ifdef HAVE_LIBCRYPT
 /* libC crypt */
@@ -29,6 +29,8 @@ static char DES_crypt_key[64] =
 extern CidMainContainer *cid;
 extern int ret;
 
+static Display *s_XDisplay = NULL;
+
 /* Fonction de sortie en cas d'erreur, avec affichage d'un
    éventuel message d'erreur */
 int 
@@ -36,7 +38,7 @@ cid_sortie(int code)
 {
     cid_disconnect_player ();
     
-    if (cid->runtime->bRunning)
+    if (cid->bRunning)
         gtk_main_quit ();
     ret = code;
     return code;
@@ -102,10 +104,10 @@ cid_free_main_structure (CidMainContainer *pCid)
         cairo_surface_destroy(pCid->p_cPause_big);
     if (pCid->p_cNext)
         cairo_surface_destroy(pCid->p_cPrev);
-    if (pCid->config->cConfFile)
-        g_free(pCid->config->cConfFile);
-    if (pCid->config->cVerbosity)
-        g_free(pCid->config->cVerbosity);
+    if (pCid->cConfFile)
+        g_free(pCid->cConfFile);
+    if (pCid->cVerbosity)
+        g_free(pCid->cVerbosity);
         
     pCid->pWindow = NULL;
     pCid->p_cSurface = NULL;
@@ -116,8 +118,8 @@ cid_free_main_structure (CidMainContainer *pCid)
     pCid->p_cPlay_big = NULL;
     pCid->p_cPause_big = NULL;
     pCid->p_cPrev = NULL;
-    pCid->config->cConfFile = NULL;
-    pCid->config->cVerbosity = NULL;
+    pCid->cConfFile = NULL;
+    pCid->cVerbosity = NULL;
     
     g_free (pCid);
     pCid = NULL;
@@ -199,20 +201,20 @@ cid_read_parameters (int *argc, char ***argv)
         if (strcmp((*argv)[i], "dev" ) == 0) 
         {
             fprintf (stdout,"/!\\ CAUTION /!\\\nDevelopment mode !\n");
-            if (cid->config->cConfFile)
-                g_free (cid->config->cConfFile);
+            if (cid->cConfFile)
+                g_free (cid->cConfFile);
             if (DEFAULT_IMAGE)
                 g_free (DEFAULT_IMAGE);
-            cid->config->cConfFile = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_FILE);
+            cid->cConfFile = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_FILE);
             DEFAULT_IMAGE = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_COVER);
-            cid->config->bDevMode = TRUE;
+            cid->bDevMode = TRUE;
         }
     }
     
     GOptionEntry entries[] =
     {
         {"log", 'l', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING,
-            &cid->config->cVerbosity,
+            &cid->cVerbosity,
             dgettext (CID_GETTEXT_PACKAGE, "log verbosity (debug,info,message,warning,error) default is warning."), NULL},
         {"config", 'c', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_FILENAME,
             &cConfFile,
@@ -252,21 +254,21 @@ You can use it with the following options:\n"));
     
     if (bSafeMode) 
     {
-        cid->config->bSafeMode = TRUE;
+        cid->bSafeMode = TRUE;
         fprintf (stdout,"Safe Mode\n");
     }
     
     if (bConfigPanel)
     {
-        cid->config->bConfigPanel = TRUE;
-        cid->config->bSafeMode = TRUE;
+        cid->bConfigPanel = TRUE;
+        cid->bSafeMode = TRUE;
     }
     
     if (bDebugMode) 
     {
-        if (cid->config->cVerbosity)
-            g_free (cid->config->cVerbosity);
-        cid->config->cVerbosity = g_strdup ("debug");   
+        if (cid->cVerbosity)
+            g_free (cid->cVerbosity);
+        cid->cVerbosity = g_strdup ("debug");   
     }
 
     if (bPrintVersion) 
@@ -294,14 +296,14 @@ You can use it with the following options:\n"));
 
     if (bTestingMode) 
     {
-        cid->config->bTesting = TRUE;
+        cid->bTesting = TRUE;
     }
     
     if (cConfFile != NULL)
     {
-        if (cid->config->cConfFile)
-            g_free (cid->config->cConfFile);
-        cid->config->cConfFile = g_strdup (cConfFile);
+        if (cid->cConfFile)
+            g_free (cid->cConfFile);
+        cid->cConfFile = g_strdup (cConfFile);
         g_free (cConfFile);
     }
 }
@@ -910,14 +912,35 @@ cid_str_replace_all_seq (gchar **string, gchar *seqFrom, gchar *seqTo)
     }
 }
 
+static int 
+_cid_xerror_handler (Display * pDisplay, XErrorEvent *pXError) 
+{
+    cid_debug ("Erreur (%d, %d, %d) lors d'une requete X sur %d", pXError->error_code, pXError->request_code, pXError->minor_code, pXError->resourceid);
+    return 0;
+}
+
+static void 
+cid_get_X_infos (void) 
+{
+    s_XDisplay = XOpenDisplay (0);
+    
+    XSetErrorHandler (_cid_xerror_handler);
+    
+    Screen *XScreen = XDefaultScreenOfDisplay (s_XDisplay);
+    cid->XScreenWidth  = WidthOfScreen (XScreen);
+    cid->XScreenHeight = HeightOfScreen (XScreen);
+    
+    //g_print ("%dx%d\n",XScreenWidth,XScreenHeight);
+}
+
 void 
 cid_check_position (void) 
 {
     cid_get_X_infos();
-    if (cid->config->iPosX > (cid->XScreenWidth - cid->config->iWidth)) cid->config->iPosX = (cid->XScreenWidth - cid->config->iWidth);
-    if (cid->config->iPosY > (cid->XScreenHeight - cid->config->iHeight)) cid->config->iPosY = (cid->XScreenHeight - cid->config->iHeight);
-    if (cid->config->iPosX < 0) cid->config->iPosX = 0;
-    if (cid->config->iPosY < 0) cid->config->iPosY = 0;
+    if (cid->iPosX > (cid->XScreenWidth - cid->iWidth)) cid->iPosX = (cid->XScreenWidth - cid->iWidth);
+    if (cid->iPosY > (cid->XScreenHeight - cid->iHeight)) cid->iPosY = (cid->XScreenHeight - cid->iHeight);
+    if (cid->iPosX < 0) cid->iPosX = 0;
+    if (cid->iPosY < 0) cid->iPosY = 0;
 }
 
 void 

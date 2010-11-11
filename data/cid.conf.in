@@ -156,9 +156,6 @@ DELAY=3
 #{A small image will be downloaded faster than a big one.}
 D_SIZE=
 
-#S+ Where to download missing covers
-#{By default in $HOME/.cache/cid}
-DL_PATH=
 
 
 #X+

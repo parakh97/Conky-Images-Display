@@ -55,7 +55,7 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
     }
     
     // Evaluation de l'expression XPath
-    //gchar *cXPath = g_strdup_printf (xpath,cid->config->iImageSize == MEDIUM_IMAGE ? "large" : "extralarge"/*TAB_IMAGE_SIZES[cid->config->iImageSize]*/);
+    //gchar *cXPath = g_strdup_printf (xpath,cid->iImageSize == MEDIUM_IMAGE ? "large" : "extralarge"/*TAB_IMAGE_SIZES[cid->iImageSize]*/);
     gchar *cXPath = g_strdup_vprintf (xpath, args);
     xmlXPathObjectPtr xpathRes = xmlXPathEvalExpression(cXPath, ctxt);
     g_free (cXPath);

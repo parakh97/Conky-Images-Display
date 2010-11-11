@@ -26,7 +26,7 @@ extern gboolean bFlyingButton;
 static gchar *
 cid_get_symbol_path (StateSymbol iState, SymbolColor iColor) 
 {
-    return g_strdup_printf("%s/%s-%s.png",cid->config->bDevMode ? "../data" : CID_DATA_DIR, STATE_SYMBOL[iState], STATE_COLOR[iColor]);
+    return g_strdup_printf("%s/%s-%s.png",cid->bDevMode ? "../data" : CID_DATA_DIR, STATE_SYMBOL[iState], STATE_COLOR[iColor]);
 }
 
 /* Fonction qui nous sert à afficher l'image dont le chemin
@@ -42,7 +42,7 @@ cid_display_image(gchar *image)
         cairo_surface_destroy (cid->p_cPreviousSurface);
         cid->p_cPreviousSurface = NULL;
     }
-    if (cid->config->iAnimationType == CID_FADE_IN_OUT && cid->config->bRunAnimation && cid->p_cSurface)
+    if (cid->iAnimationType == CID_FADE_IN_OUT && cid->bRunAnimation && cid->p_cSurface)
         cid->p_cPreviousSurface = cairo_surface_reference(cid->p_cSurface);
         
     if (cid->p_cSurface) 
@@ -51,9 +51,9 @@ cid_display_image(gchar *image)
         cid->p_cSurface = NULL;
     }
 
-    if (g_file_test (image, G_FILE_TEST_EXISTS))
+    if (g_file_test (image, G_FILE_TEST_EXISTS)) 
     {
-        cid->p_cSurface = cid_get_cairo_image (image, cid->config->iWidth, cid->config->iHeight);
+        cid->p_cSurface = cid_get_cairo_image (image, cid->iWidth, cid->iHeight);
         if (musicData.playing_cover && strcmp(musicData.playing_cover,image)!=0) 
         {
             g_free(musicData.playing_cover);
@@ -70,7 +70,7 @@ cid_display_image(gchar *image)
     } 
     else 
     {
-        cid->p_cSurface = cid_get_cairo_image (DEFAULT_IMAGE, cid->config->iWidth, cid->config->iHeight);
+        cid->p_cSurface = cid_get_cairo_image (DEFAULT_IMAGE, cid->iWidth, cid->iHeight);
         musicData.cover_exist = FALSE;
     }
     
@@ -85,6 +85,7 @@ cid_get_cairo_image (char *cImagePath, gdouble iWidth, gdouble iHeight)
     
     cairo_surface_t* pNewSurface = NULL;
     
+    // buffer de pixels après redimenssionement
     GdkPixbuf *nCover;
     nCover = gdk_pixbuf_new_from_file_at_scale (cImagePath,iWidth, iHeight, FALSE, NULL);
     pNewSurface = cid_get_image_from_pixbuf (&nCover);
@@ -165,8 +166,8 @@ cid_get_image_from_pixbuf (GdkPixbuf **pixbuf)
         gdk_pixbuf_get_rowstride (pPixbufWithAlpha));
 
     cairo_surface_t *pNewSurface = _cid_create_blank_surface (NULL,
-        cid->config->iWidth,
-        cid->config->iHeight);
+        cid->iWidth,
+        cid->iHeight);
     cairo_t *pCairoContext = cairo_create (pNewSurface);
 
     cairo_set_source_surface (pCairoContext, surface_ini, 0, 0);
@@ -192,12 +193,12 @@ cid_create_main_window()
     
     /* On place, nomme, et dimenssione la fenetre */
     gtk_window_set_title (GTK_WINDOW (cid->pWindow), "cid");
-    gtk_window_move (GTK_WINDOW(cid->pWindow), cid->config->iPosX, cid->config->iPosY);
-    gtk_window_set_default_size (GTK_WINDOW(cid->pWindow), cid->config->iWidth, cid->config->iHeight);
+    gtk_window_move (GTK_WINDOW(cid->pWindow), cid->iPosX, cid->iPosY);
+    gtk_window_set_default_size (GTK_WINDOW(cid->pWindow), cid->iWidth, cid->iHeight);
     gtk_window_set_gravity (GTK_WINDOW (cid->pWindow), GDK_GRAVITY_STATIC);
 
     /* On affiche cid sur tous les bureaux, ou pas */
-    if (cid->config->bAllDesktop)
+    if (cid->bAllDesktop)
         gtk_window_stick (GTK_WINDOW (cid->pWindow));
     /* On bloque le déplacement (marche pas :/), on enlève les
        barre de titre et bordures, on empêche l'apparition dans
@@ -206,8 +207,9 @@ cid_create_main_window()
     gtk_window_set_keep_below (GTK_WINDOW (cid->pWindow), TRUE);
     gtk_window_set_skip_pager_hint (GTK_WINDOW (cid->pWindow), TRUE);
     gtk_window_set_skip_taskbar_hint (GTK_WINDOW (cid->pWindow), TRUE);
-    gtk_window_set_type_hint (GTK_WINDOW (cid->pWindow), cid->config->iHint);
+    gtk_window_set_type_hint (GTK_WINDOW (cid->pWindow), cid->iHint);
     gtk_widget_set_app_paintable (cid->pWindow, TRUE);
+
 
     /* On s'abonne aux évènement */
     gtk_widget_add_events  (cid->pWindow,
@@ -228,7 +230,7 @@ cid_create_main_window()
     g_signal_connect (G_OBJECT(cid->pWindow), "leave-notify-event", G_CALLBACK(cid_focus), GINT_TO_POINTER(FALSE)); // Le curseur quitte la fenêtre
     
     ///\_______ TESTING OPTION
-    if (cid->config->bUnstable) 
+    if (cid->bUnstable) 
     {
         /* On prépare le traitement du d'n'd */
         GtkTargetEntry *pTargetEntry = g_new0 (GtkTargetEntry, 6);
@@ -261,7 +263,7 @@ cid_create_main_window()
     cid_set_colormap (cid->pWindow, NULL, NULL);
     
     /* Chargement des dessins */
-    if (cid->config->iPlayer != PLAYER_NONE)
+    if (cid->iPlayer != PLAYER_NONE)
     {
         cid_load_symbols ();
     }
@@ -305,18 +307,18 @@ cid_draw_text (cairo_t *cr)
 
     cairo_text_extents(cr, musicData.playing_title, &extents);
     cairo_select_font_face (cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size (cr, cid->config->dPoliceSize);
+    cairo_set_font_size (cr, cid->dPoliceSize);
     
-    gdouble posX = ((cid->config->iWidth/2) - (extents.width/2 - extents.x_bearing));
+    gdouble posX = ((cid->iWidth/2) - (extents.width/2 - extents.x_bearing));
     //g_print ("posX : %f | taille-text : %f | bearing : %f",posX, extents.width, extents.x_bearing);
     
-    cairo_move_to (cr, posX , cid->config->iHeight - extents.height);
+    cairo_move_to (cr, posX , cid->iHeight - extents.height);
         
     cairo_text_path (cr, musicData.playing_title);
-    cairo_set_source_rgba (cr, cid->config->dPoliceColor[0], cid->config->dPoliceColor[1], cid->config->dPoliceColor[2], cid->config->dPoliceColor[3]);
+    cairo_set_source_rgba (cr, cid->dPoliceColor[0], cid->dPoliceColor[1], cid->dPoliceColor[2], cid->dPoliceColor[3]);
     cairo_fill_preserve (cr);
-    cairo_set_source_rgba (cr, cid->config->dOutlineTextColor[0], cid->config->dOutlineTextColor[1], cid->config->dOutlineTextColor[2], cid->config->dOutlineTextColor[3]);
-    cairo_set_line_width (cr, cid->config->dPoliceSize/15.0);
+    cairo_set_source_rgba (cr, cid->dOutlineTextColor[0], cid->dOutlineTextColor[1], cid->dOutlineTextColor[2], cid->dOutlineTextColor[3]);
+    cairo_set_line_width (cr, cid->dPoliceSize/15.0);
 
     cairo_stroke (cr);
     cairo_restore (cr);
@@ -408,32 +410,32 @@ cid_load_symbols (void)
         cairo_surface_destroy (cid->p_cCross);
     
     gchar *cTmpPath;
-    cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
-    cid->p_cPlay      = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
+    cTmpPath = cid_get_symbol_path(CID_PLAY,cid->iSymbolColor);
+    cid->p_cPlay      = cid_get_cairo_image(cTmpPath,cid->iExtraSize,cid->iExtraSize);
     g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
-    cid->p_cPause     = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
+    cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->iSymbolColor);
+    cid->p_cPause     = cid_get_cairo_image(cTmpPath,cid->iExtraSize,cid->iExtraSize);
     g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_NEXT,cid->config->iSymbolColor);
-    cid->p_cNext      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    cTmpPath = cid_get_symbol_path(CID_NEXT,cid->iSymbolColor);
+    cid->p_cNext      = cid_get_cairo_image(cTmpPath,cid->iPrevNextSize,cid->iPrevNextSize);
     g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PREV,cid->config->iSymbolColor);
-    cid->p_cPrev      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    cTmpPath = cid_get_symbol_path(CID_PREV,cid->iSymbolColor);
+    cid->p_cPrev      = cid_get_cairo_image(cTmpPath,cid->iPrevNextSize,cid->iPrevNextSize);
     g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
-    cid->p_cPlay_big  = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    cTmpPath = cid_get_symbol_path(CID_PLAY,cid->iSymbolColor);
+    cid->p_cPlay_big  = cid_get_cairo_image(cTmpPath,cid->iPlayPauseSize,cid->iPlayPauseSize);
     g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
-    cid->p_cPause_big = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->iSymbolColor);
+    cid->p_cPause_big = cid_get_cairo_image(cTmpPath,cid->iPlayPauseSize,cid->iPlayPauseSize);
     g_free (cTmpPath);
-    cTmpPath = g_strdup_printf("%s/%s",cid->config->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_CROSS);
-    cid->p_cCross = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
+    cTmpPath = g_strdup_printf("%s/%s",cid->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_CROSS);
+    cid->p_cCross = cid_get_cairo_image(cTmpPath,cid->iExtraSize,cid->iExtraSize);
     g_free (cTmpPath);
-    cTmpPath = g_strdup_printf("%s/%s",cid->config->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_CONNECT);
-    cid->p_cConnect = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
+    cTmpPath = g_strdup_printf("%s/%s",cid->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_CONNECT);
+    cid->p_cConnect = cid_get_cairo_image(cTmpPath,cid->iExtraSize,cid->iExtraSize);
     g_free (cTmpPath);
-    cTmpPath = g_strdup_printf("%s/%s",cid->config->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_DISCONNECT);
-    cid->p_cDisconnect = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
+    cTmpPath = g_strdup_printf("%s/%s",cid->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_DISCONNECT);
+    cid->p_cDisconnect = cid_get_cairo_image(cTmpPath,cid->iExtraSize,cid->iExtraSize);
     g_free (cTmpPath);
 }
 
@@ -443,60 +445,60 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
 {      
     cairo_t *cr = pContext;
     
-    if (!cid->config->bMask)
-        cairo_set_source_rgba (cr, cid->config->dRed, cid->config->dGreen, cid->config->dBlue, cid->config->dAlpha);
+    if (!cid->bMask)
+        cairo_set_source_rgba (cr, cid->dRed, cid->dGreen, cid->dBlue, cid->dAlpha);
     else
-        cairo_set_source_rgba (cr, cid->config->dColor[0], cid->config->dColor[1], cid->config->dColor[2], cid->config->dColor[3]);
+        cairo_set_source_rgba (cr, cid->dColor[0], cid->dColor[1], cid->dColor[2], cid->dColor[3]);
         
     cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
     cairo_paint (cr);
 
     
     // Si le lecteur est lance ou qu'on ne cache pas cid
-    if ( musicData.opening || !cid->config->bHide ) 
+    if ( musicData.opening || !cid->bHide ) 
     {
         cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
         cairo_save (cr);
 
         ///\_______ des maths... je suis nul en maths
         ///         le but c'est calculer le bon ratio pour l'image pendant une rotation        
-        //gdouble theta = fabs (cid->config->dRotate);
+        //gdouble theta = fabs (cid->dRotate);
         //if (theta > M_PI/2)
         //  theta -= M_PI/2;
         
-        //gdouble alpha = atan2 (cid->config->iHeight, cid->config->iWidth);
+        //gdouble alpha = atan2 (cid->iHeight, cid->iWidth);
         
-        gdouble hyp = sqrt (pow(cid->config->iWidth,2)+pow(cid->config->iHeight,2));
+        gdouble hyp = sqrt (pow(cid->iWidth,2)+pow(cid->iHeight,2));
         
-        //gdouble scaledWidth = fabs (cid->config->iWidth / (hyp * sin (alpha + theta)));
-        //gdouble scaledHeight = fabs (cid->config->iHeight / (hyp * cos (alpha - theta)));
+        //gdouble scaledWidth = fabs (cid->iWidth / (hyp * sin (alpha + theta)));
+        //gdouble scaledHeight = fabs (cid->iHeight / (hyp * cos (alpha - theta)));
         
         //g_print ("theta : %f, alpha : %f, d : %f, scaledX : %f, scaledY : %f\n",theta,alpha, d, scaledWidth, scaledHeight);
 
-        cairo_translate (cr, cid->config->iWidth/2, cid->config->iHeight/2);
+        cairo_translate (cr, cid->iWidth/2, cid->iHeight/2);
         
         // Est ce qu'on est durant une animation
-        if (!cid->runtime->bAnimation)
-            cairo_rotate (cr, cid->config->dRotate * M_PI/180);
+        if (!cid->bAnimation)
+            cairo_rotate (cr, cid->dRotate * M_PI/180);
         else
-            cairo_rotate (cr, (cid->config->dRotate + cid->runtime->dAngle) * M_PI/180);
+            cairo_rotate (cr, (cid->dRotate + cid->dAngle) * M_PI/180);
         
         // Est ce qu'on coupe les coins
-        if (cid->config->bKeepCorners)
-            cairo_scale  (cr, cid->config->iWidth/hyp, cid->config->iHeight/hyp);
+        if (cid->bKeepCorners)
+            cairo_scale  (cr, cid->iWidth/hyp, cid->iHeight/hyp);
         
 
-        cairo_translate (cr, -cid->config->iWidth/2, -cid->config->iHeight/2);
+        cairo_translate (cr, -cid->iWidth/2, -cid->iHeight/2);
         
         // Si on utilise le fondu, et qu'on a un alpha <1 on dessine nos 2 surfaces :)
-        if (cid->p_cPreviousSurface!=NULL && cid->config->iAnimationType == CID_FADE_IN_OUT 
-            && cid->runtime->dFadeInOutAlpha < 1 && cid->runtime->bAnimation) 
+        if (cid->p_cPreviousSurface!=NULL && cid->iAnimationType == CID_FADE_IN_OUT 
+            && cid->dFadeInOutAlpha < 1 && cid->bAnimation) 
         {
             cairo_set_source_surface (cr, cid->p_cPreviousSurface, 0, 0);
-            cairo_paint_with_alpha (cr, 1-cid->runtime->dFadeInOutAlpha);
+            cairo_paint_with_alpha (cr, 1-cid->dFadeInOutAlpha);
             
             cairo_set_source_surface (cr, cid->p_cSurface, 0, 0);
-            cairo_paint_with_alpha (cr, cid->runtime->dFadeInOutAlpha);
+            cairo_paint_with_alpha (cr, cid->dFadeInOutAlpha);
         } 
         else 
         {
@@ -505,7 +507,7 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
         }
         cairo_restore (cr); 
     } 
-    else if (!cid->runtime->bCurrentlyFlying)
+    else if (!cid->bCurrentlyFlying)
     {
         cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
         cairo_save (cr);
@@ -515,7 +517,7 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
     }
     
     // Si on affiche l'etat du lecteur
-    if (cid->config->bPlayerState && musicData.opening && cid->config->iPlayer != PLAYER_NONE) 
+    if (cid->bPlayerState && musicData.opening && cid->iPlayer != PLAYER_NONE) 
     {
         cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
         cairo_save(cr);
@@ -527,119 +529,119 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
     
     ///\_______ TESTING OPTION
     // si on lit de la musique et qu'on ne cache pas cid, on affiche le nom de la piste jouee
-    if (cid->config->bUnstable && cid->config->bDisplayTitle && (musicData.opening || !cid->config->bHide)) 
+    if (cid->bUnstable && cid->bDisplayTitle && (musicData.opening || !cid->bHide)) 
     {  
         cid_draw_text(cr);
     }
     
     // Si on survolle CID et qu'on affiche un masque
-    if (cid->runtime->bCurrentlyFlying && cid->config->bMask) 
+    if (cid->bCurrentlyFlying && cid->bMask) 
     {
         cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
         cairo_save(cr);
-        cairo_set_source_rgba (cr, cid->config->dRed, cid->config->dGreen, cid->config->dBlue, cid->config->dAlpha);
+        cairo_set_source_rgba (cr, cid->dRed, cid->dGreen, cid->dBlue, cid->dAlpha);
         cairo_paint (cr);
         cairo_restore (cr); 
     }
     
     // Si on survolle et qu'on autorise le deplacement, on affiche une petite croix
-    if (cid->runtime->bCurrentlyFlying && !cid->config->bLockPosition) 
+    if (cid->bCurrentlyFlying && !cid->bLockPosition) 
     {
         cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
         cairo_save(cr);
         cairo_set_source_rgba (cr, 0, 0, 0, 0);
-        cairo_translate (cr, cid->config->iWidth-cid->config->iExtraSize, 0);
+        cairo_translate (cr, cid->iWidth-cid->iExtraSize, 0);
         cairo_set_source_surface (cr, cid->p_cCross, 0, 0);
         cairo_paint (cr);
         cairo_restore (cr); 
     }
     
     // On affiche l'image de connexion/deconnexion
-    if (cid->runtime->bCurrentlyFlying && cid->config->iPlayer == PLAYER_MPD)
+    if (cid->bCurrentlyFlying && cid->iPlayer == PLAYER_MPD)
     {
         cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
         cairo_save (cr);
         cairo_set_source_rgba (cr, 0, 0, 0, 0);
-        cairo_translate (cr, 0, cid->config->iHeight-cid->config->iExtraSize);
-        if (cid->runtime->iCursorX < cid->config->iExtraSize && cid->runtime->iCursorY > cid->config->iHeight-cid->config->iExtraSize)
-            cairo_set_source_surface (cr, cid->runtime->bConnected ? cid->p_cConnect : cid->p_cDisconnect, 0, 0);
+        cairo_translate (cr, 0, cid->iHeight-cid->iExtraSize);
+        if (cid->iCursorX < cid->iExtraSize && cid->iCursorY > cid->iHeight-cid->iExtraSize)
+            cairo_set_source_surface (cr, cid->bConnected ? cid->p_cConnect : cid->p_cDisconnect, 0, 0);
         else
-            cairo_set_source_surface (cr, cid->runtime->bConnected ? cid->p_cDisconnect : cid->p_cConnect, 0, 0);
+            cairo_set_source_surface (cr, cid->bConnected ? cid->p_cDisconnect : cid->p_cConnect, 0, 0);
         cairo_paint (cr);
         cairo_restore (cr);
     }
     
     // Si on survolle et qu'on autorise l'affichage des controles
-    if (cid->runtime->bCurrentlyFlying && cid->config->bDisplayControl && cid->config->iPlayer != PLAYER_NONE && cid->config->bMonitorPlayer) 
+    if (cid->bCurrentlyFlying && cid->bDisplayControl && cid->iPlayer != PLAYER_NONE && cid->bMonitorPlayer) 
     {
         // Previous button
-        if (cid->runtime->pMonitorList->p_fPrevious != NULL)
+        if (cid->pMonitorList->p_fPrevious != NULL)
         {
             cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
             cairo_save(cr);
             cairo_set_source_rgba (cr, 0, 0, 0, 0);
-            cairo_translate (cr, 0, (cid->config->iHeight - cid->config->iPrevNextSize)/2);
+            cairo_translate (cr, 0, (cid->iHeight - cid->iPrevNextSize)/2);
             cairo_set_source_surface (cr, cid->p_cPrev, 0, 0);
-            if (cid->runtime->iCursorX < cid->config->iPrevNextSize &&
-                cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPrevNextSize)/2 &&
-                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPrevNextSize)/2) {
+            if (cid->iCursorX < cid->iPrevNextSize &&
+                cid->iCursorY < (cid->iHeight + cid->iPrevNextSize)/2 &&
+                cid->iCursorY > (cid->iHeight - cid->iPrevNextSize)/2) {
                 
                 cairo_paint_with_alpha (cr, .5);
                 
             } 
             else 
             {
-                if (cid->runtime->dAnimationProgress < 1)
-                    cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
+                if (cid->dAnimationProgress < 1)
+                    cairo_paint_with_alpha (cr, cid->dAnimationProgress);
                 else
                     cairo_paint (cr);
             }
             cairo_restore (cr); 
         }
         // Play/Pause button
-        if (cid->runtime->pMonitorList->p_fPlayPause != NULL)
+        if (cid->pMonitorList->p_fPlayPause != NULL)
         {
             cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
             cairo_save(cr);
             cairo_set_source_rgba (cr, 0, 0, 0, 0);
-            cairo_translate (cr, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
+            cairo_translate (cr, (cid->iWidth - cid->iPlayPauseSize)/2, (cid->iHeight - cid->iPlayPauseSize)/2);
             cairo_set_source_surface (cr, !musicData.playing ? cid->p_cPlay_big : cid->p_cPause_big, 0, 0);
-            if (cid->runtime->iCursorX < (cid->config->iWidth + cid->config->iPlayPauseSize)/2 &&
-                cid->runtime->iCursorX > (cid->config->iWidth - cid->config->iPlayPauseSize)/2 &&
-                cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPlayPauseSize)/2 &&
-                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPlayPauseSize)/2) {
+            if (cid->iCursorX < (cid->iWidth + cid->iPlayPauseSize)/2 &&
+                cid->iCursorX > (cid->iWidth - cid->iPlayPauseSize)/2 &&
+                cid->iCursorY < (cid->iHeight + cid->iPlayPauseSize)/2 &&
+                cid->iCursorY > (cid->iHeight - cid->iPlayPauseSize)/2) {
                 
                 cairo_paint_with_alpha (cr, .5);
             
             } 
             else 
             {
-                if (cid->runtime->dAnimationProgress < 1)
-                    cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
+                if (cid->dAnimationProgress < 1)
+                    cairo_paint_with_alpha (cr, cid->dAnimationProgress);
                 else
                     cairo_paint (cr);
             }
             cairo_restore (cr); 
         }
         // Next button
-        if (cid->runtime->pMonitorList->p_fNext != NULL)
+        if (cid->pMonitorList->p_fNext != NULL)
         {
             cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
             cairo_save(cr);
             cairo_set_source_rgba (cr, 0, 0, 0, 0);
-            cairo_translate (cr, (cid->config->iWidth - cid->config->iPrevNextSize), (cid->config->iHeight - cid->config->iPrevNextSize)/2);
+            cairo_translate (cr, (cid->iWidth - cid->iPrevNextSize), (cid->iHeight - cid->iPrevNextSize)/2);
             cairo_set_source_surface (cr, cid->p_cNext, 0, 0);
-            if (cid->runtime->iCursorX > cid->config->iWidth - cid->config->iPrevNextSize &&
-                cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPrevNextSize)/2 &&
-                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPrevNextSize)/2) {
+            if (cid->iCursorX > cid->iWidth - cid->iPrevNextSize &&
+                cid->iCursorY < (cid->iHeight + cid->iPrevNextSize)/2 &&
+                cid->iCursorY > (cid->iHeight - cid->iPrevNextSize)/2) {
             
                 cairo_paint_with_alpha (cr, .5);
             
             } 
             else 
             {
-                if (cid->runtime->dAnimationProgress < 1)
-                    cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
+                if (cid->dAnimationProgress < 1)
+                    cairo_paint_with_alpha (cr, cid->dAnimationProgress);
                 else
                     cairo_paint (cr);
             }

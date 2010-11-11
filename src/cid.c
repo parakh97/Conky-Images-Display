@@ -51,24 +51,22 @@ static void
 cid_init (CidMainContainer *pCid) 
 {    
     
-    pCid->config->cVerbosity = NULL;
+    pCid->cVerbosity = NULL;
     
-    pCid->config->bTesting = FALSE;
+    pCid->bTesting = FALSE;
     
-    pCid->runtime->dAngle = 0;
+    pCid->dAngle = 0;
     
-    pCid->runtime->iCurrentlyDrawing = 0;
+    pCid->iCurrentlyDrawing = 0;
     
-    pCid->config->cConfFile = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
+    pCid->cConfFile = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
 
 #ifdef HAVE_E17    
-    pCid->config->iHint = GDK_WINDOW_TYPE_HINT_DESKTOP; 
+    pCid->iHint = GDK_WINDOW_TYPE_HINT_DESKTOP; 
 #else
-//    pCid->config->iHint = GDK_WINDOW_TYPE_HINT_DOCK;
-    pCid->config->iHint = GDK_WINDOW_TYPE_HINT_TOOLTIP;
+//    pCid->iHint = GDK_WINDOW_TYPE_HINT_DOCK;
+    pCid->iHint = GDK_WINDOW_TYPE_HINT_TOOLTIP;
 #endif
-    
-    pCid->defaut->cDLPath = g_strdup_printf("%s/.cache/cid",g_getenv("HOME"));
     
     pCid->pKeyFile = NULL;
 }
@@ -91,18 +89,17 @@ cid_intercept_signal (int number)
 }
 
 void 
-cid_run_with_player (CidMainContainer **pCid) 
+cid_run_with_player (void) 
 {
-    CidMainContainer *cid = *pCid;
-    if (cid->config->iPlayer != PLAYER_NONE)
-        cid->runtime->pMonitorList = g_new0 (CidControlFunctionsList,1);
+    if (cid->iPlayer != PLAYER_NONE)
+        cid->pMonitorList = g_new0 (CidControlFunctionsList,1);
     /* On lance telle ou telle fonction selon le lecteur selectionne */
-    switch (cid->config->iPlayer) 
+    switch (cid->iPlayer) 
     {
         /* Amarok 1.4 */
         case PLAYER_AMAROK_1:
             cid_build_amarok_menu ();
-            cid_connect_to_amarok(cid->config->iInter);
+            cid_connect_to_amarok(cid->iInter);
             break;
         /* Amarok 2 */
         case PLAYER_AMAROK_2:
@@ -134,12 +131,12 @@ cid_run_with_player (CidMainContainer **pCid)
         /* Exaile */
         case PLAYER_EXAILE:
             cid_build_exaile_menu ();
-            cid_connect_to_exaile(cid->config->iInter);
+            cid_connect_to_exaile(cid->iInter);
             break;
         /* MPD */
         case PLAYER_MPD:
             cid_build_mpd_menu ();
-            cid_connect_to_mpd (cid->config->iInter);
+            cid_connect_to_mpd (cid->iInter);
             break;
         /* None */
         case PLAYER_NONE:
@@ -147,7 +144,7 @@ cid_run_with_player (CidMainContainer **pCid)
             break;
         /* Sinon, on a un lecteur inconnu */
         default:
-            cid_exit (CID_PLAYER_ERROR,"ERROR: \"%d\" is not recognize as a supported player\n",cid->config->iPlayer);
+            cid_exit (CID_PLAYER_ERROR,"ERROR: \"%d\" is not recognize as a supported player\n",cid->iPlayer);
     }
 }
 
@@ -165,35 +162,37 @@ cid_set_signal_interception (struct sigaction *action)
     sigfillset (&((*action).sa_mask));
     (*action).sa_flags = 0;
     CidDataTable *p_signals = cid_create_datatable(G_TYPE_INT,SIGSEGV,SIGFPE,SIGILL,SIGABRT,SIGINT,SIGTERM,G_TYPE_INVALID);
-    BEGIN_FOREACH_DT(p_signals)
+    CidDataCase *p_temp = p_signals->head;
+    while (p_temp != NULL)
+    {
         if (sigaction (p_temp->content->iNumber, action, NULL) != 0)
         {
             cid_error ("Problem while catching signal %d",p_temp->content->iNumber);
         }
-    END_FOREACH_DT
+        p_temp = p_temp->next;
+    }
+    cid_free_datatable (&p_signals);
 }
 
 static void 
-cid_display_init(CidMainContainer **pCid, int *argc, char ***argv) 
+cid_display_init(int *argc, char ***argv) 
 {
-    CidMainContainer *cid = *pCid;
-    
     /* Initialisation de Gtk */
-    if (!cid->runtime->bRunning)
-        cid->runtime->bRunning = gtk_init_check(argc, argv);
-    if (!cid->runtime->bRunning)
+    if (!cid->bRunning)
+        cid->bRunning = gtk_init_check(argc, argv);
+    if (!cid->bRunning)
         cid_exit (CID_GTK_ERROR,"Unable to load gtk context");
     
     /* On intercepte les signaux */
 //    signal (SIGINT, cid_interrupt); // ctrl+c
 //    signal (SIGTERM, cid_interrupt);
 
-    if (cid->config->bSafeMode) 
+    if (cid->bSafeMode) 
     {
         _cid_conf_panel(NULL,NULL);
     }
     
-    if (cid->config->bConfigPanel)
+    if (cid->bConfigPanel)
     {
         exit (CID_EXIT_SUCCESS);
     }
@@ -202,7 +201,7 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
     cid_create_main_window();
     
     /* On lance le monitoring du player */
-    cid_run_with_player(&cid);  
+    cid_run_with_player();  
         
     /* Enfin on lance la boucle Gtk */
     gtk_main();
@@ -234,9 +233,6 @@ main ( int argc, char **argv )
     struct sigaction action;
 
     cid = g_malloc0 (sizeof(*cid));
-    cid->config = g_malloc0 (sizeof(*(cid->config)));
-    cid->runtime = g_malloc0 (sizeof(*(cid->runtime)));
-    cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
     
     curl_global_init(CURL_GLOBAL_ALL);
     
@@ -261,10 +257,10 @@ main ( int argc, char **argv )
     textdomain (CID_GETTEXT_PACKAGE);
 
     cid_read_parameters (&argc,&argv);
-    cid_set_verbosity (cid->config->cVerbosity);
+    cid_set_verbosity (cid->cVerbosity);
     
-    cid_read_config (&cid, cid->config->cConfFile);
-    cid->config->bChangedTestingConf = cid->config->bTesting && cid->config->bUnstable;
+    cid_read_config (cid->cConfFile, NULL);
+    cid->bChangedTestingConf = cid->bTesting && cid->bUnstable;
     
     cid_set_signal_interception (&action);
     
@@ -276,13 +272,13 @@ main ( int argc, char **argv )
 
     // La on lance la boucle GTK
     //cid_display_init (&argc,&argvBis);
-    cid_display_init (&cid,0,NULL);
+    cid_display_init (0,NULL);
     //free (argvBis);
     
     // Si on est ici, c'est qu'on a coupé la boucle GTK
     // Du coup, on en profite pour faire un peu de ménage
     // histoire de pas laisser la baraque dans un sale etat
-    cid_key_file_free(&cid);
+    cid_key_file_free();
     cid_free_musicData();
     cid_free_main_structure (cid);
 

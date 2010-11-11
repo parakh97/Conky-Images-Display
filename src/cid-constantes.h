@@ -21,7 +21,7 @@ G_BEGIN_DECLS
 #define OLD_CONFIG_FILE ".cidrc"
 
 /* Alias pour récupérer l'URI de l'image par défaut */
-#define DEFAULT_IMAGE cid->config->cDefaultImage
+#define DEFAULT_IMAGE cid->cDefaultImage
 
 #define TESTING_COVER "default.svg"
 #define TESTING_FILE "cid.conf"
@@ -32,9 +32,6 @@ G_BEGIN_DECLS
 #define IMAGE_DISCONNECT "disconnect.png"
 
 #define PLAYLIST_NAME "C.I.D."
-
-#define CID_IMAGES_DB "cid.db"
-#define CID_WEBSITE "http://cid.ziirish.info/"
 
 #define FADE_VARIATION .15
 #define IN_OUT_VARIATION .05

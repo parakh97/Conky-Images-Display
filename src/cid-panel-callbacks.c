@@ -13,7 +13,7 @@
 #include "cid-panel-callbacks.h"
 #include "cid-utilities.h"
 
-//extern CidMainContainer *cid;
+extern CidMainContainer *cid;
 
 void 
 _cid_user_action_on_config (GtkDialog *pDialog, gint action, gpointer *user_data) 
@@ -30,8 +30,7 @@ _cid_user_action_on_config (GtkDialog *pDialog, gint action, gpointer *user_data
     int iWindowHeight = GPOINTER_TO_INT (user_data[8]);
     gchar iIdentifier = GPOINTER_TO_INT (user_data[9]);
     GPtrArray *pDataGarbage = user_data[10];
-    CidMainContainer *cid = user_data[11];
-    GMainLoop *pBlockingLoop = user_data[12];
+    GMainLoop *pBlockingLoop = user_data[11];
 
     if (action == GTK_RESPONSE_ACCEPT || action == GTK_RESPONSE_APPLY) 
     {
@@ -57,21 +56,21 @@ _cid_user_action_on_config (GtkDialog *pDialog, gint action, gpointer *user_data
         }
 
         if (pConfigFunc != NULL)
-            pConfigFunc (&cid, cConfFilePath);
+            pConfigFunc (cConfFilePath, /*data*/NULL);
             
         gtk_window_set_modal (GTK_WINDOW (pDialog), FALSE);
     }
 
     if (action == GTK_RESPONSE_ACCEPT || action == GTK_RESPONSE_REJECT || action == GTK_RESPONSE_NONE) 
     {
-        if (cid->config->bSafeMode && cid->runtime->bBlockedWidowActive) 
+        if (cid->bSafeMode && cid->bBlockedWidowActive) 
         {
-            cid->runtime->bBlockedWidowActive = FALSE;
-            cid->config->bSafeMode = FALSE;
+            cid->bBlockedWidowActive = FALSE;
+            cid->bSafeMode = FALSE;
             //g_signal_emit_by_name(GTK_OBJECT(pDialog),"delete-event");
             on_delete_main_gui(pBlockingLoop);
         }
-        cid->runtime->bConfFilePanel = FALSE;
+        cid->bConfFilePanel = FALSE;
         if (pDialog) gtk_widget_destroy (GTK_WIDGET (pDialog));
         cid_config_panel_destroyed ();
         g_key_file_free (pKeyFile);
