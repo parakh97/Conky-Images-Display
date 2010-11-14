@@ -71,6 +71,8 @@ cid_SOURCES = \
     cid-draw.h \
     cid-exaile.c \
     cid-exaile.h \
+    cid-md5.c \
+    cid-md5.h \
     cid-menu-factory.c \
     cid-menu-factory.h \
     cid-messages.c \
@@ -87,9 +89,7 @@ cid_SOURCES = \
     cid-X-utilities.c \
     cid-X-utilities.h \
     libmpdclient.c \
-    libmpdclient.h \
-    md5.c \
-    md5.h
+    libmpdclient.h 
     
     
     
@@ -122,6 +122,7 @@ cidsubinclude_HEADERS = \
     cid-dbus.h \
     cid-draw.h \
     cid-exaile.h \
+    cid-md5.h \
     cid-menu-factory.h \
     cid-messages.h \
     cid-modules.h \
@@ -131,6 +132,6 @@ cidsubinclude_HEADERS = \
     cid-struct.h \
     cid-utilities.h \
     cid-X-utilities.h \
-    libmpdclient.h \
-    md5.h
+    libmpdclient.h 
+    
 

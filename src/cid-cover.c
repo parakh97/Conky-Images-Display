@@ -92,6 +92,13 @@ cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/)
     fclose(fp);
     curl_easy_cleanup(handle);
     
+    gchar *blah = cid_md5sum (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp");
+    if (blah != NULL)
+    {
+        cid_info ("md5: %s / %s",DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",blah);
+        g_free (blah);
+    }
+    
     rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     
     if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS))

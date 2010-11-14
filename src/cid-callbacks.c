@@ -370,7 +370,7 @@ _cid_proceed_download_cover (gpointer p)
     // Si on ne télécharge pas, on arrête la boucle direct
     if (!cid->config->bDownload) 
     {
-        cid_stop_measure_timer (pMeasureTimer);
+        cid_stop_measure_timer (pMeasureDownload);
         return FALSE;
     }
 
@@ -400,7 +400,7 @@ _cid_proceed_download_cover (gpointer p)
             
             bCurrentlyDownloadingXML = FALSE;
             //cid_download_missing_cover (cImageURL/*,DEFAULT_DOWNLOADED_IMAGE_LOCATION*/);
-            pMeasureDownload = cid_new_measure_timer (2, NULL, (CidReadTimerFunc) cid_download_missing_cover, (CidUpdateTimerFunc) _cid_check_and_display, cImageURL);
+            pMeasureDownload = cid_new_measure_timer (5, NULL, (CidReadTimerFunc) cid_download_missing_cover, (CidUpdateTimerFunc) _cid_check_and_display, cImageURL);
             cid_launch_measure (pMeasureDownload);
         } 
         else 
@@ -413,9 +413,7 @@ _cid_proceed_download_cover (gpointer p)
             return FALSE;
         }
     }
-    /*
     
-    */
     return TRUE;
 }
 

@@ -32,20 +32,35 @@ Retrieved from: http://en.literateprograms.org/MD5_sum_(C,_OpenSSL)?oldid=16463
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "cid-md5.h"
+#include "cid-messages.h"
+
 #include <openssl/evp.h>
 
 
-static void 
+static gchar *
 print_as_hex (const unsigned char *digest, int len) 
 {
-    int i;
-    for(i = 0; i < len; i++){
-        printf ("%02x", digest[i]);
+    gchar *ret = malloc (len * 2 * sizeof(gchar) + 1);
+    if (ret == NULL) 
+    {
+        cid_warning ("Cannot allocate memory");
+        return NULL;
     }
+    int i,j;
+    for(i = 0, j = 0; j < len; i+=2, j++)
+    {
+        gchar *tmp = g_strdup_printf ("%02x",digest[j]);
+        ret[i] = tmp[0];
+        ret[i+1] = tmp[1];
+        g_free (tmp);
+    }
+    ret[i] = '\0';
+    return ret;
 }
 
 
-static void 
+static gchar * 
 calculate_md5_of(const void *content, ssize_t len)
 {
     EVP_MD_CTX mdctx;
@@ -56,11 +71,11 @@ calculate_md5_of(const void *content, ssize_t len)
     EVP_DigestUpdate(&mdctx, content, (size_t) len);
     EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
     EVP_MD_CTX_cleanup(&mdctx);
-    printf("md5 sum of t1.txt = ");
-    print_as_hex (md_value, md_len);
+    
+    return print_as_hex (md_value, md_len);
 }
 
-int 
+gchar * 
 cid_md5sum (const gchar *cFileName) 
 {
     struct stat sStatBuf;
@@ -69,31 +84,33 @@ cid_md5sum (const gchar *cFileName)
     off_t iSizeOfFile;
     ssize_t iReadBytes;
     void *pFileContent;
+    gchar *ret;
 
     iRval = stat(cFileName, &sStatBuf);
     iSizeOfFile = sStatBuf.st_size;
     pFileContent = malloc(iSizeOfFile);
     if (NULL == pFileContent){
-        goto clean;
+        cid_warning ("Can't allocate memory");
+        return NULL;
     }
     iFd = open(cFileName, 0, O_RDONLY);
     if (iFd < 0 ){
-        goto clean;
+        cid_warning ("Unable to open '%s'",cFileName);
+        if (pFileContent) free(pFileContent);
+        return NULL;
     }
     /* slurp in all from the file at once */
     iReadBytes = read(iFd, pFileContent, iSizeOfFile);
     if ( iReadBytes < 0 ) {
-        fprintf(stderr, "something has gone wrong while reading from the file\n");
-        goto clean;
+        cid_warning ("Error while reading '%s'",cFileName);
+        if (pFileContent) free(pFileContent);
+        if (iFd > 0) close(iFd);
+        return NULL;
     }
     close(iFd);
-    calculate_md5_of (pFileContent, iSizeOfFile);
+    ret = calculate_md5_of (pFileContent, iSizeOfFile);
     free(pFileContent);
-    return 0;
-     
-    clean:
-    if (pFileContent) free(pFileContent);
-    if (iFd > 0) close(iFd);
-    exit(EXIT_FAILURE);
+    
+    return ret;
 }
 

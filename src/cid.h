@@ -28,6 +28,7 @@
 #include "cid-dbus.h"
 #include "cid-draw.h"
 #include "cid-exaile.h"
+#include "cid-md5.h"
 #include "cid-menu-factory.h"
 #include "cid-messages.h"
 #include "cid-modules.h"
