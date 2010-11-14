@@ -39,7 +39,7 @@ Retrieved from: http://en.literateprograms.org/MD5_sum_(C,_OpenSSL)?oldid=16463
 
 
 static gchar *
-print_as_hex (const unsigned char *digest, int len) 
+format_as_hex (const unsigned char *digest, int len) 
 {
     gchar *ret = malloc (len * 2 * sizeof(gchar) + 1);
     if (ret == NULL) 
@@ -61,7 +61,7 @@ print_as_hex (const unsigned char *digest, int len)
 
 
 static gchar * 
-calculate_md5_of(const void *content, ssize_t len)
+calculate_md5_of (const void *content, ssize_t len)
 {
     EVP_MD_CTX mdctx;
     unsigned char md_value[EVP_MAX_MD_SIZE];
@@ -72,7 +72,7 @@ calculate_md5_of(const void *content, ssize_t len)
     EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
     EVP_MD_CTX_cleanup(&mdctx);
     
-    return print_as_hex (md_value, md_len);
+    return format_as_hex (md_value, md_len);
 }
 
 gchar * 

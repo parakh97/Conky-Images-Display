@@ -92,13 +92,6 @@ cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/)
     fclose(fp);
     curl_easy_cleanup(handle);
     
-    gchar *blah = cid_md5sum (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp");
-    if (blah != NULL)
-    {
-        cid_info ("md5: %s / %s",DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",blah);
-        g_free (blah);
-    }
-    
     rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     
     if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS))
@@ -143,7 +136,7 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
     g_free (cXPath);
     if (xpathRes == NULL) 
     {
-        cid_warning ( "Erreur sur l'expression XPath");
+        cid_warning ("Erreur sur l'expression XPath");
         return;
     }
     
@@ -169,4 +162,15 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
     xmlXPathFreeObject(xpathRes);
     xmlXPathFreeContext(ctxt);
     xmlFreeDoc(doc);
+}
+
+void 
+cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath)
+{
+    gchar *md5 = cid_md5sum (cCoverPath);
+    if (md5 != NULL)
+    {
+        cid_debug ("md5: %s\t%s",md5,cCoverPath);
+        g_free (md5);
+    }
 }

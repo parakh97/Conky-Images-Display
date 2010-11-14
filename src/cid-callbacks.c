@@ -344,7 +344,7 @@ _cid_add_about_page (GtkWidget *pNoteBook, const gchar *cPageLabel, const gchar 
     gtk_label_set_markup (GTK_LABEL (pAboutLabel), cAboutText);
 }
 
-gboolean 
+static gboolean 
 _cid_check_and_display (gpointer p)
 {
     // Quand on a la pochette, on l'affiche et on stoppe la boucle
@@ -354,26 +354,21 @@ _cid_check_and_display (gpointer p)
         bCurrentlyDownloading = FALSE;
         musicData.cover_exist = TRUE;
         cid_display_image(DEFAULT_DOWNLOADED_IMAGE_LOCATION);
-        cid_free_measure_timer (pMeasureDownload);
         if (musicData.playing_cover)
             g_free (musicData.playing_cover);
         musicData.playing_cover = g_strdup (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        
+        cid_store_cover (&cid, DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        
+        cid_free_measure_timer (pMeasureDownload);
         return FALSE;
     }
     return TRUE;
 }
 
-gboolean 
-_cid_proceed_download_cover (gpointer p) 
+static void 
+_cid_proceed_download_cover (void) 
 {
-
-    // Si on ne télécharge pas, on arrête la boucle direct
-    if (!cid->config->bDownload) 
-    {
-        cid_stop_measure_timer (pMeasureDownload);
-        return FALSE;
-    }
-
     // Avant tout, on dl le xml
     if (!bCurrentlyDownloadingXML && !bCurrentlyDownloading) {
         cid_get_xml_file (musicData.playing_artist,musicData.playing_album);
@@ -399,8 +394,11 @@ _cid_proceed_download_cover (gpointer p)
             }
             
             bCurrentlyDownloadingXML = FALSE;
-            //cid_download_missing_cover (cImageURL/*,DEFAULT_DOWNLOADED_IMAGE_LOCATION*/);
-            pMeasureDownload = cid_new_measure_timer (5, NULL, (CidReadTimerFunc) cid_download_missing_cover, (CidUpdateTimerFunc) _cid_check_and_display, cImageURL);
+            pMeasureDownload = cid_new_measure_timer (1, 
+                                                      NULL, 
+                                                      (CidReadTimerFunc) cid_download_missing_cover, 
+                                                      (CidUpdateTimerFunc) _cid_check_and_display, 
+                                                      cImageURL);
             cid_launch_measure (pMeasureDownload);
         } 
         else 
@@ -410,16 +408,14 @@ _cid_proceed_download_cover (gpointer p)
             musicData.cover_exist = FALSE;
             cid_debug ("Téléchargement impossible");
             cid_free_measure_timer (pMeasureTimer);
-            return FALSE;
         }
     }
-    
-    return TRUE;
 }
 
 gboolean 
-_check_cover_is_present (gpointer data) 
+_check_cover_is_present (CidMainContainer **pCid) 
 {
+    CidMainContainer *cid = *pCid;
     cid->runtime->iCheckIter++;
     if (g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS)) 
     {
@@ -431,22 +427,7 @@ _check_cover_is_present (gpointer data)
     {
         if (cid->config->bDownload)
         {
-            /*
-            if (pMeasureTimer) 
-            {
-                if (cid_measure_is_running(pMeasureTimer))
-                    cid_stop_measure_timer(pMeasureTimer);
-                if (cid_measure_is_active(pMeasureTimer))
-                    cid_free_measure_timer(pMeasureTimer);
-            }
-            //pMeasureTimer = cid_new_measure_timer (2 SECONDES, NULL, (CidReadTimerFunc) _cid_proceed_download_cover, NULL, NULL);
-            
-            pMeasureTimer = cid_new_measure_timer (2, NULL, NULL, (CidUpdateTimerFunc) _cid_proceed_download_cover, NULL);
-        
-            cid_launch_measure (pMeasureTimer);
-            */
-            //g_timeout_add (2 SECONDES, (GSourceFunc) _cid_proceed_download_cover, NULL);
-            _cid_proceed_download_cover (NULL);
+            _cid_proceed_download_cover ();
         }
         
         return FALSE;
@@ -467,6 +448,18 @@ _cid_conf_panel (GtkMenuItem *pItemMenu, gpointer *data)
         if (cid->pConfigPanel)
             gtk_widget_destroy (cid->pConfigPanel);
         
-        cid_edit_conf_file_with_panel (NULL, cid->config->cConfFile, cid->config->bSafeMode && !cid->config->bConfigPanel ? _(" < Maintenance Mode > ") : _("CID Configuration Panel") , CONFIG_WIDTH, CONFIG_HEIGHT, '\0', NULL, cid->config->bSafeMode ? (CidReadConfigFunc) cid_read_config : (CidReadConfigFunc) cid_read_config_after_update, CID_GETTEXT_PACKAGE);
+        cid_edit_conf_file_with_panel (NULL, 
+                                       cid->config->cConfFile, 
+                                       cid->config->bSafeMode && !cid->config->bConfigPanel ? 
+                                            _(" < Maintenance Mode > ") : 
+                                            _("CID Configuration Panel"), 
+                                       CONFIG_WIDTH, 
+                                       CONFIG_HEIGHT, 
+                                       '\0', 
+                                       NULL, 
+                                       cid->config->bSafeMode ? 
+                                            (CidReadConfigFunc) cid_read_config : 
+                                            (CidReadConfigFunc) cid_read_config_after_update, 
+                                       CID_GETTEXT_PACKAGE);
     }
 }

@@ -14,6 +14,7 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <gtk/gtk.h>
+#include "cid-struct.h"
 
 G_BEGIN_DECLS
 
@@ -60,6 +61,13 @@ gboolean cid_get_xml_file (const gchar *artist, const gchar *album);
  * @return succes du telechargement.
  */
 gboolean cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/);
+
+/**
+ * On sauvegarde la pochette dans notre 'magazin'
+ * @param pCid Structure de controle de cid
+ * @param cCoverPath URI de la pochette a stocker
+ */
+void cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath);
 
 G_END_DECLS
 #endif

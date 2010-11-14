@@ -11,6 +11,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkscreen.h>
+#include "cid-struct.h"
 
 G_BEGIN_DECLS
 
@@ -77,12 +78,7 @@ void _cid_conf_panel (GtkMenuItem *pItemMenu, gpointer *data);
  * @param pointeur de données (non utilisé)
  * @return VRAI ou FAUX
  */
-gboolean _check_cover_is_present (gpointer data);
-
-/**
- * Lance le telechargement des pochettes
- */
-gboolean _cid_proceed_download_cover (gpointer p);
+gboolean _check_cover_is_present (CidMainContainer **pCid);
 
 gpointer _cid_launch_threaded (gchar *cCommand);
 

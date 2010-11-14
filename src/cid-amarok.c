@@ -21,7 +21,7 @@ extern CidMainContainer *cid;
 
 static gboolean cont;
 gboolean run = FALSE;
-static CidMeasure *pMeasureTimer = NULL;
+//static CidMeasure *pMeasureTimer = NULL;
 extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML;
 
 ///dcop amarok playlist addMediaList [ "file:///home/benjamin/Music/aboutagirl.mp3" ]
@@ -96,6 +96,7 @@ get_amarock_musicData ()
     return TRUE;
 }
 
+/*
 gboolean 
 cid_download_amarok_cover (gpointer data) 
 {
@@ -116,6 +117,7 @@ cid_download_amarok_cover (gpointer data)
     }
     return TRUE;
 }
+*/
 
 gchar *
 cid_check_amarok_cover_exists (gchar *cURI) 
@@ -127,7 +129,7 @@ cid_check_amarok_cover_exists (gchar *cURI)
         g_free (cCleanURI);
         g_free (cSplitedURI);
         cid->runtime->iCheckIter = 0;
-        g_timeout_add (1000, (GSourceFunc) cid_download_amarok_cover, (gpointer) NULL);
+        g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, &cid);
         return g_strdup(DEFAULT_IMAGE);
     }
     g_strfreev (cCleanURI);

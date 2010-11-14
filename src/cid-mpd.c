@@ -194,7 +194,7 @@ cid_mpd_cover ()
             if (cid->config->iPlayer != PLAYER_NONE) 
             {
                 cid_debug ("l'image n'existe pas encore => on boucle.\n");
-                musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, (gpointer) NULL);
+                musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, &cid);
             }
         }
     }

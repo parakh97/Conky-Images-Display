@@ -28,7 +28,7 @@ static gboolean bFirstLoop;
 static gboolean bCantConnect;
 static gboolean bStateChanged = TRUE;
 static gboolean bFirstDisplay = TRUE;
-static CidMeasure *pMeasureTimer = NULL;
+//static CidMeasure *pMeasureTimer = NULL;
 extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML;
 
 gboolean 
@@ -130,7 +130,7 @@ exaile_getPlaying (void)
     g_free (status);
     return musicData.playing;
 }
-
+/*
 gboolean 
 cid_download_exaile_cover (gpointer data) 
 {
@@ -151,6 +151,7 @@ cid_download_exaile_cover (gpointer data)
     }
     return TRUE;
 }
+*/
 
 gchar *
 cid_check_exaile_cover_exists (gchar *cURI) 
@@ -167,7 +168,7 @@ cid_check_exaile_cover_exists (gchar *cURI)
         if (bSongChanged) 
         {
             cid->runtime->iCheckIter = 0;
-            g_timeout_add (1000, (GSourceFunc) cid_download_exaile_cover, (gpointer) NULL);
+            g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, &cid);
         }
         return g_strdup(DEFAULT_IMAGE);
     }
