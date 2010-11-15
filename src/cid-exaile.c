@@ -232,19 +232,19 @@ cid_connect_to_exaile(gint iInter)
 }
 
 void 
-_playPause_exaile (void) 
+_playPause_exaile (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"play_pause");
 }
 
 void 
-_next_exaile (void) 
+_next_exaile (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"next_track");
 }
 
 void 
-_previous_exaile (void) 
+_previous_exaile (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"prev_track");
 }

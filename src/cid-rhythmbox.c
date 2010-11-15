@@ -388,19 +388,19 @@ rb_onCovertArtChanged(DBusGProxy *player_proxy,const gchar *cImageURI, gpointer 
 }
 
 void 
-_playPause_rhythmbox (void) 
+_playPause_rhythmbox (CidMainContainer **pCid) 
 {
     dbus_call_boolean (dbus_proxy_player,"playPause", !musicData.playing);
 }
 
 void 
-_next_rhythmbox (void) 
+_next_rhythmbox (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"next");
 }
 
 void 
-_previous_rhythmbox (void) 
+_previous_rhythmbox (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"previous");
 }

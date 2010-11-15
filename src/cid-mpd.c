@@ -250,7 +250,7 @@ cid_reconnect_mpd (gint iInter)
 }
 
 void 
-_playPause_mpd (void) 
+_playPause_mpd (CidMainContainer **pCid) 
 {
     if (conn)
     {
@@ -261,7 +261,7 @@ _playPause_mpd (void)
 }
 
 void 
-_next_mpd (void) 
+_next_mpd (CidMainContainer **pCid) 
 {
     if (conn)
     {
@@ -272,7 +272,7 @@ _next_mpd (void)
 }
 
 void 
-_previous_mpd (void) 
+_previous_mpd (CidMainContainer **pCid) 
 {
     if (conn)
     {

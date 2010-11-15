@@ -91,7 +91,7 @@ cid_log_set_level(GLogLevelFlags loglevel)
 }
 
 void 
-cid_exit (int code, const gchar *mess, ...) 
+cid_exit (CidMainContainer **pCid, int code, const gchar *mess, ...) 
 {
     va_list args;
     va_start (args, mess);
@@ -99,5 +99,5 @@ cid_exit (int code, const gchar *mess, ...)
     cid_error (cFullText);
     g_free (cFullText);
     va_end (args);
-    cid_sortie (code);
+    cid_sortie (pCid, code);
 }

@@ -43,7 +43,7 @@ _cid_quit (GtkWidget *p_widget, gpointer user_data)
 
     cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     
-    cid_sortie (CID_EXIT_SUCCESS);
+    cid_sortie (&cid, CID_EXIT_SUCCESS);
 
     /* Parametres inutilises */
     (void)p_widget;
@@ -88,7 +88,7 @@ on_clic (GtkWidget *p_widget, GdkEventButton* pButton)
                     pButton->y < (cid->config->iHeight + cid->config->iPrevNextSize)/2 &&
                     pButton->y > (cid->config->iHeight - cid->config->iPrevNextSize)/2) {
                     
-                    cid->runtime->pMonitorList->p_fPrevious();
+                    cid->runtime->pMonitorList->p_fPrevious(&cid);
                     
                 } 
                 else if (pButton->x < (cid->config->iWidth + cid->config->iPlayPauseSize)/2 &&
@@ -97,7 +97,7 @@ on_clic (GtkWidget *p_widget, GdkEventButton* pButton)
                          pButton->y > (cid->config->iHeight - cid->config->iPlayPauseSize)/2) 
                 {
                 
-                    cid->runtime->pMonitorList->p_fPlayPause();
+                    cid->runtime->pMonitorList->p_fPlayPause(&cid);
                 
                 } 
                 else if (pButton->x > cid->config->iWidth - cid->config->iPrevNextSize &&
@@ -105,13 +105,13 @@ on_clic (GtkWidget *p_widget, GdkEventButton* pButton)
                          pButton->y > (cid->config->iHeight - cid->config->iPrevNextSize)/2) 
                 {
                 
-                    cid->runtime->pMonitorList->p_fNext();
+                    cid->runtime->pMonitorList->p_fNext(&cid);
                 
                 }
             } 
             else 
             {
-                cid->runtime->pMonitorList->p_fPlayPause();
+                cid->runtime->pMonitorList->p_fPlayPause(&cid);
             }
             if (pButton->x < cid->config->iExtraSize &&
                      pButton->y > (cid->config->iHeight - cid->config->iExtraSize) &&
@@ -129,7 +129,7 @@ on_clic (GtkWidget *p_widget, GdkEventButton* pButton)
     { // clic milieu
         // on relache un clic du milieu, donc on lance la fonction 'Next'
         if (cid->config->bMonitorPlayer && cid->config->iPlayer != PLAYER_NONE && !cid->config->bDisplayControl)
-            cid->runtime->pMonitorList->p_fNext();
+            cid->runtime->pMonitorList->p_fNext(&cid);
     } 
     else if (pButton->button == 3 && pButton->type == GDK_BUTTON_RELEASE)
     { //clic droit
@@ -155,9 +155,11 @@ on_clic (GtkWidget *p_widget, GdkEventButton* pButton)
     (void)p_widget;
 }
 
-void on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int y,
+void 
+on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int y,
                         GtkSelectionData *seldata, guint info, guint time,
-                        gpointer userdata) {
+                        gpointer userdata) 
+{
     gchar *cReceivedData = (gchar *) seldata->data;
     g_return_if_fail (cReceivedData != NULL);
     int length = strlen (cReceivedData);
@@ -227,7 +229,7 @@ void on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x,
         
     //g_print("d&d >>> %s\n",cReceivedData);
     //system (g_strdup_printf("nautilus %s &",cReceivedData));
-    //g_strfreev (cReceivedDataList);
+    g_strfreev (cReceivedDataList);
     //g_free (cReceivedData);
 }
 

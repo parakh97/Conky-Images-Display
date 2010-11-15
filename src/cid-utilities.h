@@ -60,7 +60,7 @@ gboolean cid_launch_command_full (const gchar *cCommandFormat, gchar *cWorkingDi
  * @param code de retour
  * @return code de retournant
  */
-int cid_sortie(int code);
+int cid_sortie(CidMainContainer **pCid, int code);
 
 /**
  * lit les arguments du programme
@@ -78,7 +78,7 @@ void cid_set_verbosity (gchar *cVerbosity);
 /**
  * Permet de deconnecter le monitoring du player
  */
-void cid_disconnect_player ();
+void cid_disconnect_player (CidMainContainer **pCid);
 
 /**
  * Nettoyage des donnees musicales

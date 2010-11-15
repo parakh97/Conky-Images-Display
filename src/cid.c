@@ -101,8 +101,8 @@ cid_run_with_player (CidMainContainer **pCid)
     {
         /* Amarok 1.4 */
         case PLAYER_AMAROK_1:
-            cid_build_amarok_menu ();
-            cid_connect_to_amarok(cid->config->iInter);
+            cid_build_amarok_menu (pCid);
+            cid_connect_to_amarok(pCid, cid->config->iInter);
             break;
         /* Amarok 2 */
         case PLAYER_AMAROK_2:
@@ -114,7 +114,7 @@ cid_run_with_player (CidMainContainer **pCid)
             } 
             else 
             {
-                cid_exit (CID_EXIT_ERROR,"\nFailed to connect dbus...\n");
+                cid_exit (pCid, CID_EXIT_ERROR,"\nFailed to connect dbus...\n");
             }
             break;
         /* Rhythmbox */
@@ -128,7 +128,7 @@ cid_run_with_player (CidMainContainer **pCid)
             } 
             else 
             {
-                cid_exit (CID_EXIT_ERROR,"\nFailed to connect dbus...\n");
+                cid_exit (pCid, CID_EXIT_ERROR,"\nFailed to connect dbus...\n");
             }
             break;
         /* Exaile */
@@ -147,7 +147,7 @@ cid_run_with_player (CidMainContainer **pCid)
             break;
         /* Sinon, on a un lecteur inconnu */
         default:
-            cid_exit (CID_PLAYER_ERROR,"ERROR: \"%d\" is not recognize as a supported player\n",cid->config->iPlayer);
+            cid_exit (pCid, CID_PLAYER_ERROR,"ERROR: \"%d\" is not recognize as a supported player\n",cid->config->iPlayer);
     }
 }
 
@@ -182,7 +182,7 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
     if (!cid->runtime->bRunning)
         cid->runtime->bRunning = gtk_init_check(argc, argv);
     if (!cid->runtime->bRunning)
-        cid_exit (CID_GTK_ERROR,"Unable to load gtk context");
+        cid_exit (pCid, CID_GTK_ERROR,"Unable to load gtk context");
     
     /* On intercepte les signaux */
 //    signal (SIGINT, cid_interrupt); // ctrl+c

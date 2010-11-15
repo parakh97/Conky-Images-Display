@@ -17,18 +17,19 @@
 #include "cid-constantes.h"
 #include "cid-asynchrone.h"
 
-extern CidMainContainer *cid;
+//extern CidMainContainer *cid;
 
 static gboolean cont;
 gboolean run = FALSE;
 //static CidMeasure *pMeasureTimer = NULL;
-extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML;
+//extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML;
 
 ///dcop amarok playlist addMediaList [ "file:///home/benjamin/Music/aboutagirl.mp3" ]
 
 gboolean 
-get_amarock_musicData () 
+get_amarock_musicData (CidMainContainer **pCid) 
 {
+    CidMainContainer *cid = *pCid;
     CIDError *error = NULL;
     gint state = cid_console_get_int_with_error_full("dcop amarok player status",-1,&error);
     
@@ -120,8 +121,9 @@ cid_download_amarok_cover (gpointer data)
 */
 
 gchar *
-cid_check_amarok_cover_exists (gchar *cURI) 
+cid_check_amarok_cover_exists (CidMainContainer **pCid, gchar *cURI) 
 {
+    CidMainContainer *cid = *pCid;
     gchar **cCleanURI = g_strsplit (cURI,"@",0);
     gchar **cSplitedURI = g_strsplit (cCleanURI[1],".",0);
     if (g_strcasecmp(cSplitedURI[0],"nocover")==0) 
@@ -129,7 +131,7 @@ cid_check_amarok_cover_exists (gchar *cURI)
         g_free (cCleanURI);
         g_free (cSplitedURI);
         cid->runtime->iCheckIter = 0;
-        g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, &cid);
+        g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, pCid);
         return g_strdup(DEFAULT_IMAGE);
     }
     g_strfreev (cCleanURI);
@@ -138,10 +140,11 @@ cid_check_amarok_cover_exists (gchar *cURI)
 }
 
 gboolean 
-cid_amarok_cover() 
+cid_amarok_cover(CidMainContainer **pCid) 
 {
+    CidMainContainer *cid = *pCid;
     /* On vérifie l'état d'Amarok */
-    if (get_amarock_musicData()) 
+    if (get_amarock_musicData(pCid)) 
     {
         /* Si Amarok ne joue pas, on affiche l'image par défaut. */
         if (!musicData.opening) 
@@ -152,7 +155,7 @@ cid_amarok_cover()
         else 
         {
             if (musicData.playing && musicData.playing_cover != NULL)
-                cid_display_image (cid_check_amarok_cover_exists(musicData.playing_cover));
+                cid_display_image (cid_check_amarok_cover_exists(pCid, musicData.playing_cover));
             else
                 cid_display_image (DEFAULT_IMAGE);
             cid_animation(cid->config->iAnimationType);
@@ -163,14 +166,16 @@ cid_amarok_cover()
 }
 
 void 
-cid_amarok_pipe (gint iInter) 
+cid_amarok_pipe (CidMainContainer **pCid, gint iInter) 
 {
-    cid->runtime->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_amarok_cover, NULL, NULL);
+    CidMainContainer *cid = *pCid;
+    cid->runtime->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_amarok_cover, pCid, NULL);
 }
 
 void 
-cid_disconnect_from_amarok () 
+cid_disconnect_from_amarok (CidMainContainer **pCid) 
 {
+    CidMainContainer *cid = *pCid;
     cont = FALSE;
     if (cid->runtime->bPipeRunning)
         g_source_remove (cid->runtime->iPipe);
@@ -178,38 +183,40 @@ cid_disconnect_from_amarok ()
 }
 
 void 
-cid_connect_to_amarok(gint iInter) 
+cid_connect_to_amarok(CidMainContainer **pCid, gint iInter) 
 {
+    CidMainContainer *cid = *pCid;
     cont = TRUE;
     cid->runtime->bPipeRunning = TRUE;
     cid_display_image(DEFAULT_IMAGE);
-    cid_amarok_pipe (iInter);   
+    cid_amarok_pipe (pCid, iInter);   
 }
 
 void 
-_playPause_amarok (void) 
+_playPause_amarok (CidMainContainer **pCid) 
 {
     cid_launch_command ("dcop amarok player playPause >/dev/null 2>&1");
-    cid_amarok_cover ();
+    cid_amarok_cover (pCid);
 }
 
 void 
-_next_amarok (void) 
+_next_amarok (CidMainContainer **pCid) 
 {
     cid_launch_command ("dcop amarok player next >/dev/null 2>&1");
-    cid_amarok_cover ();
+    cid_amarok_cover (pCid);
 }
 
 void 
-_previous_amarok (void) 
+_previous_amarok (CidMainContainer **pCid) 
 {
     cid_launch_command ("dcop amarok player prev >/dev/null 2>&1");
-    cid_amarok_cover ();
+    cid_amarok_cover (pCid);
 }
 
 void 
-cid_build_amarok_menu (void) 
+cid_build_amarok_menu (CidMainContainer **pCid) 
 {
+    CidMainContainer *cid = *pCid;
     cid->runtime->pMonitorList->p_fPlayPause = _playPause_amarok;
     cid->runtime->pMonitorList->p_fNext = _next_amarok;
     cid->runtime->pMonitorList->p_fPrevious = _previous_amarok;

@@ -32,9 +32,9 @@ extern int ret;
 /* Fonction de sortie en cas d'erreur, avec affichage d'un
    éventuel message d'erreur */
 int 
-cid_sortie(int code) 
+cid_sortie(CidMainContainer **pCid, int code) 
 {
-    cid_disconnect_player ();
+    cid_disconnect_player (pCid);
     
     if (cid->runtime->bRunning)
         gtk_main_quit ();
@@ -43,13 +43,13 @@ cid_sortie(int code)
 }
 
 void 
-cid_disconnect_player () 
+cid_disconnect_player (CidMainContainer **pCid) 
 {
-    cid_disconnect_from_amarok();
-    rhythmbox_dbus_disconnect_from_bus();
-    cid_disconnect_from_exaile();
-    amarok_2_dbus_disconnect_from_bus();
-    cid_disconnect_from_mpd();
+    cid_disconnect_from_amarok (pCid);
+    rhythmbox_dbus_disconnect_from_bus ();
+    cid_disconnect_from_exaile ();
+    amarok_2_dbus_disconnect_from_bus ();
+    cid_disconnect_from_mpd ();
 }
 
 void 
@@ -247,7 +247,7 @@ You can use it with the following options:\n"));
     g_option_context_add_main_entries (context, entries, CID_GETTEXT_PACKAGE);
     if (!g_option_context_parse (context, argc, argv, &erreur))
     {
-        cid_exit (CID_ERROR_READING_ARGS, "ERROR : %s\n", erreur->message);
+        cid_exit (&cid, CID_ERROR_READING_ARGS, "ERROR : %s\n", erreur->message);
     }
     
     if (bSafeMode) 

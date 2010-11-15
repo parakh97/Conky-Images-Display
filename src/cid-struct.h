@@ -32,7 +32,7 @@ typedef struct _CidInternalModule CidInternalModule;
 
 ///\______ Encapsulations
 typedef void (* CidReadConfigFunc) (CidMainContainer **pCid, gchar *cConfFile);
-typedef void (* CidControlFunction) (void);
+typedef void (* CidControlFunction) (CidMainContainer **pCid);
 typedef void (* CidManagePlaylistFunction) (gchar *cSong);
 typedef void (* CidDataAction) (CidDataCase *pCase, gpointer *pData);
 typedef void (* CidConnectPlayer) (gint iDelay);

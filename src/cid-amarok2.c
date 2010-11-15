@@ -279,19 +279,19 @@ am_onCovertArtChanged(DBusGProxy *player_proxy,const gchar *cImageURI, gpointer 
 }
 
 void 
-_playPause_amarok_2 (void) 
+_playPause_amarok_2 (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,musicData.playing ? "Pause" : "Play");
 }
 
 void 
-_next_amarok_2 (void) 
+_next_amarok_2 (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"Next");
 }
 
 void 
-_previous_amarok_2 (void) 
+_previous_amarok_2 (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"Prev");
 }

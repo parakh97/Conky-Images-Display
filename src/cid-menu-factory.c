@@ -12,7 +12,7 @@
 #include "cid-callbacks.h"
 #include "cid-utilities.h"
 
-extern CidMainContainer *cid;
+//extern CidMainContainer *cid;
 
 void
 cid_build_menu (CidMainContainer **pCid) 

@@ -113,7 +113,7 @@ cid_check_conf_file_version (CidMainContainer **pCid, const gchar *f)
     g_free (cOrigFile);
     
     if (!fgets(line_f1,80,f1) || !fgets(line_f2,80,f2))
-        cid_exit (3,"couldn't read conf file, try to delete it");
+        cid_exit (pCid, 3,"couldn't read conf file, try to delete it");
     
     fclose (f1);
     fclose (f2);
@@ -152,7 +152,7 @@ cid_read_config_after_update (CidMainContainer **pCid, const char *f)
     // Si on change de lecteur
     if (iPlayerChanged != cid->config->iPlayer) 
     {
-        cid_disconnect_player ();
+        cid_disconnect_player (pCid);
     
         cid_free_musicData();
     
@@ -309,7 +309,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
 {   
     CidMainContainer *cid = *pCid;
     if (!cid_load_key_file(pCid, f))
-        cid_exit(CID_ERROR_READING_FILE,"Key File error");
+        cid_exit(pCid, CID_ERROR_READING_FILE,"Key File error");
 
     bChangedDesktop = cid->config->bAllDesktop;
     iPlayerChanged  = cid->config->iPlayer;
@@ -367,7 +367,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
         }
         else
         {
-            cid_exit (CID_ERROR_READING_FILE, "cannot allocate memory");
+            cid_exit (pCid, CID_ERROR_READING_FILE, "cannot allocate memory");
         }
     }
     cid->config->dRotate        = g_key_file_get_double  (cid->pKeyFile, "Behaviour", "ROTATION", &error);
@@ -458,7 +458,7 @@ cid_save_data (CidMainContainer **pCid)
 {
     CidMainContainer *cid = *pCid;
     if (!cid_load_key_file(pCid, cid->config->cConfFile))
-        cid_exit(CID_ERROR_READING_FILE,"Key File error");
+        cid_exit(pCid, CID_ERROR_READING_FILE,"Key File error");
     
     if (cid->pWindow!=NULL)
         cid_get_data(pCid);

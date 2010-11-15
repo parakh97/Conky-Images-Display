@@ -13,6 +13,8 @@
 #define  __CID_MESSAGES__
 
 # include <gtk/gtk.h>
+
+#include "cid-struct.h"
 G_BEGIN_DECLS
 
 # ifndef _INSIDE_CID_MESSAGES_C_
@@ -67,7 +69,7 @@ void cid_log_set_level(GLogLevelFlags loglevel);
  * @param code de retour
  * @param message d'erreur à nombre variable de paramètres
  */
-void cid_exit (int code, const gchar *mess, ...);
+void cid_exit (CidMainContainer **pCid, int code, const gchar *mess, ...);
 
 G_END_DECLS
 #endif 
