@@ -36,11 +36,12 @@ gboolean cid_get_boolean_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *c
  * @param bDir Si on veut tester l'existance d'un dossier.
  * @return La chaine correspondante aux criteres.
  */
-gchar *cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir);
-#define CID_CONFIG_GET_STRING(cGroup,cKey) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,NULL,FALSE,FALSE)
-#define CID_CONFIG_GET_STRING_WITH_DEFAULT(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,FALSE)
-#define CID_CONFIG_GET_FILE_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,TRUE,cDefault,TRUE,FALSE)
-#define CID_CONFIG_GET_DIR_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,TRUE)
+gchar *cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir, gboolean bForce);
+#define CID_CONFIG_GET_STRING(cGroup,cKey) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,NULL,FALSE,FALSE,FALSE)
+#define CID_CONFIG_GET_STRING_WITH_DEFAULT(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,FALSE,FALSE)
+#define CID_CONFIG_GET_FILE_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,TRUE,cDefault,TRUE,FALSE,FALSE)
+#define CID_CONFIG_GET_DIR_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,TRUE,FALSE)
+#define CID_CONFIG_GET_DIR_PATH_FORCE(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,TRUE,TRUE)
 
 /**
  * Fonction permettant de recuperer un int dans un fichier de configuration.
@@ -102,6 +103,9 @@ void cid_read_key_file (CidMainContainer **pCid, const gchar *f);
  * Permet de libérer le fichier de clés
  */
 void cid_key_file_free(CidMainContainer **pCid);
+
+
+gboolean cid_load_key_file(CidMainContainer **pCid, GKeyFile **pKeyFile, const gchar *cFile);
 
 G_END_DECLS
 #endif

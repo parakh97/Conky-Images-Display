@@ -59,7 +59,7 @@ cid_init (CidMainContainer *pCid)
     
     pCid->runtime->iCurrentlyDrawing = 0;
     
-    pCid->config->cConfFile = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
+    pCid->config->cConfFile = g_strdup_printf(CID_CONFIG_DIR,g_getenv("HOME"),CID_CONFIG_FILE);
 
 #ifdef HAVE_E17    
     pCid->config->iHint = GDK_WINDOW_TYPE_HINT_DESKTOP; 
@@ -68,7 +68,7 @@ cid_init (CidMainContainer *pCid)
     pCid->config->iHint = GDK_WINDOW_TYPE_HINT_TOOLTIP;
 #endif
     
-    pCid->defaut->cDLPath = g_strdup_printf("%s/.cache/cid",g_getenv("HOME"));
+    pCid->defaut->cDLPath = g_strdup_printf(CID_COVER_DIR,g_getenv("HOME"));
     
     pCid->pKeyFile = NULL;
 }

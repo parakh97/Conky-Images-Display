@@ -44,7 +44,7 @@ get_amarock_musicData (CidMainContainer **pCid)
     
         if (run) 
         {
-            cid_display_image(DEFAULT_IMAGE);
+            cid_display_image(cid->config->cDefaultImage);
             cid_set_state_icon();
             run = FALSE;
         }
@@ -75,7 +75,7 @@ get_amarock_musicData (CidMainContainer **pCid)
     
     g_free (musicData.playing_cover);
     if (gCoverURI == NULL)
-        musicData.playing_cover = g_strdup (DEFAULT_IMAGE);
+        musicData.playing_cover = g_strdup (cid->config->cDefaultImage);
     else 
         musicData.playing_cover = g_strdup (gCoverURI);
     
@@ -132,7 +132,7 @@ cid_check_amarok_cover_exists (CidMainContainer **pCid, gchar *cURI)
         g_free (cSplitedURI);
         cid->runtime->iCheckIter = 0;
         g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, pCid);
-        return g_strdup(DEFAULT_IMAGE);
+        return g_strdup(cid->config->cDefaultImage);
     }
     g_strfreev (cCleanURI);
     g_strfreev (cSplitedURI);
@@ -150,14 +150,14 @@ cid_amarok_cover(CidMainContainer **pCid)
         if (!musicData.opening) 
         {
             cid_debug ("Amarok isn't playing\n");
-            cid_display_image (DEFAULT_IMAGE);
+            cid_display_image (cid->config->cDefaultImage);
         } 
         else 
         {
             if (musicData.playing && musicData.playing_cover != NULL)
                 cid_display_image (cid_check_amarok_cover_exists(pCid, musicData.playing_cover));
             else
-                cid_display_image (DEFAULT_IMAGE);
+                cid_display_image (cid->config->cDefaultImage);
             cid_animation(cid->config->iAnimationType);
         } 
     }
@@ -188,7 +188,7 @@ cid_connect_to_amarok(CidMainContainer **pCid, gint iInter)
     CidMainContainer *cid = *pCid;
     cont = TRUE;
     cid->runtime->bPipeRunning = TRUE;
-    cid_display_image(DEFAULT_IMAGE);
+    cid_display_image(cid->config->cDefaultImage);
     cid_amarok_pipe (pCid, iInter);   
 }
 

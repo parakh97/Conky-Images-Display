@@ -20,8 +20,12 @@ G_BEGIN_DECLS
 
 #define OLD_CONFIG_FILE ".cidrc"
 
+#define CID_CONFIG_DIR "%s/.config/cid/%s"
+#define CID_COVER_DIR "%s/.cache/cid"
+//#define CID_COVER_DB "cover.db"
+
 /* Alias pour récupérer l'URI de l'image par défaut */
-#define DEFAULT_IMAGE cid->config->cDefaultImage
+//#define DEFAULT_IMAGE cid->config->cDefaultImage
 
 #define TESTING_COVER "default.svg"
 #define TESTING_FILE "cid.conf"
@@ -33,7 +37,6 @@ G_BEGIN_DECLS
 
 #define PLAYLIST_NAME "C.I.D."
 
-#define CID_IMAGES_DB "cid.db"
 #define CID_WEBSITE "http://cid.ziirish.info/"
 
 #define FADE_VARIATION .15
@@ -87,16 +90,29 @@ MMMMMMMMMMMMMMMMMMMMM\n"
 #define COIN \
 "Congratulation ! You just found my Easter Egg :)  \n\
                         `                         \n\
-                   :sdNMMMNhs:                    \n                 `hMMMMMMMMhsmm/                  \n                 yMMMMMMMMNmNMMM/                 \n                 NMmdmNMMNddmNMMN`                \n\
-                 Nho+oMMy:+/+mMMM-                \n                 dsmd-dh+/Nd-yMMM/                \n                 hm+o:::::o+:mMMMo                \n                 sy+/::-::///dMNNd                \n\
-                 +d/+//////:-yMdhNs`              \n                -mh.-::::-.` `hMNMMh.             \n              `oNy.  `.``     `dMMMMd:            \n             -hMh`   ``        .NMMMMNo`          \n\
-            /NMN:`   ``     ``.`+NNNMMMd.         \n           -NMN/`              ``/NNmNMMd.        \n          `dNN/                   oNmNNMMh        \n          ymMo      `             `MMMmMMM/       \n\
-        `yMmN`      `              NMMmMMMm       \n        oMNdd       `              mMNNMMMN       \n        /soyy-      `            `.mNNNNmmh       \n      `:+///+ys:`   `           .:/hMMMMms/`      \n\
-  `--:++//////yNd+.            .://ohddh+:/-      \n  -////////////sNMm:           -++//+++//://:.    \n  -+///::://////oho.         `:hy+/:::/::::::/:.  \n  :o////::::://////-``````-/smMMo//://///////:.   \n\
-  :++++++////////+odNmmmmNNMMMMNo/////////-.`     \n   ``.-:/+ooo++++osyo+////////+os++//++/.         \n           `.:/++/.             -/++/:.           \n                                                  \n\
+                   :sdNMMMNhs:                    \n                 `h\
+MMMMMMMMhsmm/                  \n                 yMMMMMMMMNmNMMM/     \
+            \n                 NMmdmNMMNddmNMMN`                \n\
+                 Nho+oMMy:+/+mMMM-                \n                 ds\
+md-dh+/Nd-yMMM/                \n                 hm+o:::::o+:mMMMo    \
+            \n                 sy+/::-::///dMNNd                \n\
+                 +d/+//////:-yMdhNs`              \n                -mh\
+.-::::-.` `hMNMMh.             \n              `oNy.  `.``     `dMMMMd:\
+            \n             -hMh`   ``        .NMMMMNo`          \n\
+            /NMN:`   ``     ``.`+NNNMMMd.         \n           -NMN/`  \
+            ``/NNmNMMd.        \n          `dNN/                   oNmN\
+NMMh        \n          ymMo      `             `MMMmMMM/       \n\
+        `yMmN`      `              NMMmMMMm       \n        oMNdd      \
+ `              mMNNMMMN       \n        /soyy-      `            `.mNN\
+NNmmh       \n      `:+///+ys:`   `           .:/hMMMMms/`      \n\
+  `--:++//////yNd+.            .://ohddh+:/-      \n  -////////////sNMm\
+:           -++//+++//://:.    \n  -+///::://////oho.         `:hy+/:::\
+/::::::/:.  \n  :o////::::://////-``````-/smMMo//://///////:.   \n\
+  :++++++////////+odNmmmmNNMMMMNo/////////-.`     \n   ``.-:/+ooo++++os\
+yo+////////+os++//++/.         \n           `.:/++/.             -/++/:\
+.           \n                                                  \n\
 What's that ? \n\
-Hum... I'd say it's a kinda Penguin ! \n\
-"
+Hum... I'd say it's a kinda Penguin ! \n"
 
 G_END_DECLS
 

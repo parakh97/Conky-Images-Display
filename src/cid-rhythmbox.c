@@ -38,7 +38,7 @@ cid_rhythmbox_cover()
             }
         }
     }
-    return DEFAULT_IMAGE;
+    return cid->config->cDefaultImage;
 }
 
 gboolean 

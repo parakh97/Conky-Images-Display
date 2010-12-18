@@ -70,7 +70,7 @@ cid_display_image(gchar *image)
     } 
     else 
     {
-        cid->p_cSurface = cid_get_cairo_image (DEFAULT_IMAGE, cid->config->iWidth, cid->config->iHeight);
+        cid->p_cSurface = cid_get_cairo_image (cid->config->cDefaultImage, cid->config->iWidth, cid->config->iHeight);
         musicData.cover_exist = FALSE;
     }
     

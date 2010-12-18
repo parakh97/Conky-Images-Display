@@ -360,7 +360,10 @@ _cid_check_and_display (gpointer p)
             g_free (musicData.playing_cover);
         musicData.playing_cover = g_strdup (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
         
-        cid_store_cover (&cid, DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        cid_store_cover (&cid, 
+                         DEFAULT_DOWNLOADED_IMAGE_LOCATION,
+                         musicData.playing_artist,
+                         musicData.playing_album);
         
         cid_free_measure_timer (pMeasureDownload);
         return FALSE;

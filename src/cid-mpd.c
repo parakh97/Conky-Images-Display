@@ -47,7 +47,7 @@ cid_mpd_cover ()
         musicData.opening = FALSE;
         musicData.playing = FALSE;
         cid_set_state_icon ();
-        cid_display_image (DEFAULT_IMAGE);
+        cid_display_image (cid->config->cDefaultImage);
         return cont;
     }
     
@@ -61,7 +61,7 @@ cid_mpd_cover ()
         musicData.opening = FALSE;
         musicData.playing = FALSE;
         cid_set_state_icon ();
-        cid_display_image (DEFAULT_IMAGE);
+        cid_display_image (cid->config->cDefaultImage);
         return cont;
     }
     
@@ -88,7 +88,7 @@ cid_mpd_cover ()
             first = FALSE;
             mpd_freeStatus(status);
             cid_set_state_icon();
-            cid_display_image (DEFAULT_IMAGE);
+            cid_display_image (cid->config->cDefaultImage);
         }
         return cont;
     }

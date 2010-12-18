@@ -7,7 +7,8 @@
    *
    *
 */
-//#include "cid.h"
+
+//#include "cid-constantes.h"
 #include "cid-cover.h"
 #include "cid-struct.h"
 #include "cid-messages.h"
@@ -15,8 +16,8 @@
 #include "md5.h"
 
 #include <curl/curl.h>
-
-//extern CidMainContainer *cid;
+#include <fcntl.h>
+#include <sys/stat.h>
 
 gboolean bCurrentlyDownloading = FALSE;
 gboolean bCurrentlyDownloadingXML = FALSE;
@@ -30,11 +31,15 @@ gboolean
 cid_get_xml_file (const gchar *artist, const gchar *album) 
 {
     if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS))
+    {
         cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+    }
     
     if (g_strcasecmp("Unknown",artist)==0 || g_strcasecmp("Unknown",album)==0 ||
         g_strcasecmp("Inconnu",artist)==0 || g_strcasecmp("Inconnu",album)==0)
+    {
         return FALSE;
+    }
     
     gchar *cURLBegin = g_strdup_printf("%s%s&api_key=%s",LAST_API_URL,LAST_ALBUM,LAST_ID_KEY);
     gchar *cTmpFilePath = g_strdup (DEFAULT_XML_LOCATION);
@@ -59,7 +64,11 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
     fclose(fp);
     curl_easy_cleanup(handle);
     
-    rename (DEFAULT_XML_LOCATION".tmp",DEFAULT_XML_LOCATION);
+    if (rename (DEFAULT_XML_LOCATION".tmp",DEFAULT_XML_LOCATION) == -1)
+    {
+        cid_warning ("Cannot rename '%s' to '%s'", DEFAULT_XML_LOCATION".tmp",
+                                                   DEFAULT_XML_LOCATION);
+    }
     
     g_free (cTmpFilePath);
     g_free (cURLFull);
@@ -92,10 +101,16 @@ cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/)
     fclose(fp);
     curl_easy_cleanup(handle);
     
-    rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+    if (rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",DEFAULT_DOWNLOADED_IMAGE_LOCATION) == -1)
+    {
+        cid_warning ("Cannot rename '%s' to '%s'",DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",
+                                                  DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+    }
     
     if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS))
+    {
         cid_remove_file (DEFAULT_XML_LOCATION);
+    }
         
     return TRUE;
 }
@@ -165,12 +180,64 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
 }
 
 void 
-cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath)
+cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
+                 const gchar *cArtist, const gchar *cAlbum)
 {
+    CidMainContainer *cid = *pCid;
+    GKeyFile *pKeyFile;
+    CURL *handle = curl_easy_init(); 
+    gchar *cKey = g_strdup_printf ("%s_%s", curl_easy_escape (handle, cArtist, 0), 
+                                            curl_easy_escape (handle, cAlbum, 0));
+    curl_easy_cleanup (handle);
+    gchar *cDBFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, CID_COVER_DB);
     gchar *md5 = cid_md5sum (cCoverPath);
-    if (md5 != NULL)
+    GKeyFileFlags flags;
+    GError *error = NULL;
+
+    /* Create a new GKeyFile object and a bitwise list of flags. */
+    pKeyFile = g_key_file_new ();
+    flags = G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS;
+
+    if (!g_file_test (cid->config->cDLPath, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE)) 
     {
-        cid_debug ("md5: %s\t%s",md5,cCoverPath);
-        g_free (md5);
+        cid_info ("Creating path %s", cid->config->cDLPath);
+        g_mkdir_with_parents (cid->config->cDLPath, 7*8*8+7*8+5);
     }
+    if (!g_file_test (cDBFile, G_FILE_TEST_EXISTS))
+    {
+        cid_info ("Creating file '%s'", cDBFile);
+        int fd = open (cDBFile, O_CREAT, S_IRUSR | S_IWUSR);
+        close (fd);
+    }
+    if (md5 == NULL)
+    {
+        cid_warning ("Unable to hash file");
+        g_free (cKey);
+        g_free (cDBFile);
+        g_free (md5);
+        g_key_file_free (pKeyFile);
+        return;
+    }
+    /* Load the GKeyFile or return. */
+    if (!g_key_file_load_from_file (pKeyFile, cDBFile, flags, &error)) 
+    {
+        cid_warning (error->message);
+        g_error_free (error);
+    }
+    gchar *cDestFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, md5);
+    cid_copy_file (cCoverPath, cDestFile);
+    cid_remove_file (cCoverPath);
+    g_key_file_set_value (pKeyFile, "DB", cKey, md5);
+    cid_write_keys_to_file (pKeyFile, cDBFile);
+    g_key_file_free (pKeyFile);
+    g_free (cDestFile);
+    g_free (cKey);
+    g_free (cDBFile);
+    g_free (md5);
+}
+
+gchar *
+cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cAlbum)
+{
+    return NULL;
 }

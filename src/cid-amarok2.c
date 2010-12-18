@@ -32,16 +32,16 @@ cid_amarok_2_cover()
                 cid_set_state_icon();
                 return musicData.playing_cover;
             }
-            return DEFAULT_IMAGE;
+            return cid->config->cDefaultImage;
         } 
         else 
         {
-            return DEFAULT_IMAGE;
+            return cid->config->cDefaultImage;
         }
     } 
     else 
     {
-        return DEFAULT_IMAGE;
+        return cid->config->cDefaultImage;
     }
 }
 

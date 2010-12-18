@@ -45,6 +45,7 @@ cid_check_file (const gchar *f)
             return;
         }
         */
+        /*
         CidDataTable *p_folders = cid_create_datatable(G_TYPE_STRING,"%s/.config","%s/.config/cid",G_TYPE_INVALID);
         BEGIN_FOREACH_DT(p_folders)
             gchar *cDirName = g_strdup_printf(p_temp->content->string,g_getenv("HOME"));
@@ -55,6 +56,15 @@ cid_check_file (const gchar *f)
             }
             g_free (cDirName);
         END_FOREACH_DT
+        */
+        gchar *cDirectory = g_path_get_dirname (f);
+        if (! g_file_test (cDirectory, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE)) 
+        {
+            cid_info ("Creating path '%s'", cDirectory);
+            g_mkdir_with_parents (cDirectory, 7*8*8+7*8+5);
+        }
+        g_free (cDirectory);
+        
         cFileTest = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE) ;
         if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
         {
@@ -196,18 +206,18 @@ cid_read_config_after_update (CidMainContainer **pCid, const char *f)
 }
 
 gboolean 
-cid_load_key_file(CidMainContainer **pCid, const gchar *cFile) 
+cid_load_key_file(CidMainContainer **pCid, GKeyFile **pKeyFile, const gchar *cFile) 
 {
     CidMainContainer *cid = *pCid;
     GKeyFileFlags flags;
     GError *error = NULL;
 
     /* Create a new GKeyFile object and a bitwise list of flags. */
-    cid->pKeyFile = g_key_file_new ();
+    *pKeyFile = g_key_file_new ();
     flags = G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS;
 
     /* Load the GKeyFile or return. */
-    if (!g_key_file_load_from_file (cid->pKeyFile, cFile, flags, &error)) 
+    if (!g_key_file_load_from_file (*pKeyFile, cFile, flags, &error)) 
     {
         cid_warning (error->message);
         g_error_free (error);
@@ -240,7 +250,7 @@ cid_get_boolean_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboo
 }
 
 gchar *
-cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir) 
+cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir, gboolean bForce) 
 {
     GError *error = NULL;
     gchar *cGet = g_key_file_get_string (pKeyFile, cGroup, cKey, &error);
@@ -256,7 +266,7 @@ cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gbool
     if ((bFile || bDir) && cDefault != NULL && !g_file_test (cGet, bDir ? G_FILE_TEST_IS_DIR : G_FILE_TEST_EXISTS)) 
     {
         g_free (cGet);
-        if (g_file_test (cDefault, bDir ? G_FILE_TEST_IS_DIR : G_FILE_TEST_EXISTS))
+        if (g_file_test (cDefault, bDir ? G_FILE_TEST_IS_DIR : G_FILE_TEST_EXISTS) || bForce)
         {
             cid_debug ("%s:%s=%s",cGroup,cKey,cDefault);
             return cDefault;
@@ -308,7 +318,7 @@ void
 cid_read_key_file (CidMainContainer **pCid, const gchar *f) 
 {   
     CidMainContainer *cid = *pCid;
-    if (!cid_load_key_file(pCid, f))
+    if (!cid_load_key_file(pCid, &(cid->pKeyFile), f))
         cid_exit(pCid, CID_ERROR_READING_FILE,"Key File error");
 
     bChangedDesktop = cid->config->bAllDesktop;
@@ -347,7 +357,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->iAnimationSpeed = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_SPEED");
     cid->config->bThreaded       = CID_CONFIG_GET_BOOLEAN ("Options", "THREAD");
     cid->config->bDownload       = CID_CONFIG_GET_BOOLEAN ("Options", "DOWNLOAD");
-    cid->config->cDLPath         = CID_CONFIG_GET_STRING_WITH_DEFAULT ("Options", "DL_PATH", cid->defaut->cDLPath);
+    cid->config->cDLPath         = CID_CONFIG_GET_DIR_PATH_FORCE ("Options", "DL_PATH", cid->defaut->cDLPath);
     cid->config->iImageSize      = CID_CONFIG_GET_INTEGER ("Options", "D_SIZE");
     cid->config->iTimeToWait     = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("Options", "DELAY", DEFAULT_TIMERS);
     cid->config->bUnstable       = cid->config->bTesting && CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options",
@@ -457,7 +467,7 @@ void
 cid_save_data (CidMainContainer **pCid) 
 {
     CidMainContainer *cid = *pCid;
-    if (!cid_load_key_file(pCid, cid->config->cConfFile))
+    if (!cid_load_key_file(pCid, &(cid->pKeyFile), cid->config->cConfFile))
         cid_exit(pCid, CID_ERROR_READING_FILE,"Key File error");
     
     if (cid->pWindow!=NULL)
@@ -536,13 +546,14 @@ cid_write_keys_to_file (GKeyFile *pKeyFile, const gchar *cConfFilePath)
     gchar *cDirectory = g_path_get_dirname (cConfFilePath);
     if (! g_file_test (cDirectory, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE)) 
     {
+        cid_info ("Creating path '%s'", cDirectory);
         g_mkdir_with_parents (cDirectory, 7*8*8+7*8+5);
     }
     g_free (cDirectory);
 
 
     gsize length;
-    gchar *cNewConfFilePath = g_key_file_to_data (pKeyFile, &length, &erreur);
+    gchar *cNewConfFileData = g_key_file_to_data (pKeyFile, &length, &erreur);
     if (erreur != NULL) 
     {
         cid_warning ("Error while fetching data : %s", erreur->message);
@@ -550,7 +561,8 @@ cid_write_keys_to_file (GKeyFile *pKeyFile, const gchar *cConfFilePath)
         return ;
     }
 
-    g_file_set_contents (cConfFilePath, cNewConfFilePath, length, &erreur);
+    g_file_set_contents (cConfFilePath, cNewConfFileData, length, &erreur);
+    g_free (cNewConfFileData);
     if (erreur != NULL) 
     {
         cid_warning ("Error while writing data : %s", erreur->message);

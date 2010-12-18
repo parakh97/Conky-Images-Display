@@ -155,6 +155,11 @@ cid_copy_file (const gchar *cSrc, const gchar *cDst)
 void
 cid_remove_file (const gchar* cFilePath)
 {
+    if (!g_file_test (cFilePath, G_FILE_TEST_EXISTS))
+    {
+        cid_warning ("The file '%s' does not exist", cFilePath);
+        return;
+    }
     if (remove(cFilePath) == -1)
     {
         cid_warning ("Error while removing %s",cFilePath);
@@ -201,10 +206,10 @@ cid_read_parameters (int *argc, char ***argv)
             fprintf (stdout,"/!\\ CAUTION /!\\\nDevelopment mode !\n");
             if (cid->config->cConfFile)
                 g_free (cid->config->cConfFile);
-            if (DEFAULT_IMAGE)
-                g_free (DEFAULT_IMAGE);
+            if (cid->config->cDefaultImage)
+                g_free (cid->config->cDefaultImage);
             cid->config->cConfFile = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_FILE);
-            DEFAULT_IMAGE = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_COVER);
+            cid->config->cDefaultImage = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_COVER);
             cid->config->bDevMode = TRUE;
         }
     }

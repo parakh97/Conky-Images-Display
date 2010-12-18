@@ -48,11 +48,11 @@ cid_exaile_cover()
             } 
             else 
             {
-                cid_display_image (DEFAULT_IMAGE);
+                cid_display_image (cid->config->cDefaultImage);
             }
             cid_animation(cid->config->iAnimationType);
         } else if (bStateChanged || bFirstDisplay) {
-            cid_display_image (DEFAULT_IMAGE);
+            cid_display_image (cid->config->cDefaultImage);
             bFirstDisplay = FALSE;
         }
     } 
@@ -61,7 +61,7 @@ cid_exaile_cover()
         if (!bCantConnect) 
         {
             bCantConnect = TRUE;
-            cid_display_image (DEFAULT_IMAGE);
+            cid_display_image (cid->config->cDefaultImage);
         }
         return cont;
     }
@@ -170,7 +170,7 @@ cid_check_exaile_cover_exists (gchar *cURI)
             cid->runtime->iCheckIter = 0;
             g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, &cid);
         }
-        return g_strdup(DEFAULT_IMAGE);
+        return g_strdup(cid->config->cDefaultImage);
     }
     g_strfreev (cCleanURI);
     g_strfreev (cSplitedURI);
