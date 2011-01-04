@@ -223,6 +223,10 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
     {
         cid_warning (error->message);
         g_error_free (error);
+        g_free (cKey);
+        g_free (cDBFile);
+        g_free (md5);
+        return NULL;
     }
     gchar *cDestFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, md5);
     cid_copy_file (cCoverPath, cDestFile);
@@ -240,5 +244,45 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
 gchar *
 cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cAlbum)
 {
-    return NULL;
+    CidMainContainer *cid = *pCid;
+    GKeyFile *pKeyFile;
+    CURL *handle = curl_easy_init();
+    gchar *cCoverPath = NULL;
+    gchar *cKey = g_strdup_printf ("%s_%s", curl_easy_escape (handle, cArtist, 0),
+                                            curl_easy_escape (handle, cAlbum, 0));
+    curl_easy_cleanup (handle);
+    gchar *cDBFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, CID_COVER_DB);
+    GKeyFileFlags flags;
+    GError *error = NULL;
+
+    /* Create a new GKeyFile object and a bitwise list of flags. */
+    pKeyFile = g_key_file_new ();
+    flags = G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS;
+
+    if (!g_key_file_load_from_file (pKeyFile, cDBFile, flags, &error))
+    {
+        cid_warning (error->message);
+        g_error_free (error);
+        g_free (cKey);
+        g_free (cDBFile);
+        return NULL;
+    }
+
+    gchar *cVal = g_key_file_get_value (pKeyFile, "DB", cKey, &error);
+    if (error != NULL)
+    {
+        cid_warning (error->message);
+        g_error_free (error);
+    }
+    if (cVal != NULL)
+    {
+        gchar *cCoverPath =  g_strdup_printf ("%s/%s", cid->config->cDLPath, cVal);
+        g_free (cVal);
+    }
+
+    g_free (cKey);
+    g_free (cDBFile);
+    g_key_file_free (pKeyFile);
+        
+    return cCoverPath;
 }
