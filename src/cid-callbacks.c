@@ -413,7 +413,7 @@ _cid_proceed_download_cover (void)
             }
             
             bCurrentlyDownloadingXML = FALSE;
-            g_atomic_int(&cpt,0);
+            g_atomic_int_set(&cpt,0);
             pMeasureDownload = cid_new_measure_timer (1, 
                                                       NULL, 
                                                       (CidReadTimerFunc) cid_download_missing_cover, 

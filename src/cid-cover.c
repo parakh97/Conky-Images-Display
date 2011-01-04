@@ -13,7 +13,7 @@
 #include "cid-struct.h"
 #include "cid-messages.h"
 #include "cid-utilities.h"
-#include "md5.h"
+#include "cid-md5.h"
 
 #include <curl/curl.h>
 #include <fcntl.h>
