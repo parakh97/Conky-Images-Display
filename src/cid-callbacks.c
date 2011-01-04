@@ -27,6 +27,7 @@ extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML, bCurrentlyFocus
 gboolean bFlyingButton;
 
 static gchar *cImageURL = NULL;
+static gint cpt = 0;
 static CidMeasure *pMeasureTimer = NULL;
 static CidMeasure *pMeasureDownload = NULL;
 
@@ -367,7 +368,13 @@ _cid_check_and_display (gpointer p)
         
         cid_free_measure_timer (pMeasureDownload);
         return FALSE;
+    } 
+    // hack pour eviter de locker le thread
+    else if (g_atomic_int_get(&cpt) > 5)
+    {
+        return FALSE;
     }
+    g_atomic_int_inc(&cpt);
     return TRUE;
 }
 
@@ -393,12 +400,20 @@ _cid_proceed_download_cover (void)
             if (pMeasureDownload) 
             {
                 if (cid_measure_is_running(pMeasureDownload))
+                {
+                    // Hack pour delocker un thread
+                    g_atomic_int_set(&cpt,10);
                     cid_stop_measure_timer(pMeasureDownload);
+                }
                 if (cid_measure_is_active(pMeasureDownload))
+                {
+                    g_atomic_int_set(&cpt,10);
                     cid_free_measure_timer(pMeasureDownload);
+                }
             }
             
             bCurrentlyDownloadingXML = FALSE;
+            g_atomic_int(&cpt,0);
             pMeasureDownload = cid_new_measure_timer (1, 
                                                       NULL, 
                                                       (CidReadTimerFunc) cid_download_missing_cover, 

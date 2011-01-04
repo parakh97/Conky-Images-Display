@@ -116,7 +116,8 @@ cid_launch_measure_delayed (CidMeasure *pMeasureTimer, double fDelay)
 
 CidMeasure *
 cid_new_measure_timer (int iCheckInterval, CidAquisitionTimerFunc acquisition, CidReadTimerFunc read, CidUpdateTimerFunc update, gpointer pUserData) 
-{    CidMeasure *pMeasureTimer = g_new0 (CidMeasure, 1);
+{    
+    CidMeasure *pMeasureTimer = g_new0 (CidMeasure, 1);
     //if (read != NULL || acquisition != NULL)
     //  pMeasureTimer->pMutexData = g_mutex_new ();
     pMeasureTimer->iCheckInterval = iCheckInterval;
@@ -145,14 +146,23 @@ _cid_pause_measure_timer (CidMeasure *pMeasureTimer)
 void 
 cid_stop_measure_timer (CidMeasure *pMeasureTimer) 
 {
+    gint cpt = 0;
     if (pMeasureTimer == NULL)
         return ;
     
     _cid_pause_measure_timer (pMeasureTimer);
     
     cid_debug ("***on attend que le thread termine...(%d)", g_atomic_int_get (&pMeasureTimer->iThreadIsRunning));
-    while (g_atomic_int_get (&pMeasureTimer->iThreadIsRunning))
+    while (g_atomic_int_get (&pMeasureTimer->iThreadIsRunning) == 1)
+    {
+        cpt++;
+        if (cpt > 5 * 1000 * 1000)
+        {
+            g_atomic_int_set (&pMeasureTimer->iThreadIsRunning, 0);
+            break;
+        }
         g_usleep (10);
+    }
         ///gtk_main_iteration ();
     cid_debug ("***temine.");
 }

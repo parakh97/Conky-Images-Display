@@ -179,7 +179,7 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
     xmlFreeDoc(doc);
 }
 
-void 
+gchar * 
 cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
                  const gchar *cArtist, const gchar *cAlbum)
 {
@@ -216,7 +216,7 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
         g_free (cDBFile);
         g_free (md5);
         g_key_file_free (pKeyFile);
-        return;
+        return NULL;
     }
     /* Load the GKeyFile or return. */
     if (!g_key_file_load_from_file (pKeyFile, cDBFile, flags, &error)) 
@@ -230,10 +230,11 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
     g_key_file_set_value (pKeyFile, "DB", cKey, md5);
     cid_write_keys_to_file (pKeyFile, cDBFile);
     g_key_file_free (pKeyFile);
-    g_free (cDestFile);
     g_free (cKey);
     g_free (cDBFile);
     g_free (md5);
+    
+    return cDestFile;
 }
 
 gchar *
