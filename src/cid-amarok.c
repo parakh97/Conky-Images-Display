@@ -16,6 +16,7 @@
 #include "cid-console-call.h"
 #include "cid-constantes.h"
 #include "cid-asynchrone.h"
+#include "cid-cover.h"
 
 //extern CidMainContainer *cid;
 
@@ -80,7 +81,14 @@ get_amarock_musicData (CidMainContainer **pCid)
         musicData.playing_cover = g_strdup (gCoverURI);
     
     if (musicData.playing_uri != NULL && strcmp (musicData.playing_uri,gPlayingURI)==0)
+    {
+        g_free (gArtist);
+        g_free (gAlbum);
+        g_free (gTitle);
+        g_free (gPlayingURI);
+        g_free (gCoverURI);
         return FALSE;
+    }
         
     g_free (musicData.playing_uri);
     musicData.playing_uri = g_strdup(gPlayingURI);
@@ -94,6 +102,11 @@ get_amarock_musicData (CidMainContainer **pCid)
     
     run = TRUE;
     cid_info ("\nartist : %s\nalbum : %s\ntitle : %s\nsong uri : %s\ncover uri : %s\n",gArtist,gAlbum,gTitle,gPlayingURI,gCoverURI);
+    g_free (gArtist);
+    g_free (gAlbum);
+    g_free (gTitle);
+    g_free (gPlayingURI);
+    g_free (gCoverURI);
     return TRUE;
 }
 
@@ -124,19 +137,23 @@ gchar *
 cid_check_amarok_cover_exists (CidMainContainer **pCid, gchar *cURI) 
 {
     CidMainContainer *cid = *pCid;
-    gchar **cCleanURI = g_strsplit (cURI,"@",0);
+    gchar *cRet = g_strdup(cURI);
+    gchar **cCleanURI = g_strsplit (cRet,"@",0);
     gchar **cSplitedURI = g_strsplit (cCleanURI[1],".",0);
     if (g_strcasecmp(cSplitedURI[0],"nocover")==0) 
     {
-        g_free (cCleanURI);
-        g_free (cSplitedURI);
-        cid->runtime->iCheckIter = 0;
-        g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, pCid);
-        return g_strdup(cid->config->cDefaultImage);
+        g_free (cRet);
+        cRet = cid_search_cover (pCid, musicData.playing_artist, musicData.playing_album);
+        if (cRet == NULL)
+        {
+            cid->runtime->iCheckIter = 0;
+            g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, pCid);
+            cRet = g_strdup(cid->config->cDefaultImage);
+        }
     }
     g_strfreev (cCleanURI);
     g_strfreev (cSplitedURI);
-    return cURI;
+    return cRet;
 }
 
 gboolean 
@@ -155,7 +172,11 @@ cid_amarok_cover(CidMainContainer **pCid)
         else 
         {
             if (musicData.playing && musicData.playing_cover != NULL)
-                cid_display_image (cid_check_amarok_cover_exists(pCid, musicData.playing_cover));
+            {
+                gchar *cCover = cid_check_amarok_cover_exists(pCid, musicData.playing_cover);
+                cid_display_image (cCover);
+                g_free (cCover);
+            }
             else
                 cid_display_image (cid->config->cDefaultImage);
             cid_animation(cid->config->iAnimationType);

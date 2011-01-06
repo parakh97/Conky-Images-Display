@@ -183,6 +183,10 @@ gchar *
 cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
                  const gchar *cArtist, const gchar *cAlbum)
 {
+    g_return_val_if_fail (cCoverPath != NULL 
+                          && cArtist != NULL 
+                          && cAlbum != NULL,
+                          NULL);
     CidMainContainer *cid = *pCid;
     GKeyFile *pKeyFile;
     CURL *handle = curl_easy_init(); 
@@ -244,6 +248,7 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
 gchar *
 cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cAlbum)
 {
+    g_return_val_if_fail (cArtist != NULL && cAlbum != NULL, NULL);
     CidMainContainer *cid = *pCid;
     GKeyFile *pKeyFile;
     CURL *handle = curl_easy_init();

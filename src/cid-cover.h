@@ -65,12 +65,24 @@ gboolean cid_get_xml_file (const gchar *artist, const gchar *album);
 gboolean cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/);
 
 /**
- * On sauvegarde la pochette dans notre 'magazin'
- * @param pCid Structure de controle de cid
- * @param cCoverPath URI de la pochette a stocker
+ * On sauvegarde la pochette dans notre 'magazin'.
+ * @param pCid Structure de controle de cid.
+ * @param cCoverPath URI de la pochette a stocker.
+ * @return URI de la pochette apres stockage dans notre
+ * 'magazin', NULL si stockage impossible.
  */
 gchar *cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
                         const gchar *cArtist, const gchar *cAlbum);
+
+/**
+ * Recherche une pochette dans notre 'magazin'.
+ * @param pCid Structure de controle de cid.
+ * @param cArtist nom de l'artiste.
+ * @param cAlbum nom de l'album.
+ * @return URI complet de l'image, NULL si non toruve.
+ */
+gchar *cid_search_cover (CidMainContainer **pCid, const gchar *cArtist,
+                         const gchar *cAlbum);
 
 G_END_DECLS
 #endif

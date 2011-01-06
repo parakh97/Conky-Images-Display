@@ -16,6 +16,7 @@
 #include "cid-struct.h"
 #include "cid-constantes.h"
 #include "cid-callbacks.h"
+#include "cid-cover.h"
 
 extern CidMainContainer *cid;
 
@@ -259,11 +260,16 @@ getSongInfos(void)
                 g_free (cSongDir);
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
-                    cid->runtime->iCheckIter = 0;
-                    if (musicData.iSidCheckCover == 0 && cid->config->iPlayer != PLAYER_NONE) 
+                    g_free (musicData.playing_cover);
+                    musicData.playing_cover = cid_search_cover (&cid, musicData.playing_artist, musicData.playing_album);
+                    if (musicData.playing_cover == NULL)
                     {
-                        cid_debug ("l'image n'existe pas encore => on boucle.\n");
-                        musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, &cid);
+                        cid->runtime->iCheckIter = 0;
+                        if (musicData.iSidCheckCover == 0 && cid->config->iPlayer != PLAYER_NONE) 
+                        {
+                            cid_debug ("l'image n'existe pas encore => on boucle.\n");
+                            musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, &cid);
+                        }
                     }
                 }
             }
