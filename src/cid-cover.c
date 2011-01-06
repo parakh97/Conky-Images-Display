@@ -106,11 +106,6 @@ cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/)
         cid_warning ("Cannot rename '%s' to '%s'",DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",
                                                   DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     }
-    
-    if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS))
-    {
-        cid_remove_file (DEFAULT_XML_LOCATION);
-    }
         
     return TRUE;
 }
@@ -129,6 +124,9 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
     va_list args;
     va_start(args,xpath);
     doc = xmlParseFile(filename);
+    
+    cid_remove_file (filename);
+    
     if (doc == NULL) 
     {
         cid_warning ("Document XML invalide");
@@ -187,6 +185,9 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
                           && cArtist != NULL 
                           && cAlbum != NULL,
                           NULL);
+    g_return_val_if_fail (g_strcasecmp (cArtist, "unknown") != 0
+                          && g_strcasecmp (cAlbum, "unknown") != 0,
+                          NULL);
     CidMainContainer *cid = *pCid;
     GKeyFile *pKeyFile;
     CURL *handle = curl_easy_init(); 
@@ -227,10 +228,6 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
     {
         cid_warning (error->message);
         g_error_free (error);
-        g_free (cKey);
-        g_free (cDBFile);
-        g_free (md5);
-        return NULL;
     }
     gchar *cDestFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, md5);
     cid_copy_file (cCoverPath, cDestFile);
@@ -281,7 +278,7 @@ cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cA
     }
     if (cVal != NULL)
     {
-        gchar *cCoverPath =  g_strdup_printf ("%s/%s", cid->config->cDLPath, cVal);
+        cCoverPath =  g_strdup_printf ("%s/%s", cid->config->cDLPath, cVal);
         g_free (cVal);
     }
 

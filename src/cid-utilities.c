@@ -143,10 +143,24 @@ cid_copy_file (const gchar *cSrc, const gchar *cDst)
         cid_warning ("Unable to open file: %s",cDst);
         return;
     }
-    char buffer[256];
-    while (fgets(buffer,256,src) != NULL)
-    {
-        fprintf(dst,buffer);
+    //char buffer[256];
+    //while (fgets(buffer,256,src) != NULL)
+    //{
+    //    fputs(buffer,dst);
+    //    //fprintf(dst,buffer);
+    //}
+    char ch;
+    while(!feof(src)) {
+        ch = fgetc(src);
+        if(ferror(src)) {
+            cid_warning ("Error reading source file.");
+            return;
+        }
+        if(!feof(src)) fputc(ch, dst);
+        if(ferror(dst)) {
+            cid_warning ("Error writing destination file.");
+            return;
+        }
     }
     fclose (src);
     fclose (dst);
