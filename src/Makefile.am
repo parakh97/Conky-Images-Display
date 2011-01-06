@@ -33,7 +33,6 @@ cid_CFLAGS = \
     -W \
     -Werror \
     -fno-builtin \
-    -lcrypto \
     -g  
 
 cid_LDFLAGS = \
