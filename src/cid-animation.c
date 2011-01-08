@@ -9,7 +9,7 @@
 
 #include "cid-animation.h"
 #include "cid-messages.h"
-#include "cid-asynchrone.h"
+#include "cid-animation-thread.h"
 #include "cid-draw.h"
 #include "cid-constantes.h"
 
@@ -160,7 +160,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
                                                             (CidUpdateTimerFunc) cid_rotate_on_changing_song, 
                                                             NULL);
         
-            cid_launch_measure(pMeasureTimerAnimation);
+            cid_launch_measure (pMeasureTimerAnimation);
             break;
         case CID_FADE_IN_OUT:
             if (pMeasureTimerAnimation) 
@@ -176,7 +176,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
                                                             (CidUpdateTimerFunc) cid_fade_in_out, 
                                                             NULL);
         
-            cid_launch_measure(pMeasureTimerAnimation);
+            cid_launch_measure (pMeasureTimerAnimation);
             break;
         case CID_FOCUS_IN:
             if (pMeasureTimerFocus) 
@@ -192,7 +192,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
                                                         (CidUpdateTimerFunc) cid_focus_in, 
                                                         NULL);
         
-            cid_launch_measure(pMeasureTimerFocus);
+            cid_launch_measure (pMeasureTimerFocus);
             break;
         case CID_FOCUS_OUT:
             if (pMeasureTimerFocus) 
@@ -208,7 +208,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
                                                         (CidUpdateTimerFunc) cid_focus_out, 
                                                         NULL);
         
-            cid_launch_measure(pMeasureTimerFocus);
+            cid_launch_measure (pMeasureTimerFocus);
             break;
     }
 }

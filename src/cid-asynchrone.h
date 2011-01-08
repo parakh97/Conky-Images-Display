@@ -11,7 +11,11 @@
 #define  __CID_ASYNCHRONE__
 
 #include <gtk/gtk.h>
+G_BEGIN_DECLS
 
+typedef struct _CidTask CidTask;
+
+/// Type of frequency for a periodic task. The frequency of the Task is divided by 2, 4, and 10 for each state.
 typedef enum {
     CID_FREQUENCY_NORMAL = 0,
     CID_FREQUENCY_LOW,
@@ -20,97 +24,121 @@ typedef enum {
     CID_NB_FREQUENCIES
 } CidFrequencyState;
 
-typedef void (* CidAquisitionTimerFunc ) (gpointer data);
-typedef void (* CidReadTimerFunc ) (gpointer data);
-typedef gboolean (* CidUpdateTimerFunc ) (gpointer data);
-typedef struct {
-    /// Sid du timer des mesures.
+/// Definition of the asynchronous job, that does the heavy part.
+typedef void (* CidGetDataAsyncFunc ) (gpointer pSharedMemory);
+/// Definition of the synchronous job, that update the dock with the results of the previous job. Returns TRUE to continue, FALSE to stop
+typedef gboolean (* CidUpdateSyncFunc ) (gpointer pSharedMemory);
+
+/// Definition of a periodic and asynchronous Task.
+struct _CidTask {
+    /// ID of the timer of the Task.
     gint iSidTimer;
-    /// Sid du timer de fin de mesure.
-    gint iSidTimerRedraw;
-    /// Valeur atomique a 1 ssi le thread de mesure est en cours.
+    /// ID of the timer to check the end of the thread.
+    gint iSidTimerUpdate;
+    /// Atomic value, set to 1 when the thread is running.
     gint iThreadIsRunning;
-    /// mutex d'accessibilite a la structure des resultats.
-    GMutex *pMutexData;
-    /// fonction realisant l'acquisition des donnees. N'accede jamais a la structure des resultats.
-    CidAquisitionTimerFunc acquisition;
-    /// fonction realisant la lecture des donnees precedemment acquises; stocke les resultats dans la structures des resultats.
-    CidReadTimerFunc read;
-    /// fonction realisant la mise a jour de l'IHM en fonction des nouveaux resultats. Renvoie TRUE pour continuer, FALSE pour arreter.
-    CidUpdateTimerFunc update;
-    /// intervalle de temps en secondes, eventuellement nul pour une mesure unitaire.
-    gint iCheckInterval;
-    /// etat de la frequence des mesures.
+    /// function carrying out the heavy job.
+    CidGetDataAsyncFunc get_data;
+    /// function carrying out the update of the dock. Returns TRUE to continue, FALSE to stop.
+    CidUpdateSyncFunc update;
+    /// interval of time in seconds, 0 to run the Task once.
+    gint iPeriod;
+    /// state of the frequency of the Task.
     CidFrequencyState iFrequencyState;
-    /// donnees passees en entree de chaque fonction.
-    gpointer pUserData;
-} CidMeasure;
+    /// structure passed as parameter of the 'get_data' and 'update' functions. Must not be accessed outside of these 2 functions !
+    gpointer pSharedMemory;
+    /// timer to get the accurate amount of time since last update.
+    GTimer *pClock;
+    /// time elapsed since last update.
+    double fElapsedTime;
+    /// function called when the task is destroyed to free the shared memory (optionnal).
+    GFreeFunc free_data;
+    /// TRUE when the task has been discarded.
+    gboolean bDiscard;
+} ;
 
-/**
-*Lance les mesures periodiques, prealablement preparee avec #cid_new_measure_timer. La 1ere iteration est executee immediatement. L'acquisition et la lecture des donnees est faite de maniere asynchrone (dans un thread secondaire), alors que le chargement des mesures se fait dans la boucle principale. La frequence est remise a son etat normal.
-*@param pMeasureTimer la mesure periodique.
-*/
-void cid_launch_measure (CidMeasure *pMeasureTimer);
-/**
-*Idem que ci-dessus mais après un délai.
-*@param pMeasureTimer la mesure periodique.
-*@param fDelay délai en ms.
-*/
-void cid_launch_measure_delayed (CidMeasure *pMeasureTimer, double fDelay);
-/**
-*Cree une mesure periodique.
-*@param iCheckInterval l'intervalle en s entre 2 mesures, eventuellement nul pour une mesure unitaire.
-*@param acquisition fonction realisant l'acquisition des donnees. N'accede jamais a la structure des resultats.
-*@param read fonction realisant la lecture des donnees precedemment acquises; stocke les resultats dans la structures des resultats.
-*@param update fonction realisant la mise a jour de l'interface en fonction des nouveaux resultats, lus dans la structures des resultats.
-*@param pUserData structure passee en entree des fonctions read et update.
-*@return la mesure nouvellement allouee. A liberer avec #cid_free_measure_timer.
-*/
-CidMeasure *cid_new_measure_timer (int iCheckInterval, CidAquisitionTimerFunc acquisition, CidReadTimerFunc read, CidUpdateTimerFunc update, gpointer pUserData);
-/**
-*Stoppe les mesures. Si une mesure est en cours, le thread d'acquisition/lecture se terminera tout seul plus tard, et la mesure sera ignoree. On peut reprendre les mesures par un simple #cairo_dock_launch_measure. Ne doit _pas_ etre appelée durant la fonction 'read' ou 'update'; utiliser la sortie de 'update' pour cela.
-*@param pMeasureTimer la mesure periodique.
-*/
-void cid_stop_measure_timer (CidMeasure *pMeasureTimer);
-/**
-*Stoppe et detruit une mesure periodique, liberant toutes ses ressources allouees.
-*@param pMeasureTimer la mesure periodique.
-*/
-void cid_free_measure_timer (CidMeasure *pMeasureTimer);
-/**
-*Dis si une mesure est active, c'est a dire si elle est appelee periodiquement.
-*@param pMeasureTimer la mesure periodique.
-*@return TRUE ssi la mesure est active.
-*/
-gboolean cid_measure_is_active (CidMeasure *pMeasureTimer);
-/**
-*Dis si une mesure est en cours, c'est a dire si elle est soit dans le thread, soit en attente d'update.
-*@param pMeasureTimer la mesure periodique.
-*@return TRUE ssi la mesure est en cours.
-*/
-gboolean cid_measure_is_running (CidMeasure *pMeasureTimer);
-/**
-*Change la frequence des mesures. La prochaine mesure aura lien dans 1 iteration si elle etait deja active.
-*@param pMeasureTimer la mesure periodique.
-*@param iNewCheckInterval le nouvel intervalle entre 2 mesures, en s.
-*/
-void cid_change_measure_frequency (CidMeasure *pMeasureTimer, int iNewCheckInterval);
-/**
-*Change la frequence des mesures et les relance immediatement. La prochaine mesure est donc tout de suite.
-*@param pMeasureTimer la mesure periodique.
-*@param iNewCheckInterval le nouvel intervalle entre 2 mesures, en s.
-*/
-void cid_relaunch_measure_immediately (CidMeasure *pMeasureTimer, int iNewCheckInterval);
 
-/**
-*Degrade la frequence des mesures. La mesure passe dans un etat moins actif (typiquement utile si la mesure a echouee).
-*@param pMeasureTimer la mesure periodique.
+/** Launch a periodic Task, beforehand prepared with #cid_new_task. The first iteration is executed immediately. The frequency returns to its normal state.
+*@param pTask the periodic Task.
 */
-void cid_downgrade_frequency_state (CidMeasure *pMeasureTimer);
-/**
-*Remet la frequence des mesures a un etat normal. Notez que cela est fait automatiquement au 1er lancement de la mesure.
-*@param pMeasureTimer la mesure periodique.
-*/
-void cid_set_normal_frequency_state (CidMeasure *pMeasureTimer);
+void cid_launch_task (CidTask *pTask);
 
+/** Same as above but after a delay.
+*@param pTask the periodic Task.
+*@param fDelay delay in ms.
+*/
+void cid_launch_task_delayed (CidTask *pTask, double fDelay);
+
+/** Create a periodic Task.
+*@param iPeriod time between 2 iterations, possibly nul for a Task to be executed once only.
+*@param get_data asynchonous function, which carries out the heavy job parallel to the dock; stores the results in the shared memory.
+*@param update synchonous function, which carries out the update of the dock from the result of the previous function. Returns TRUE to continue, FALSE to stop.
+*@param free_data function called when the Task is destroyed, to free the shared memory (optionnal).
+*@param pSharedMemory structure passed as a parameter of the get_data and update functions. Must not be accessed outside of these  functions !
+*@return the newly allocated Task, ready to be launched with #cid_launch_task. Free it with #cid_free_task.
+*/
+CidTask *cid_new_task_full (int iPeriod, CidGetDataAsyncFunc get_data, CidUpdateSyncFunc update, GFreeFunc free_data, gpointer pSharedMemory);
+
+/** Create a periodic Task.
+*@param iPeriod time between 2 iterations, possibly nul for a Task to be executed once only.
+*@param get_data asynchonous function, which carries out the heavy job parallel to the dock; stores the results in the shared memory.
+*@param update synchonous function, which carries out the update of the dock from the result of the previous function. Returns TRUE to continue, FALSE to stop.
+*@param pSharedMemory structure passed as a parameter of the get_data and update functions. Must not be accessed outside of these  functions !
+*@return the newly allocated Task, ready to be launched with #cid_launch_task. Free it with #cid_free_task.
+*/
+#define cid_new_task(iPeriod, get_data, update, pSharedMemory) cid_new_task_full (iPeriod, get_data, update, NULL, pSharedMemory)
+
+/** Stop a periodic Task. If the Task is running, it will wait until the asynchronous thread has finished, and skip the update. The Task can be launched again with a call to #cid_launch_task.
+*@param pTask the periodic Task.
+*/
+void cid_stop_task (CidTask *pTask);
+
+/** Discard a periodic Task. The asynchronous thread will continue, and the Task will be freed when it ends. Use this function carefully, since you don't know when the free will occur (especially if you've set a free_data callback). The Task should be considered as destroyed after a call to this function.
+*@param pTask the periodic Task.
+*/
+void cid_discard_task (CidTask *pTask);
+
+/** Stop and destroy a periodic Task, freeing all the allocated ressources. Unlike \ref cid_discard_task, the task is stopped before being freeed, so this is a blocking call.
+*@param pTask the periodic Task.
+*/
+void cid_free_task (CidTask *pTask);
+
+/** Tell if a Task is active, that is to say is periodically called.
+*@param pTask the periodic Task.
+*@return TRUE if the Task is active.
+*/
+gboolean cid_task_is_active (CidTask *pTask);
+
+/** Tell if a Task is running, that is to say it is either in the thread or waiting for the update.
+*@param pTask the periodic Task.
+*@return TRUE if the Task is running.
+*/
+gboolean cid_task_is_running (CidTask *pTask);
+
+/** Change the frequency of a Task. The next iteration is re-scheduled according to the new period.
+*@param pTask the periodic Task.
+*@param iNewPeriod the new period between 2 iterations of the Task, in s.
+*/
+void cid_change_task_frequency (CidTask *pTask, int iNewPeriod);
+/** Change the frequency of a Task and relaunch it immediately. The next iteration is therefore immediately executed.
+*@param pTask the periodic Task.
+*@param iNewPeriod the new period between 2 iterations of the Task, in s, or -1 to let it unchanged.
+*/
+void cid_relaunch_task_immediately (CidTask *pTask, int iNewPeriod);
+
+/** Downgrade the frequency of a Task. The Task will be executed less often (this is typically useful to put on stand-by a periodic measure).
+*@param pTask the periodic Task.
+*/
+void cid_downgrade_task_frequency (CidTask *pTask);
+/** Set the frequency of the Task to its normal state. This is also done automatically when launching the Task.
+*@param pTask the periodic Task.
+*/
+void cid_set_normal_task_frequency (CidTask *pTask);
+
+/** Get the time elapsed since the last time the Task has run.
+*@param pTask the periodic Task.
+*/
+#define cid_get_task_elapsed_time(pTask) (pTask->fElapsedTime)
+
+G_END_DECLS
 #endif

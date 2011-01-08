@@ -19,9 +19,6 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-gboolean bCurrentlyDownloading = FALSE;
-gboolean bCurrentlyDownloadingXML = FALSE;
-
 int ret;
 gchar *TAB_IMAGE_SIZES[] = {"large","extralarge"};
 
@@ -58,7 +55,6 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
     curl_easy_setopt(handle,  CURLOPT_WRITEDATA, fp); 
     curl_easy_setopt(handle,  CURLOPT_WRITEFUNCTION, fwrite);
     //curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0L);
-    bCurrentlyDownloadingXML = TRUE;
 
     curl_easy_perform(handle);
     fclose(fp);
@@ -89,7 +85,6 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
 gboolean 
 cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/) 
 {
-    bCurrentlyDownloading = TRUE;
     CURL *handle = curl_easy_init ();
     curl_easy_setopt(handle, CURLOPT_URL, cURL);
     FILE * fp = fopen(DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp", "w"); 

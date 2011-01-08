@@ -22,14 +22,14 @@
 #include "cid-menu-factory.h"
 
 extern CidMainContainer *cid;
-extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML, bCurrentlyFocused;
+//extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML, bCurrentlyFocused;
 
 gboolean bFlyingButton;
 
-static gchar *cImageURL = NULL;
-static gint cpt = 0;
-static CidMeasure *pMeasureTimer = NULL;
-static CidMeasure *pMeasureDownload = NULL;
+//static gchar *cImageURL = NULL;
+//static gint cpt = 0;
+//static CidMeasure *pMeasureTimer = NULL;
+static CidTask *pMeasureDownload = NULL;
 
 void 
 cid_interrupt (void) 
@@ -348,88 +348,61 @@ _cid_add_about_page (GtkWidget *pNoteBook, const gchar *cPageLabel, const gchar 
 }
 
 static gboolean 
-_cid_check_and_display (gpointer p)
+_cid_check_and_display (gpointer *pSharedMemory)
 {
+    gchar *cArtist = pSharedMemory[0];
+    gchar *cAlbum = pSharedMemory[1];
+    CidMainContainer **pCid = pSharedMemory[2];
+    
     // Quand on a la pochette, on l'affiche et on stoppe la boucle
     if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS)) 
     {
-        bCurrentlyDownloadingXML = FALSE;
-        bCurrentlyDownloading = FALSE;
-        musicData.cover_exist = TRUE;
         cid_display_image(DEFAULT_DOWNLOADED_IMAGE_LOCATION);
-        if (musicData.playing_cover)
-            g_free (musicData.playing_cover);
-        musicData.playing_cover = g_strdup (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
         
-        cid_store_cover (&cid, 
+        gchar *tmp;
+        tmp = cid_store_cover (pCid, 
                          DEFAULT_DOWNLOADED_IMAGE_LOCATION,
-                         musicData.playing_artist,
-                         musicData.playing_album);
-        
-        cid_free_measure_timer (pMeasureDownload);
-        return FALSE;
+                         cArtist,
+                         cAlbum);
+                         
+        g_free (tmp);
     } 
-    // hack pour eviter de locker le thread
-    else if (g_atomic_int_get(&cpt) > 5)
-    {
-        return FALSE;
-    }
-    g_atomic_int_inc(&cpt);
-    return TRUE;
+    return FALSE;
 }
 
 static void 
-_cid_proceed_download_cover (void) 
+_cid_proceed_download_cover (gpointer *pSharedMemory) 
 {
+    gchar *cArtist = pSharedMemory[0];
+    gchar *cAlbum = pSharedMemory[1];
+    gchar *cImageURL = NULL;
+    CidMainContainer **pCid = pSharedMemory[2];
+    
     // Avant tout, on dl le xml
-    if (!bCurrentlyDownloadingXML && !bCurrentlyDownloading) {
-        cid_get_xml_file (musicData.playing_artist,musicData.playing_album);
-    }
+    cid_get_xml_file (cArtist,cAlbum);
 
     // Quand on a le xml, on dl la pochette
-    if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS) && !bCurrentlyDownloading) 
+    if (g_file_test (DEFAULT_XML_LOCATION, G_FILE_TEST_EXISTS)) 
     {
-        if (cImageURL)
-            g_free(cImageURL);
-        cImageURL = NULL;
         cid_get_cover_url (DEFAULT_XML_LOCATION,&cImageURL);
         cid_debug ("URL : %s",cImageURL);
         if (cImageURL != NULL) 
         {
-            
-            if (pMeasureDownload) 
-            {
-                if (cid_measure_is_running(pMeasureDownload))
-                {
-                    // Hack pour delocker un thread
-                    g_atomic_int_set(&cpt,10);
-                    cid_stop_measure_timer(pMeasureDownload);
-                }
-                if (cid_measure_is_active(pMeasureDownload))
-                {
-                    g_atomic_int_set(&cpt,10);
-                    cid_free_measure_timer(pMeasureDownload);
-                }
-            }
-            
-            bCurrentlyDownloadingXML = FALSE;
-            g_atomic_int_set(&cpt,0);
-            pMeasureDownload = cid_new_measure_timer (1, 
-                                                      NULL, 
-                                                      (CidReadTimerFunc) cid_download_missing_cover, 
-                                                      (CidUpdateTimerFunc) _cid_check_and_display, 
-                                                      cImageURL);
-            cid_launch_measure (pMeasureDownload);
+            cid_download_missing_cover (cImageURL);
+            g_free (cImageURL);
         } 
         else 
         {
-            bCurrentlyDownloadingXML = FALSE;
-            bCurrentlyDownloading = FALSE;
-            musicData.cover_exist = FALSE;
             cid_debug ("Téléchargement impossible");
-            cid_free_measure_timer (pMeasureTimer);
         }
     }
+}
+
+static void _free_dl (gpointer *pSharedMemory)
+{
+    g_free (pSharedMemory[0]);
+    g_free (pSharedMemory[1]);
+    g_free (pSharedMemory);
 }
 
 gboolean 
@@ -447,7 +420,22 @@ _check_cover_is_present (CidMainContainer **pCid)
     {
         if (cid->config->bDownload)
         {
-            _cid_proceed_download_cover ();
+            if (pMeasureDownload != NULL)
+            {
+                if (cid_task_is_running (pMeasureDownload))
+                    cid_stop_task (pMeasureDownload);
+                cid_free_task (pMeasureDownload);
+            }
+            gpointer *pSharedMemory = g_new0 (gpointer, 3);
+            pSharedMemory[0] = g_strdup (musicData.playing_artist);
+            pSharedMemory[1] = g_strdup (musicData.playing_album);
+            pSharedMemory[2] = pCid;
+            pMeasureDownload = cid_new_task_full (1, 
+                                                  (CidGetDataAsyncFunc)_cid_proceed_download_cover,
+                                                  (CidUpdateSyncFunc)_cid_check_and_display, 
+                                                  (GFreeFunc) _free_dl,
+                                                  pSharedMemory);
+            cid_launch_task (pMeasureDownload);
         }
         
         return FALSE;

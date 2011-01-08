@@ -51,6 +51,8 @@ cid_SOURCES = \
     cid-amarok2.h \
     cid-animation.c \
     cid-animation.h \
+    cid-animation-thread.c \
+    cid-animation-thread.h \
     cid-applet-canvas.h \
     cid-asynchrone.c \
     cid-asynchrone.h \
@@ -112,6 +114,7 @@ cidsubinclude_HEADERS = \
     cid-amarok2.h \
     cid-cover.h \
     cid-animation.h \
+    cid-animation-thread.h \
     cid-applet-canvas.h \
     cid-asynchrone.h \
     cid-callbacks.h \
