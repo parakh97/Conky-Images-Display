@@ -34,7 +34,7 @@ cid_get_symbol_path (StateSymbol iState, SymbolColor iColor)
 void 
 cid_display_image(gchar *image) 
 {
-    cid_debug (" %s (%s);\n",__func__,image);
+    cid_debug (" %s (%s);",__func__,image);
     
     // On recupere l'ancienne image pour faire le fondu
     if (cid->p_cPreviousSurface) 
@@ -81,7 +81,7 @@ cid_display_image(gchar *image)
 cairo_surface_t *
 cid_get_cairo_image (char *cImagePath, gdouble iWidth, gdouble iHeight) 
 {
-    cid_debug ("%s (%s);\n",__func__,cImagePath);
+    cid_debug ("%s (%s);",__func__,cImagePath);
     
     cairo_surface_t* pNewSurface = NULL;
     
@@ -124,7 +124,7 @@ _cid_create_blank_surface (cairo_t *pSourceContext, int iWidth, int iHeight)
 cairo_surface_t *
 cid_get_image_from_pixbuf (GdkPixbuf **pixbuf) 
 {
-    cid_debug (" %s ();\n",__func__);
+    cid_debug (" %s ();",__func__);
 
     GdkPixbuf *pPixbufWithAlpha = *pixbuf;
     if (! gdk_pixbuf_get_has_alpha (*pixbuf)) 

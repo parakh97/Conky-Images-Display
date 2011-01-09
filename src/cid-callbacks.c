@@ -398,7 +398,8 @@ _cid_proceed_download_cover (gpointer *pSharedMemory)
     }
 }
 
-static void _free_dl (gpointer *pSharedMemory)
+static void 
+_free_dl (gpointer *pSharedMemory)
 {
     g_free (pSharedMemory[0]);
     g_free (pSharedMemory[1]);
@@ -422,8 +423,6 @@ _check_cover_is_present (CidMainContainer **pCid)
         {
             if (pMeasureDownload != NULL)
             {
-                if (cid_task_is_running (pMeasureDownload))
-                    cid_stop_task (pMeasureDownload);
                 cid_free_task (pMeasureDownload);
             }
             gpointer *pSharedMemory = g_new0 (gpointer, 3);

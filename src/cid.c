@@ -109,7 +109,9 @@ cid_run_with_player (CidMainContainer **pCid)
             cid_build_amarok_2_menu ();
             if (amarok_2_dbus_connect_to_bus()) 
             {
-                cid_debug ("\ndbus connected\n");
+                cid_debug ("dbus connected");
+                // On peut afficher directement le retour de cid_amarok_2_cover puisque
+                // la chaine retournee sera liberee au prochain appel.
                 cid_display_image((gchar *)cid_amarok_2_cover());
             } 
             else 
@@ -123,7 +125,9 @@ cid_run_with_player (CidMainContainer **pCid)
             /* Initialisation de DBus */
             if (rhythmbox_dbus_connect_to_bus()) 
             {
-                cid_debug ("\ndbus connected\n");
+                cid_debug ("dbus connected");
+                // On peut afficher directement le retour de cid_rhythmbox_cover puisque
+                // la chaine retournee sera liberee au prochain appel.
                 cid_display_image((gchar *)cid_rhythmbox_cover());
             } 
             else 
@@ -147,7 +151,7 @@ cid_run_with_player (CidMainContainer **pCid)
             break;
         /* Sinon, on a un lecteur inconnu */
         default:
-            cid_exit (pCid, CID_PLAYER_ERROR,"ERROR: \"%d\" is not recognize as a supported player\n",cid->config->iPlayer);
+            cid_exit (pCid, CID_PLAYER_ERROR,"ERROR: \"%d\" is not recognized as a supported player",cid->config->iPlayer);
     }
 }
 
@@ -166,6 +170,7 @@ cid_set_signal_interception (struct sigaction *action)
     (*action).sa_flags = 0;
     CidDataTable *p_signals = cid_create_datatable(G_TYPE_INT,SIGSEGV,SIGFPE,SIGILL,SIGABRT,SIGINT,SIGTERM,G_TYPE_INVALID);
     BEGIN_FOREACH_DT(p_signals)
+        // p_temp est declare par BEGIN_FOREACH_DT
         if (sigaction (p_temp->content->iNumber, action, NULL) != 0)
         {
             cid_error ("Problem while catching signal %d",p_temp->content->iNumber);
@@ -213,30 +218,31 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
 int 
 main ( int argc, char **argv ) 
 {        
-
-/// TODO: debug
-/*
-    int argcBis = argc, a=0;
-    char **argvBis = calloc(argc,sizeof(char));
-    if (argvBis==NULL)
-        cid_exit(CID_EXIT_ERROR,"Error while copying args");
-    for (;a<argc;a++) 
-    {
-        argvBis[a] = realloc (argvBis[a],strlen(argv[a])*sizeof(char));
-        if (argvBis[a]!=NULL)
-            strcpy(argvBis[a],argv[a]);
-        else
-            cid_exit(CID_EXIT_ERROR,"Error while copying args");
-    }
-*/
     //char **argvBis = malloc(sizeof(argv));
     //memcpy(argvBis,argv,sizeof(argv));
+    
     struct sigaction action;
 
     cid = g_malloc0 (sizeof(*cid));
     cid->config = g_malloc0 (sizeof(*(cid->config)));
     cid->runtime = g_malloc0 (sizeof(*(cid->runtime)));
     cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
+    
+    /// TODO: debug
+/*
+    int argcBis = argc, a=0;
+    char **argvBis = calloc(argc,sizeof(char));
+    if (argvBis==NULL)
+        cid_exit(&cid,CID_EXIT_ERROR,"Error while copying args");
+    for (;a<argc;a++) 
+    {
+        argvBis[a] = realloc (argvBis[a],strlen(argv[a])*sizeof(char));
+        if (argvBis[a]!=NULL)
+            strcpy(argvBis[a],argv[a]);
+        else
+            cid_exit(&cid,CID_EXIT_ERROR,"Error while copying args");
+    }
+*/
     
     curl_global_init(CURL_GLOBAL_ALL);
     
@@ -275,7 +281,7 @@ main ( int argc, char **argv )
     gdk_threads_init();
 
     // La on lance la boucle GTK
-    //cid_display_init (&argc,&argvBis);
+    //cid_display_init (&cid,&argc,&argvBis);
     cid_display_init (&cid,0,NULL);
     //free (argvBis);
     

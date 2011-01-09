@@ -43,12 +43,15 @@
     g_timer_destroy (pTask->pClock);\
     g_free (pTask); } while (0)
 
-static gboolean _cid_timer (CidTask *pTask)
+static gboolean 
+_cid_timer (CidTask *pTask)
 {
     cid_launch_task (pTask);
     return TRUE;
 }
-static gpointer _cid_threaded_calculation (CidTask *pTask)
+
+static gpointer 
+_cid_threaded_calculation (CidTask *pTask)
 {
     //\_______________________ On obtient nos donnees.
     cid_set_elapsed_time (pTask);
@@ -58,7 +61,9 @@ static gpointer _cid_threaded_calculation (CidTask *pTask)
     g_atomic_int_set (&pTask->iThreadIsRunning, 0);
     return NULL;
 }
-static gboolean _cid_check_for_update (CidTask *pTask)
+
+static gboolean 
+_cid_check_for_update (CidTask *pTask)
 {
     int iThreadIsRunning = g_atomic_int_get (&pTask->iThreadIsRunning);
     if (! iThreadIsRunning)  // le thread a fini.
@@ -79,7 +84,9 @@ static gboolean _cid_check_for_update (CidTask *pTask)
     }
     return TRUE;
 }
-void cid_launch_task (CidTask *pTask)
+
+void 
+cid_launch_task (CidTask *pTask)
 {
     g_return_if_fail (pTask != NULL);
     if (pTask->get_data == NULL)  // pas de thread, tout est dans la fonction d'update.
@@ -107,13 +114,16 @@ void cid_launch_task (CidTask *pTask)
 }
 
 
-static gboolean _cid_one_shot_timer (CidTask *pTask)
+static gboolean 
+_cid_one_shot_timer (CidTask *pTask)
 {
     pTask->iSidTimer = 0;
     cid_launch_task (pTask);
     return FALSE;
 }
-void cid_launch_task_delayed (CidTask *pTask, double fDelay)
+
+void 
+cid_launch_task_delayed (CidTask *pTask, double fDelay)
 {
     cid_cancel_next_iteration (pTask);
     if (fDelay == 0)
@@ -122,8 +132,8 @@ void cid_launch_task_delayed (CidTask *pTask, double fDelay)
         pTask->iSidTimer = g_timeout_add (fDelay, (GSourceFunc) _cid_one_shot_timer, pTask);
 }
 
-
-CidTask *cid_new_task_full (int iPeriod, CidGetDataAsyncFunc get_data, CidUpdateSyncFunc update, GFreeFunc free_data, gpointer pSharedMemory)
+CidTask *
+cid_new_task_full (int iPeriod, CidGetDataAsyncFunc get_data, CidUpdateSyncFunc update, GFreeFunc free_data, gpointer pSharedMemory)
 {
     CidTask *pTask = g_new0 (CidTask, 1);
     pTask->iPeriod = iPeriod;
@@ -136,7 +146,8 @@ CidTask *cid_new_task_full (int iPeriod, CidGetDataAsyncFunc get_data, CidUpdate
 }
 
 
-static void _cid_pause_task (CidTask *pTask)
+static void 
+_cid_pause_task (CidTask *pTask)
 {
     if (pTask == NULL)
         return ;
@@ -150,7 +161,8 @@ static void _cid_pause_task (CidTask *pTask)
     }
 }
 
-void cid_stop_task (CidTask *pTask)
+void 
+cid_stop_task (CidTask *pTask)
 {
     if (pTask == NULL)
         return ;
@@ -165,12 +177,14 @@ void cid_stop_task (CidTask *pTask)
 }
 
 
-static gboolean _free_discarded_task (CidTask *pTask)
+static gboolean 
+_free_discarded_task (CidTask *pTask)
 {
     //g_print ("%s ()\n", __func__);
     cid_free_task (pTask);
     return FALSE;
 }
+
 void cid_discard_task (CidTask *pTask)
 {
     if (pTask == NULL)
@@ -183,7 +197,8 @@ void cid_discard_task (CidTask *pTask)
         pTask->iSidTimerUpdate = g_idle_add ((GSourceFunc) _free_discarded_task, pTask);
 }
 
-void cid_free_task (CidTask *pTask)
+void 
+cid_free_task (CidTask *pTask)
 {
     if (pTask == NULL)
         return ;
@@ -192,17 +207,20 @@ void cid_free_task (CidTask *pTask)
     _free_task (pTask);
 }
 
-gboolean cid_task_is_active (CidTask *pTask)
+gboolean 
+cid_task_is_active (CidTask *pTask)
 {
     return (pTask != NULL && pTask->iSidTimer != 0);
 }
 
-gboolean cid_task_is_running (CidTask *pTask)
+gboolean 
+cid_task_is_running (CidTask *pTask)
 {
     return (pTask != NULL && pTask->iSidTimerUpdate != 0);
 }
 
-static void _cid_restart_timer_with_frequency (CidTask *pTask, int iNewPeriod)
+static void 
+_cid_restart_timer_with_frequency (CidTask *pTask, int iNewPeriod)
 {
     gboolean bNeedsRestart = (pTask->iSidTimer != 0);
     _cid_pause_task (pTask);
@@ -211,7 +229,8 @@ static void _cid_restart_timer_with_frequency (CidTask *pTask, int iNewPeriod)
         pTask->iSidTimer = g_timeout_add_seconds (iNewPeriod, (GSourceFunc) _cid_timer, pTask);
 }
 
-void cid_change_task_frequency (CidTask *pTask, int iNewPeriod)
+void 
+cid_change_task_frequency (CidTask *pTask, int iNewPeriod)
 {
     g_return_if_fail (pTask != NULL);
     pTask->iPeriod = iNewPeriod;
@@ -219,7 +238,8 @@ void cid_change_task_frequency (CidTask *pTask, int iNewPeriod)
     _cid_restart_timer_with_frequency (pTask, iNewPeriod);
 }
 
-void cid_relaunch_task_immediately (CidTask *pTask, int iNewPeriod)
+void 
+cid_relaunch_task_immediately (CidTask *pTask, int iNewPeriod)
 {
     cid_stop_task (pTask);  // on stoppe avant car on ne veut pas attendre la prochaine iteration.
     if (iNewPeriod >= 0)  // sinon valeur inchangee.
@@ -227,7 +247,8 @@ void cid_relaunch_task_immediately (CidTask *pTask, int iNewPeriod)
     cid_launch_task (pTask);  // mesure immediate.
 }
 
-void cid_downgrade_task_frequency (CidTask *pTask)
+void 
+cid_downgrade_task_frequency (CidTask *pTask)
 {
     if (pTask->iFrequencyState < CID_FREQUENCY_SLEEP)
     {
@@ -254,7 +275,8 @@ void cid_downgrade_task_frequency (CidTask *pTask)
     }
 }
 
-void cid_set_normal_task_frequency (CidTask *pTask)
+void 
+cid_set_normal_task_frequency (CidTask *pTask)
 {
     if (pTask->iFrequencyState != CID_FREQUENCY_NORMAL)
     {

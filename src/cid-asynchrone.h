@@ -15,7 +15,6 @@ G_BEGIN_DECLS
 
 typedef struct _CidTask CidTask;
 
-/// Type of frequency for a periodic task. The frequency of the Task is divided by 2, 4, and 10 for each state.
 typedef enum {
     CID_FREQUENCY_NORMAL = 0,
     CID_FREQUENCY_LOW,
@@ -24,120 +23,145 @@ typedef enum {
     CID_NB_FREQUENCIES
 } CidFrequencyState;
 
-/// Definition of the asynchronous job, that does the heavy part.
+/// Definition de la fonction asynchrone.
 typedef void (* CidGetDataAsyncFunc ) (gpointer pSharedMemory);
-/// Definition of the synchronous job, that update the dock with the results of the previous job. Returns TRUE to continue, FALSE to stop
+/// Definition de la fonction synchrone qui met à jour CID une fois la fonction asynchrone terminee. Retourne FALSE pour terminer, et TRUE pour continuer.
 typedef gboolean (* CidUpdateSyncFunc ) (gpointer pSharedMemory);
 
-/// Definition of a periodic and asynchronous Task.
+/// Definition d'une tache periodique et asynchrone.
 struct _CidTask {
-    /// ID of the timer of the Task.
+    /// ID du timer de la tache.
     gint iSidTimer;
-    /// ID of the timer to check the end of the thread.
+    /// ID du timer pour controler la fin du thread.
     gint iSidTimerUpdate;
-    /// Atomic value, set to 1 when the thread is running.
+    /// Valeure atomique, vaut 1 quand le thread est en cours.
     gint iThreadIsRunning;
-    /// function carrying out the heavy job.
+    /// fonction asynchrone.
     CidGetDataAsyncFunc get_data;
-    /// function carrying out the update of the dock. Returns TRUE to continue, FALSE to stop.
+    /// function synchrone appelee lorsque get_data a termine.
     CidUpdateSyncFunc update;
-    /// interval of time in seconds, 0 to run the Task once.
+    /// interval de temps en secondes, 0 pour lancer la tache une seule fois.
     gint iPeriod;
-    /// state of the frequency of the Task.
+    /// etat de la frequence de la tache.
     CidFrequencyState iFrequencyState;
-    /// structure passed as parameter of the 'get_data' and 'update' functions. Must not be accessed outside of these 2 functions !
+    /// structure passee en parametre a 'get_data' et 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
     gpointer pSharedMemory;
-    /// timer to get the accurate amount of time since last update.
+    /// timer pour connaitre le temps ecoule depuis la derniere iteration.
     GTimer *pClock;
-    /// time elapsed since last update.
+    /// temps ecoule depuis le dernier update.
     double fElapsedTime;
-    /// function called when the task is destroyed to free the shared memory (optionnal).
+    /// fonction appelee lorsque la tache est liberee pour liberer la memoire partagee (optionnel).
     GFreeFunc free_data;
-    /// TRUE when the task has been discarded.
+    /// TRUE quand la tache a ete abandonnee.
     gboolean bDiscard;
 } ;
 
 
-/** Launch a periodic Task, beforehand prepared with #cid_new_task. The first iteration is executed immediately. The frequency returns to its normal state.
-*@param pTask the periodic Task.
-*/
+/** 
+ * Lance une tache periodique prealablement declaree aavec #cid_task_new.
+ * La premiere iteration est lancee immediatement.
+ * @param pTask la tache periodique.
+ */
 void cid_launch_task (CidTask *pTask);
 
-/** Same as above but after a delay.
-*@param pTask the periodic Task.
-*@param fDelay delay in ms.
-*/
+/** 
+ * Pareil que #cid_launch_task a part que la premiere iteration a lieu apres 
+ * le delai fourni en parametre.
+ * @param pTask la tache periodique.
+ * @param fDelay delai en ms.
+ */
 void cid_launch_task_delayed (CidTask *pTask, double fDelay);
 
-/** Create a periodic Task.
-*@param iPeriod time between 2 iterations, possibly nul for a Task to be executed once only.
-*@param get_data asynchonous function, which carries out the heavy job parallel to the dock; stores the results in the shared memory.
-*@param update synchonous function, which carries out the update of the dock from the result of the previous function. Returns TRUE to continue, FALSE to stop.
-*@param free_data function called when the Task is destroyed, to free the shared memory (optionnal).
-*@param pSharedMemory structure passed as a parameter of the get_data and update functions. Must not be accessed outside of these  functions !
-*@return the newly allocated Task, ready to be launched with #cid_launch_task. Free it with #cid_free_task.
-*/
+/** 
+ * Cree une tache periodique
+ * @param iPeriod temps entre 2 iteration. Si 0, la tache n'est executee qu'une seule fois.
+ * @param get_data fonction asynchrone executee dans un thread parallele.
+ * @param update fonction synchrone executee a la fin de la fonction get_data. Retourne TRUE pour continuer, FALSE pour arreter.
+ * @param free_data fonction appelee lorsque la tache est liberee pour liberer la memoire partagee (optionnel).
+ * @param pSharedMemory structure passee en parametre a 'get_data' et 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
+ * @return la nouvelle tache alouee a lancer avec #cid_launch_task. A liberer avec #cid_free_task.
+ */
 CidTask *cid_new_task_full (int iPeriod, CidGetDataAsyncFunc get_data, CidUpdateSyncFunc update, GFreeFunc free_data, gpointer pSharedMemory);
 
-/** Create a periodic Task.
-*@param iPeriod time between 2 iterations, possibly nul for a Task to be executed once only.
-*@param get_data asynchonous function, which carries out the heavy job parallel to the dock; stores the results in the shared memory.
-*@param update synchonous function, which carries out the update of the dock from the result of the previous function. Returns TRUE to continue, FALSE to stop.
-*@param pSharedMemory structure passed as a parameter of the get_data and update functions. Must not be accessed outside of these  functions !
-*@return the newly allocated Task, ready to be launched with #cid_launch_task. Free it with #cid_free_task.
-*/
+/** 
+ * Cree une tache periodique
+ * @param iPeriod temps entre 2 iteration. Si 0, la tache n'est executee qu'une seule fois.
+ * @param get_data fonction asynchrone executee dans un thread parallele.
+ * @param update fonction synchrone executee a la fin de la fonction get_data. Retourne TRUE pour continuer, FALSE pour arreter.
+ * @param pSharedMemory structure passee en parametre a 'get_data' et 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
+ * @return la nouvelle tache alouee a lancer avec #cid_launch_task. A liberer avec #cid_free_task.
+ */
 #define cid_new_task(iPeriod, get_data, update, pSharedMemory) cid_new_task_full (iPeriod, get_data, update, NULL, pSharedMemory)
 
-/** Stop a periodic Task. If the Task is running, it will wait until the asynchronous thread has finished, and skip the update. The Task can be launched again with a call to #cid_launch_task.
-*@param pTask the periodic Task.
-*/
+/** 
+ * Arrete une tache. Si une tache est en cours, on attend que le thread asynchrone termine, et on saute l'update.
+ * On peut relancer la tache avec #cid_launch_task.
+ * @param pTask la tache.
+ */
 void cid_stop_task (CidTask *pTask);
 
-/** Discard a periodic Task. The asynchronous thread will continue, and the Task will be freed when it ends. Use this function carefully, since you don't know when the free will occur (especially if you've set a free_data callback). The Task should be considered as destroyed after a call to this function.
-*@param pTask the periodic Task.
-*/
+/** 
+ * Abandonne une tache. La fonction asynchrone continue, et la memoire est liberee a la fin. 
+ * A utiliser avec precaution puisqu'on ne peut pas savoir quand la liberation a lieu (en particulier si on 
+ * ajoute une fonction de callback free_data). 
+ * On peut considerer la tache detruite une fois cette fonction appelee.
+ * @param pTask la tache.
+ */
 void cid_discard_task (CidTask *pTask);
 
-/** Stop and destroy a periodic Task, freeing all the allocated ressources. Unlike \ref cid_discard_task, the task is stopped before being freeed, so this is a blocking call.
-*@param pTask the periodic Task.
-*/
+/** 
+ * Arrete et detruit une tacheen liberant les resources. A la difference de \ref cid_discard_task, 
+ * la tache est arretee avant d'etre liberer, c'est donc un appel bloquant.
+ * @param pTask la tache.
+ */
 void cid_free_task (CidTask *pTask);
 
-/** Tell if a Task is active, that is to say is periodically called.
-*@param pTask the periodic Task.
-*@return TRUE if the Task is active.
-*/
+/** 
+ * Permet de savoir si une tache est active.
+ * Autrement dit, est-elle appelee periodiquement ?
+ * @param pTask la tache.
+ * @return TRUE si elle est active.
+ */
 gboolean cid_task_is_active (CidTask *pTask);
 
-/** Tell if a Task is running, that is to say it is either in the thread or waiting for the update.
-*@param pTask the periodic Task.
-*@return TRUE if the Task is running.
-*/
+/** 
+ * Permet de savoir si une tache est en cours. 
+ * Autrement dit, un thread est-il en cours ou attend-on un update ?
+ * @param pTask la tache.
+ * @return TRUE si elle est en cours.
+ */
 gboolean cid_task_is_running (CidTask *pTask);
 
-/** Change the frequency of a Task. The next iteration is re-scheduled according to the new period.
-*@param pTask the periodic Task.
-*@param iNewPeriod the new period between 2 iterations of the Task, in s.
+/** 
+ * Change la frequence d'une tache. La prochaine iteration est re-plannifiee en fonction de la nouvelle periode.
+ * @param pTask la tache.
+ * @param iNewPeriod la nouvelle periode entre deux iteration en s.
 */
 void cid_change_task_frequency (CidTask *pTask, int iNewPeriod);
-/** Change the frequency of a Task and relaunch it immediately. The next iteration is therefore immediately executed.
-*@param pTask the periodic Task.
-*@param iNewPeriod the new period between 2 iterations of the Task, in s, or -1 to let it unchanged.
-*/
+
+/** 
+ * Change la frequence d'une tache est la relance immediatement. 
+ * @param pTask la tache.
+ * @param iNewPeriod la nouvelle periode entre deux iteration en s (-1 pour ne rien changer).
+ */
 void cid_relaunch_task_immediately (CidTask *pTask, int iNewPeriod);
 
-/** Downgrade the frequency of a Task. The Task will be executed less often (this is typically useful to put on stand-by a periodic measure).
-*@param pTask the periodic Task.
-*/
+/** 
+ * Diminue la frequence d'une tache
+ * @param pTask the periodic Task.
+ */
 void cid_downgrade_task_frequency (CidTask *pTask);
-/** Set the frequency of the Task to its normal state. This is also done automatically when launching the Task.
-*@param pTask the periodic Task.
-*/
+
+/** 
+ * Reinitialise la frequence d'une tache (automatiquement fait au lancement d'une nouvelle tache).
+ * @param pTask la tache.
+ */
 void cid_set_normal_task_frequency (CidTask *pTask);
 
-/** Get the time elapsed since the last time the Task has run.
-*@param pTask the periodic Task.
-*/
+/** 
+ * Temps ecoule depuis le dernier lancement de la tache
+ * @param pTask la tache.
+ */
 #define cid_get_task_elapsed_time(pTask) (pTask->fElapsedTime)
 
 G_END_DECLS
