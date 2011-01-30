@@ -38,53 +38,83 @@ typedef void (* CidDataAction) (CidDataCase *pCase, gpointer *pData);
 typedef void (* CidConnectPlayer) (gint iDelay);
 typedef void (* CidDisconnectPlayer) (void);
 
-/**
- * Structure de données utilisée pour stocker les informations
- * fournies par Rhythmbox et Amarok
- */
+/// Structure de données utilisée pour stocker les informations fournies par Rhythmbox et Amarok
 struct data {
+    /// URI du fichier lu
     gchar *playing_uri;
+    /// nom de l'artiste en cours de lecture
     gchar *playing_artist;
+    /// nom de l'album en cours de lecture
     gchar *playing_album;
+    /// titre de la musique en cours de lecture
     gchar *playing_title;
+    /// URI de la pochette
     gchar *playing_cover;
 
+    /// numéro de la piste jouée
     guint playing_track;
+    /// durée totale de la piste (en secondes)
     guint playing_duration;
+    /// id de la fonction de recherche de pochettes
     guint iSidCheckCover;
 
+    /// A-t-on trouvé une pochette ?
     gboolean cover_exist;
+    /// en cours de lecture si TRUE
     gboolean playing;
     gboolean opening;
 } musicData;
 
-/**
- * Structure de données représentant un tableau
- */
+/// Structure représentant un couple regex/replacement
+typedef struct _CidSubstitute
+{
+    /// la regex recherchée
+    gchar *regex;
+    /// par quoi on remplace
+    gchar *replacement;
+} CidSubstitute;
+
+/// Structure de données représentant un tableau
 struct _CidDataTable {
+    /// taille de la table
     size_t length;
+    /// premier élément de la table
     CidDataCase *head;
+    /// dernier élément de la table
     CidDataCase *tail;
 };
 
+/// Structure représentant le contenu d'une case
 struct _CidDataContent {
+    /// structure anonyme servant à encapsuler un seul type de donnée dans une case
     union {
+        /// type chaine de caractère
         gchar *string;
+        /// type entier
         gint iNumber;
+        /// type booléen
         gboolean booleen;
+        /// type #CidSubstitute
+        CidSubstitute *sub;
     };
+    /// type contenu dans la case
     GType type;
 };
 
+/// Structure représentant une case
 struct _CidDataCase {
+    /// contenu de la case de type #CidDataContent
     CidDataContent *content;
+    /// case suivante
     CidDataCase *next;
+    /// case précédante
     CidDataCase *prev;
 };
 
-/**
- * Liste des lecteurs supportés
- */
+/// Définition d'un nouveau type 'SUBSTITUTE'
+#define CID_TYPE_SUBSTITUTE G_TYPE_MAKE_FUNDAMENTAL (49)
+
+/// Liste des lecteurs supportés
 typedef enum {
     PLAYER_NONE,
     PLAYER_RHYTHMBOX,
@@ -94,9 +124,7 @@ typedef enum {
     PLAYER_MPD 
 } PlayerIndice;
 
-/**
- * Liste des animations
- */
+/// Liste des animations
 typedef enum {
     CID_ROTATE,
     CID_FADE_IN_OUT,
@@ -105,9 +133,7 @@ typedef enum {
     CID_FOCUS_OUT
 } AnimationType;
 
-/**
- * Codes de retours spécifiques à CID
- */
+/// Codes de retours spécifiques à CID
 typedef enum {
     CID_EXIT_SUCCESS=0,
     CID_ERROR_READING_FILE,
@@ -118,17 +144,13 @@ typedef enum {
     CID_EXIT_ERROR
 } codesRetours;
 
-/**
- * Tailles possible pour le téléchargement des pochettes
- */
+/// Tailles possible pour le téléchargement des pochettes
 typedef enum {
     MEDIUM_IMAGE,
     LARGE_IMAGE
 } ImageSizes;
 
-/**
- * Differents etats du lecteur
- */
+/// Differents etats du lecteur
 typedef enum {
     CID_PLAY,
     CID_PAUSE,
@@ -136,253 +158,265 @@ typedef enum {
     CID_PREV
 } StateSymbol;
 
-/**
- * Couleurs disponibles pour les 'styles'
- */
+/// Couleurs disponibles pour les 'styles'
 typedef enum {
     CID_WHITE,
     CID_YELLOW,
     CID_RED
 } SymbolColor;
 
-/**
- * Fonctions de controle des lecteurs
- */
+/// Fonctions de controle des lecteurs
 struct _CidControlFunctionsList {
-    // fonction 'play/pause'
+    /// fonction 'play/pause'
     CidControlFunction p_fPlayPause;
-    // fonction 'next'
+    /// fonction 'next'
     CidControlFunction p_fNext;
-    // fonction 'previous'
+    /// fonction 'previous'
     CidControlFunction p_fPrevious;
-    // fonction d'ajout a la playlist
+    /// fonction d'ajout a la playlist
     CidManagePlaylistFunction p_fAddToQueue;
 };
 
-/**
- * Cid main container
- */
+/// Cid main container
 struct _CidMainContainer {
-    // fenêtre principale
+    /// fenêtre principale
     GtkWidget *pWindow;
-    // panneau de configuration
+    /// panneau de configuration
     GtkWidget *pConfigPanel;
     
     ///\________ Toutes nos images
-    // pochette
+    
+    /// pochette
     cairo_surface_t *p_cSurface;
-    // pochette precedente
+    /// pochette precedente
     cairo_surface_t *p_cPreviousSurface;
-    // croix pour le deplacement
+    /// croix pour le deplacement
     cairo_surface_t *p_cCross;
-    // icone de connexion
+    /// icone de connexion
     cairo_surface_t *p_cConnect;
-    // icone de deconnexion
+    /// icone de deconnexion
     cairo_surface_t *p_cDisconnect;
-    // play
+    /// play
     cairo_surface_t *p_cPlay;
-    // pause
+    /// pause
     cairo_surface_t *p_cPause;
-    // play big
+    /// play big
     cairo_surface_t *p_cPlay_big;
-    // pause big
+    /// pause big
     cairo_surface_t *p_cPause_big;
-    // next
+    /// next
     cairo_surface_t *p_cNext;
-    // prev
+    /// prev
     cairo_surface_t *p_cPrev;
 
-    // cairo context
+    /// cairo context
     cairo_t *p_cContext;
     
-    // configuration
+    /// configuration
     CidConfig *config;
     
-    // runtime
+    /// runtime
     CidRuntime *runtime;
     
-    // valeurs par defaut
+    /// valeurs par defaut
     CidDefault *defaut;
     
-    // keyFile
+    /// keyFile
     GKeyFile *pKeyFile;
     
-    // handler connexion/deconnexion
+    /// handler connexion
     CidConnectPlayer p_fConnectHandler;
+    /// handler deconnexion
     CidDisconnectPlayer p_fDisconnectHandler;
     
     ///\__ Dimensions de l'ecran
+    
+    /// largeur de l'écran
     int XScreenWidth;
+    /// longueur de l'écran
     int XScreenHeight;
     
-    /// MPD specific config
+    ///\__ MPD specific config
+    
+    /// répertoire de lecture
     gchar *mpd_dir;
+    /// adresse du serveur MPD
     gchar *mpd_host;
+    /// mot de passe MPD
     gchar *mpd_pass;
+    /// port du serveur
     gint mpd_port;
 };
 
+/// Structure contenant les paramètres d'exécution de CID
 struct _CidRuntime {
-    // currently drawing
+    /// currently drawing
     gint iCurrentlyDrawing;
-    // temps ecoule avant le telechargement
+    /// temps ecoule avant le telechargement
     gint iCheckIter;
-    // position en x du curseur
+    /// position en x du curseur
     gint iCursorX;
-    // position en y du curseur
+    /// position en y du curseur
     gint iCursorY;
     
-    // avancement de l'animation
+    /// avancement de l'animation
     gdouble dAnimationProgress;
     
-    // pipe
+    /// pipe
     guint iPipe;
     
-    // fonctions de monitoring
+    /// fonctions de monitoring
     CidControlFunctionsList *pMonitorList;
     
-    // current animation angle
+    /// current animation angle
     gdouble dAngle;
-    // variation focus
+    /// variation focus
     gdouble dFocusVariation;
-    // alpha pour le fade in
+    /// alpha pour le fade in
     gdouble dFadeInOutAlpha;
-    // CID lancé ?
+    /// CID lancé ?
     gboolean bRunning;
-    // animation en cours ?
+    /// animation en cours ?
     gboolean bAnimation;
-    // animation de focus en cours ?
+    /// animation de focus en cours ?
     gboolean bFocusAnimation;
-    // lecteur en lecture ?
+    /// lecteur en lecture ?
     gboolean bCurrentlyPlaying;
-    // survol de cid ?
+    /// survol de cid ?
     gboolean bCurrentlyFlying;
-    // La fenetre de conf est ouverte ?
+    /// La fenetre de conf est ouverte ?
     gboolean bBlockedWidowActive;
-    // Est-ce qu'un panneau de configuration est deja present ?
+    /// Est-ce qu'un panneau de configuration est deja present ?
     gboolean bConfFilePanel;
-    // On a lance un pipe ?
+    /// On a lance un pipe ?
     gboolean bPipeRunning;
-    // On est connecte au lecteur ?
+    /// On est connecte au lecteur ?
     gboolean bConnected;
 };
 
+/// Structure contenant les paramètres de configuration de CID
 struct _CidConfig {
-    // largeur de cid
+    /// largeur de cid
     gint iWidth;
-    // hauteur de cid
+    /// hauteur de cid
     gint iHeight;
-    // position en x
+    /// position en x
     gint iPosX;
-    // position en y
+    /// position en y
     gint iPosY;
-    // interval par défaut
+    /// interval par défaut
     gint iInter;
-    // temps avant de telecharger les pochettes manquantes
+    /// temps avant de telecharger les pochettes manquantes
     gint iTimeToWait;
-    // taille des images "extras"
+    /// taille des images "extras"
     gint iExtraSize;
-    // taille des images prev/next
+    /// taille des images prev/next
     gint iPrevNextSize;
-    // taille des images play/pause big
+    /// taille des images play/pause big
     gint iPlayPauseSize;
-    // vitesse de l'animation
+    /// vitesse de l'animation
     gint iAnimationSpeed;
     
-    // lecteur a monitorer
+    /// lecteur a monitorer
     PlayerIndice iPlayer;
     // type d'animation
     AnimationType iAnimationType;
-    // taille des covers à télécharger
+    /// taille des covers à télécharger
     ImageSizes iImageSize;
-    // couleur des symboles
+    /// couleur des symboles
     SymbolColor iSymbolColor;
     
-    // type de fenêtre
+    /// type de fenêtre
     GdkWindowTypeHint iHint;
     
-    // couleur de la fenêtre
+    /// couleur de la fenêtre
     gdouble *dColor;
-    // couleur au survol
+    /// couleur au survol
     gdouble *dFlyingColor;
-    // couleur de police
+    /// couleur de police
     gdouble *dPoliceColor;
-    // couleur de contour de police
+    /// couleur de contour de police
     gdouble *dOutlineTextColor;
-    // angle de cid
+    /// angle de cid
     gdouble dRotate;
-    // opacité de la fenêtre
+    /// opacité de la fenêtre
     gdouble dAlpha;
-    // rouge
+    /// rouge
     gdouble dRed;
-    // vert
+    /// vert
     gdouble dGreen;
-    // bleu
+    /// bleu
     gdouble dBlue;
-    // taille de la police
+    /// taille de la police
     gdouble dPoliceSize;
     
-    // image par défaut
+    /// image par défaut
     gchar *cDefaultImage;
-    // fichier de conf
+    /// fichier de conf
     gchar *cConfFile;
-    // verbosité du programme
+    /// verbosité du programme
     gchar *cVerbosity;
-    // Download path
+    /// Download path
     gchar *cDLPath;
     
-    // caché ?
+    /// caché ?
     gboolean bHide;
-    // ne pas couper les angles ?
+    /// ne pas couper les angles ?
     gboolean bKeepCorners;
-    // en mode testing ?
+    /// en mode testing ?
     gboolean bTesting;
-    // déplacer en cliquant ?
+    /// déplacer en cliquant ?
     gboolean bLockPosition;
-    // afficher sur tous les bureaux ?
+    /// afficher sur tous les bureaux ?
     gboolean bAllDesktop;
-    // télécharger les pochettes manquantes ?
+    /// télécharger les pochettes manquantes ?
     gboolean bDownload;
-    // on autorise l'animation ?
+    /// on autorise l'animation ?
     gboolean bRunAnimation;
-    // on autorise le monitoring du player ?
+    /// on autorise le monitoring du player ?
     gboolean bMonitorPlayer;
-    // animation threadee ?
+    /// animation threadee ?
     gboolean bThreaded;
-    // mode developpeur ?
+    /// mode developpeur ?
     gboolean bDevMode;
-    // options instables ?
+    /// options instables ?
     gboolean bUnstable;
-    // afficher le statut
+    /// afficher le statut
     gboolean bPlayerState;
-    // on affiche un masque au survol ?
+    /// on affiche un masque au survol ?
     gboolean bMask;
-    // afficher le titre ?
+    /// afficher le titre ?
     gboolean bDisplayTitle;
-    // CID en mode de secours ?
+    /// CID en mode de secours ?
     gboolean bSafeMode;
-    // On a active/desactive les options instables ?
+    /// On a active/desactive les options instables ?
     gboolean bChangedTestingConf;
-    // Afficher les controles ?
+    /// Afficher les controles ?
     gboolean bDisplayControl;
-    // Passe cid au premier plan lors d'un survol ?
+    /// Passe cid au premier plan lors d'un survol ?
     gboolean bShowAbove;
-    // On ne fait que configurer cid ?
+    /// On ne fait que configurer cid ?
     gboolean bConfigPanel;
 
     
-    // taille de la couleur
-    gsize gColorSize;
-    // taille de la couleur de survol
-    gsize gFlyingColorSize;
-    // taille de la couleur de police
-    gsize gPlainTextSize;
-    // taille de la couleur de contour de police
-    gsize gOutlineTextSize;
+    /// taille de la couleur
+    gsize iColorSize;
+    /// taille de la couleur de survol
+    gsize iFlyiniColorSize;
+    /// taille de la couleur de police
+    gsize iPlainTextSize;
+    /// taille de la couleur de contour de police
+    gsize iOutlineTextSize;
+    /// nombre de motifs de pochettes
+    gsize iNbPatterns;
+    
+    /// liste de motif de pochettes à rechercher
+    gchar **t_cCoverPatternList;
 };
 
+/// Valeurs de configuration par défaut
 struct _CidDefault {
-    // Download path
+    /// Download path
     gchar *cDLPath;
     
 };

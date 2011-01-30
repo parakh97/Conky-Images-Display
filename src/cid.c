@@ -42,6 +42,12 @@
 
 #include "cid.h"
 
+typedef struct table_s
+    {
+        gchar *bf;
+        gchar *af;
+    } table_t;
+
 CidMainContainer *cid;
 int ret = CID_EXIT_SUCCESS;
 
@@ -213,6 +219,15 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
     gtk_main();
 }
 
+static void
+_test_table (table_t table[])
+{
+    int i = 0;
+    for (;table[i].bf != NULL; i++) {
+        g_print ("%s -> %s\n",table[i].bf,table[i].af);
+    }
+}
+
 /* Fonction principale */
 
 int 
@@ -243,7 +258,7 @@ main ( int argc, char **argv )
             cid_exit(&cid,CID_EXIT_ERROR,"Error while copying args");
     }
 */
-    
+
     curl_global_init(CURL_GLOBAL_ALL);
     
     int i;
@@ -292,6 +307,55 @@ main ( int argc, char **argv )
     cid_free_musicData();
     cid_free_main_structure (cid);
 
+/*
+    GError *error = NULL;
+    GMatchInfo *match_info;
+    GRegex *reg = g_regex_new ("%al",0,0,&error);
+    gchar *init = "blah %al bloh";
+    gchar *replacement = "blih";
+    if (error != NULL)
+    {
+        fprintf (stderr,"g_regex_new error: %s\n",error->message);
+        g_error_free (error);
+        error = NULL;
+    }
+    g_regex_match (reg, init, 0, &match_info);
+    while (g_match_info_matches (match_info))
+    {
+        gchar *word = g_match_info_fetch (match_info, 0);
+        g_print ("Found: %s\n", word);
+        g_free (word);
+        g_match_info_next (match_info, NULL);
+    }
+    g_match_info_free (match_info);
+    gchar *res = g_regex_replace (reg, init, -1, 0, replacement, 0, &error);
+    if (error != NULL)
+    {
+        fprintf (stderr,"g_regex_replace error: %s\n",error->message);
+        g_error_free (error);
+        error = NULL;
+    }
+    g_print ("before: %s\nafter: %s\n",init,res);
+    g_free (res);
+    g_regex_unref (reg);
+*/
+/*
+    gchar *test = g_strdup ("1 => 2");
+    g_print ("(%d)> %s\n", strlen(test),test);
+    cid_substitute_user_params (&test);
+    g_print ("(%d)> %s\n", strlen(test),test);
+*/
+/*
+    //g_type_init ();
+    
+    gchar *test = g_strdup("bonjour %user%, comment vas-tu ?\n%home%\nartist:%artist%");
+    g_print ("avant: %s (%d)\n",test,strlen(test));
+    //cid_str_replace_all (&test,"%user%",g_getenv("USER"));
+    cid_substitute_user_params (&test);
+    fprintf (stdout,"après: %s (%d)\n",test,strlen(test));
+    
+    g_free (test);
+*/    
     fprintf (stdout,"Bye !\n");    
 
     return ret;

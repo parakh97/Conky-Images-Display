@@ -143,12 +143,7 @@ cid_copy_file (const gchar *cSrc, const gchar *cDst)
         cid_warning ("Unable to open file: %s",cDst);
         return;
     }
-    //char buffer[256];
-    //while (fgets(buffer,256,src) != NULL)
-    //{
-    //    fputs(buffer,dst);
-    //    //fprintf(dst,buffer);
-    //}
+    
     char ch;
     while(!feof(src)) {
         ch = fgetc(src);
@@ -179,19 +174,6 @@ cid_remove_file (const gchar* cFilePath)
         cid_warning ("Error while removing %s",cFilePath);
     }
 }
-/*
-int 
-cid_read_string(char* chaine) 
-{
-    if (strcmp(chaine, "-d\0" ) == 0 || strcmp(chaine, "--debug\0" ) == 0) return CID_DEBUG_MODE;
-    if (strcmp(chaine, "-h\0" ) == 0 || strcmp(chaine, "--help\0" ) == 0 || strcmp(chaine, "-?\0" ) == 0) return CID_HELP_MENU;
-    if (strcmp(chaine, "-T\0" ) == 0 || strcmp(chaine, "--testing\0" ) == 0) return CID_TESTING_MODE;
-    if (strcmp(chaine, "-c\0" ) == 0) return CID_CHANGE_CONFIG_FILE;
-    if (strcmp(chaine, "-v\0" ) == 0 || strcmp(chaine, "--version\0" ) == 0) return CID_GIVE_VERSION;
-    if (strcmp(chaine, "-l\0" ) == 0 || strcmp(chaine, "--log\0" ) == 0) return CID_SET_VERBOSITY;
-    return 0;
-}
-*/
 
 void 
 cid_read_parameters (int *argc, char ***argv) 
@@ -346,35 +328,6 @@ cid_set_verbosity (gchar *cVerbosity)
     }
 }
 
-void 
-cid_launch_web_browser (const gchar *cURL) 
-{
-    cid_debug ("%s (%s)", __func__, cURL);
-    if (cURL == NULL)
-    {
-        cid_warning ("No web site to visit.");
-        return;
-    }
-    
-    GError *erreur = NULL;
-    gchar *cURLCommand = NULL;
-    if (g_file_test ("/usr/bin/firefox", G_FILE_TEST_EXISTS))
-        cURLCommand = g_strdup_printf("firefox \"%s\"", cURL);
-        
-    else if (g_file_test ("/usr/bin/opera", G_FILE_TEST_EXISTS))
-        cURLCommand = g_strdup_printf("opera \"%s\"", cURL);
-    
-    else if (g_file_test ("/usr/bin/safary", G_FILE_TEST_EXISTS))
-        cURLCommand = g_strdup_printf("safary \"%s\"", cURL);
-        
-    else if (g_file_test ("/usr/bin/konqueror", G_FILE_TEST_EXISTS))
-        cURLCommand = g_strdup_printf("konqueror \"%s\"", cURL);
-    
-    cid_launch_command (cURLCommand);
-    
-    g_free (cURLCommand);
-}
-
 gboolean 
 cid_launch_command_full (const gchar *cCommandFormat, gchar *cWorkingDirectory, ...) 
 {
@@ -410,9 +363,9 @@ gchar *
 cid_toupper (gchar *cSrc) 
 {
     register int t;
-    gchar *cRes = g_malloc (sizeof(gchar)*strlen(cSrc));
+    gchar *cRes = g_malloc (sizeof(gchar)*(strlen(cSrc)+1));
 
-    for(t=0; cSrc[t]; ++t)  
+    for(t=0; cSrc[t]; t++)  
     {
         cRes[t] = toupper(cSrc[t]);
     }
@@ -446,7 +399,7 @@ cid_datacase_new (void)
 }
 
 CidDataContent *
-cid_datacontent_new (GType iType, void *value)
+cid_datacontent_new (GType iType, gpointer value)
 {
     CidDataContent *ret = g_new0(CidDataContent,1);
     if (ret != NULL)
@@ -456,7 +409,7 @@ cid_datacontent_new (GType iType, void *value)
         {
             case G_TYPE_STRING:
                 ret->string = NULL;
-                int iLength = strlen((gchar *) value)*sizeof(gchar)+1;
+                int iLength = (strlen((gchar *) value)+1)*sizeof(gchar);
                 ret->string = g_malloc0(iLength);
                 strncpy(ret->string, (gchar *) value, iLength);
                 break;
@@ -465,6 +418,9 @@ cid_datacontent_new (GType iType, void *value)
                 break;
             case G_TYPE_BOOLEAN:
                 ret->booleen = (gboolean)(long) value;
+                break;
+            case CID_TYPE_SUBSTITUTE:
+                ret->sub = (CidSubstitute *) value;
                 break;
             default:
                 g_free(ret);
@@ -489,6 +445,9 @@ cid_datacontent_equals (CidDataContent *d1, CidDataContent *d2)
             return d1->iNumber == d2->iNumber;
         case G_TYPE_BOOLEAN:
             return d1->booleen == d2->booleen;
+        case CID_TYPE_SUBSTITUTE:
+            return g_strcmp0(d1->sub->regex,d2->sub->regex) == 0
+                   && g_strcmp0(d1->sub->replacement,d2->sub->replacement) == 0;
     }
 }
 
@@ -616,6 +575,8 @@ cid_free_datacontent_full (CidDataContent *pContent, gpointer *pData)
     {
         if (pContent->type == G_TYPE_STRING && pContent->string != NULL)
             g_free(pContent->string);
+        if (pContent->type == CID_TYPE_SUBSTITUTE)
+            cid_free_substitute (pContent->sub);
         g_free(pContent);
     }
 }
@@ -676,6 +637,10 @@ cid_datacase_print (CidDataCase *pCase, gpointer *pData)
             case G_TYPE_BOOLEAN:
                 fprintf (stdout,"%s\n",pCase->content->booleen ? "TRUE" : "FALSE");
                 break;
+            case CID_TYPE_SUBSTITUTE:
+                fprintf (stdout,"%s>%s\n",pCase->content->sub->regex,
+                                          pCase->content->sub->replacement);
+                break;
         }
     }
 }
@@ -688,11 +653,19 @@ cid_datacase_replace (CidDataCase *pCase, gpointer *pData)
         gchar **c_tmp = pData[2];
         if (GPOINTER_TO_INT(pData[0]) < GPOINTER_TO_INT(pData[1]))
         {
-            g_sprintf(*c_tmp,"%s%s%s",*c_tmp,pCase->content->string,pData[3]);
+            gchar *tmp = g_strdup(*c_tmp);
+            g_free (*c_tmp);
+            *c_tmp = NULL;
+            *c_tmp = g_strdup_printf ("%s%s%s",tmp,pCase->content->string,pData[3]);
+            g_free (tmp);
         } 
         else
         {
-            g_sprintf(*c_tmp,"%s%s",*c_tmp,pCase->content->string);
+            gchar *tmp = g_strdup(*c_tmp);
+            g_free (*c_tmp);
+            *c_tmp = NULL;
+            *c_tmp = g_strdup_printf ("%s%s",tmp,pCase->content->string);
+            g_free (tmp);
         }
     }
 }
@@ -834,9 +807,10 @@ cid_create_datatable (GType iDataType, ...)
     va_list args;
     va_start(args,iDataType);
     void *current;
-    while ((current = va_arg(args,void *)) != G_TYPE_INVALID) {
+    while ((GType) (current = va_arg(args,gpointer)) != G_TYPE_INVALID) {
         CidDataContent *tmp = NULL;
-        if ((GType) current == G_TYPE_BOOLEAN || (GType) current == G_TYPE_INT || (GType) current == G_TYPE_STRING)
+        if ((GType) current == G_TYPE_BOOLEAN || (GType) current == G_TYPE_INT 
+            || (GType) current == G_TYPE_STRING || (GType) current == CID_TYPE_SUBSTITUTE)
         {
             iCurrType = (GType) current;
             continue;
@@ -851,6 +825,9 @@ cid_create_datatable (GType iDataType, ...)
                 break;
             case G_TYPE_INT:
                 tmp = cid_datacontent_new_int(current);
+                break;
+            case CID_TYPE_SUBSTITUTE:
+                tmp = cid_datacontent_new_substitute(current);
                 break;
             default:
                 iCurrType = (GType) current;
@@ -877,13 +854,14 @@ cid_create_sized_datatable_with_default_full (size_t iSize, GType iType, void *v
 void
 cid_str_replace_all (gchar **string, const gchar *sFrom, const gchar *sTo)
 {
-    if (*string == NULL)
+    if (*string == NULL || sFrom == NULL || sTo == NULL)
         return;
     gchar **tmp = g_strsplit(*string,sFrom,0);
     CidDataTable *t_temp = cid_datatable_new();
     while (*tmp != NULL)
     {
         cid_datatable_append(&t_temp,cid_datacontent_new_string(*tmp));
+        g_free (*tmp);
         tmp++;
     }
     size_t size = cid_datatable_length(t_temp);
@@ -892,8 +870,11 @@ cid_str_replace_all (gchar **string, const gchar *sFrom, const gchar *sTo)
         cid_free_datatable(&t_temp);
         return;
     }
-    *string = g_malloc0((strlen(*string)+((strlen(sTo)-strlen(sFrom))*size))*sizeof(gchar)+1);
-    gpointer *pData = g_new(gpointer,4);
+    int length = (strlen(*string)+((strlen(sTo)-strlen(sFrom))*size))*sizeof(gchar)+1;
+    g_free (*string);
+    *string = NULL;
+    *string = g_malloc0(length);
+    gpointer *pData = g_new(gpointer,5);
     pData[0] = GINT_TO_POINTER(0);
     pData[1] = GINT_TO_POINTER(size);
     pData[2] = string;
@@ -933,10 +914,14 @@ void
 cid_check_position (void) 
 {
     cid_get_X_infos();
-    if (cid->config->iPosX > (cid->XScreenWidth - cid->config->iWidth)) cid->config->iPosX = (cid->XScreenWidth - cid->config->iWidth);
-    if (cid->config->iPosY > (cid->XScreenHeight - cid->config->iHeight)) cid->config->iPosY = (cid->XScreenHeight - cid->config->iHeight);
-    if (cid->config->iPosX < 0) cid->config->iPosX = 0;
-    if (cid->config->iPosY < 0) cid->config->iPosY = 0;
+    if (cid->config->iPosX > (cid->XScreenWidth - cid->config->iWidth)) 
+        cid->config->iPosX = (cid->XScreenWidth - cid->config->iWidth);
+    if (cid->config->iPosY > (cid->XScreenHeight - cid->config->iHeight)) 
+        cid->config->iPosY = (cid->XScreenHeight - cid->config->iHeight);
+    if (cid->config->iPosX < 0) 
+        cid->config->iPosX = 0;
+    if (cid->config->iPosY < 0) 
+        cid->config->iPosY = 0;
 }
 
 void 
@@ -1080,34 +1065,68 @@ cid_encrypt_string( const gchar *cDecryptedString,  gchar **cEncryptedString )
 #endif
 }
 
-gchar *
-_url_encode (const gchar * str)
+static gboolean
+eval_cb (const GMatchInfo *info,
+         GString          *res,
+         gpointer          data)
 {
-    const gchar * s = str;
-    char * t = NULL;
-    char * ret;
-    char * validChars = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.!~*'()";
-    char * isValidChar;
-    int lenght = 0;
-    // calcul de la taille de la chaine urlEncodée
-    do{
-        isValidChar = (char *)(long) strchr(validChars, *s); // caractère valide?
-        if(!isValidChar)
-            lenght+=3; // %xx : 3 caractères
-        else
-            lenght++;  // sinon un seul
-    }while(*++s); // avance d'un cran dans la chaine. Si on est pas à la fin, on continue...
-    s = str;
-    t = g_new (gchar, lenght + 1); // Allocation à la bonne taille
-    ret = t;
-    //encodage
-    do{
-        isValidChar = (char *)(long) strchr(validChars, *s);
-        if(!isValidChar)
-            sprintf(t, "%%%2X", *s), t+=3;
-        else
-            sprintf(t, "%c", *s), t++;
-    }while(*++s);
-    *t = 0; // 0 final
+    gchar *match;
+    gchar *r;
+
+    match = g_match_info_fetch (info, 0);
+    r = g_hash_table_lookup ((GHashTable *)data, match);
+    g_string_append (res, r);
+    g_free (match);
+
+    return FALSE;
+}
+
+static void
+cid_proceed_substitute (CidDataCase *pCase, gpointer *pData)
+{
+    cid_str_replace_all (pData[1],pCase->content->sub->regex,pCase->content->sub->replacement);
+}
+
+void 
+cid_substitute_user_params (gchar **cPath)
+{
+    CidDataTable *table = cid_create_datatable (CID_TYPE_SUBSTITUTE, 
+                                                cid_new_substitute ("%artist%",musicData.playing_artist ? 
+                                                                               musicData.playing_artist :
+                                                                               ""),
+                                                cid_new_substitute ("%album%",musicData.playing_album ?
+                                                                              musicData.playing_album :
+                                                                              ""),
+                                                cid_new_substitute ("%home%",g_getenv ("HOME")),
+                                                cid_new_substitute ("%user%",g_getenv ("USER")),
+                                                G_TYPE_INVALID);
+
+    gpointer *pData = g_new0(gpointer, 2);
+    pData[0] = GINT_TO_POINTER(0);
+    pData[1] = cPath;
+    cid_datatable_foreach (table, (CidDataAction) cid_proceed_substitute, pData);
+    cid_free_datatable (&table);
+}
+
+CidSubstitute *
+cid_new_substitute (const gchar *regex, const gchar *replacement)
+{
+    CidSubstitute *ret = g_new0 (CidSubstitute, 1);
+    if (ret != NULL)
+    {
+        ret->regex = g_strdup (regex);
+        ret->replacement = g_strdup (replacement);
+    }
     return ret;
 }
+
+void
+cid_free_substitute (CidSubstitute *pSub)
+{
+    if (pSub == NULL)
+        return;
+    g_free (pSub->regex);
+    g_free (pSub->replacement);
+    g_free (pSub);
+}
+    

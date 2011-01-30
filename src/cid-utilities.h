@@ -92,12 +92,6 @@ void cid_free_musicData(void);
 void cid_free_main_structure (CidMainContainer *pCid);
 
 /**
- * permet de jouer un son
- * @param cURL URL du site a afficher
- */
-void cid_launch_web_browser (const gchar *cURL);
-
-/**
  * permet de verifier que l'utilisateur entre des valeurs
  * correctes
  */
@@ -121,9 +115,9 @@ CidDataTable *cid_create_datatable (GType iDataType, ...);
  * @param value valeur par defaut
  * @return notre tableau
  */
-CidDataTable *cid_create_sized_datatable_with_default_full (size_t iSize, GType iType, void *value);
+CidDataTable *cid_create_sized_datatable_with_default_full (size_t iSize, GType iType, gpointer value);
 
-#define cid_create_sized_datatable_with_default(iSize,iType,value) cid_create_sized_datatable_with_default_full(iSize,iType,(void *)value)
+#define cid_create_sized_datatable_with_default(iSize,iType,value) cid_create_sized_datatable_with_default_full(iSize,iType,(gpointer)value)
 #define cid_create_sized_datatable(iSize) cid_create_sized_datatable_with_default(iSize,G_TYPE_INVALID,NULL)
 
 /**
@@ -194,7 +188,7 @@ void cid_datatable_append(CidDataTable **p_list, CidDataContent *data);
  * @param value valeur de l'element
  * @return nouvel element
  */
-CidDataContent *cid_datacontent_new (GType iType, void *value);
+CidDataContent *cid_datacontent_new (GType iType, gpointer value);
 
 /**
  * Permet de comparer deux elements
@@ -245,9 +239,10 @@ void cid_free_datacontent_full (CidDataContent *pContent, gpointer *pData);
 
 #define cid_free_datacontent(val) cid_free_datacontent_full(val, NULL)
 
-#define cid_datacontent_new_string(val) cid_datacontent_new(G_TYPE_STRING, (void*)val)
-#define cid_datacontent_new_int(val) cid_datacontent_new(G_TYPE_INT, (void*)val)
-#define cid_datacontent_new_boolean(val) cid_datacontent_new(G_TYPE_BOOLEAN, (void*)val)
+#define cid_datacontent_new_string(val) cid_datacontent_new(G_TYPE_STRING, (gpointer)val)
+#define cid_datacontent_new_int(val) cid_datacontent_new(G_TYPE_INT, (gpointer)val)
+#define cid_datacontent_new_boolean(val) cid_datacontent_new(G_TYPE_BOOLEAN, (gpointer)val)
+#define cid_datacontent_new_substitute(val) cid_datacontent_new(CID_TYPE_SUBSTITUTE, (gpointer)val)
 
 #define cid_datatable_remove_first(list) cid_datatable_remove_id(list, 1)
 #define cid_datatable_remove_last(list) cid_datatable_remove_id(list, cid_datatable_length(list))
@@ -266,7 +261,25 @@ void cid_encrypt_string( const gchar *cDecryptedString,  gchar **cEncryptedStrin
 
 void cid_decrypt_string( const gchar *cDecryptedString,  gchar **cEncryptedString );
 
-gchar *_url_encode (const gchar * str);
+/**
+ * Permet de substituer des 'joker' saisis par l'utilisateur
+ * @param cPath la chaîne à substituer
+ */
+void cid_substitute_user_params (gchar **cPath);
+
+/**
+ * Crée une nouvelle structure CidSubstitute.
+ * @param regex La regex du substitute.
+ * @param replacement Ce par quoi on remplace la regex.
+ * @return La nouvelle structure CidSubstitute alouée.
+ */
+ CidSubstitute *cid_new_substitute (const gchar *regex, const gchar *replacement);
+ 
+ /**
+  * Libère une structure CidSubstitute.
+  * @param pSub La structure à libérer.
+  */
+void cid_free_substitute (CidSubstitute *pSub);
 
 #define BEGIN_FOREACH_DT(dt) \
 CidDataTable *p_dt=dt; \

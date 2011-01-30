@@ -343,9 +343,11 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->bDisplayControl = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "CONTROLS", TRUE);
     cid->config->dPoliceSize     = g_key_file_get_double  (cid->pKeyFile, "System", "POLICE_SIZE", &error);
     cid_free_and_debug_error(&error);
-    cid->config->dPoliceColor    = g_key_file_get_double_list (cid->pKeyFile, "System", "POLICE_COLOR", &cid->config->gPlainTextSize, &error);
+    cid->config->dPoliceColor    = g_key_file_get_double_list (cid->pKeyFile, "System", "POLICE_COLOR", &cid->config->iPlainTextSize, &error);
     cid_free_and_debug_error(&error);
-    cid->config->dOutlineTextColor = g_key_file_get_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", &cid->config->gOutlineTextSize, &error);
+    cid->config->dOutlineTextColor = g_key_file_get_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", &cid->config->iOutlineTextSize, &error);
+    cid_free_and_debug_error(&error);
+    cid->config->t_cCoverPatternList = g_key_file_get_string_list (cid->pKeyFile, "System", "FILES_LIST", &cid->config->iNbPatterns, &error);
     cid_free_and_debug_error(&error);
 
     // [Options] configuration
@@ -356,12 +358,14 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->iAnimationType  = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_TYPE");
     cid->config->iAnimationSpeed = CID_CONFIG_GET_INTEGER ("Options", "ANIMATION_SPEED");
     cid->config->bThreaded       = CID_CONFIG_GET_BOOLEAN ("Options", "THREAD");
-    cid->config->bDownload       = CID_CONFIG_GET_BOOLEAN ("Options", "DOWNLOAD");
-    cid->config->cDLPath         = CID_CONFIG_GET_DIR_PATH_FORCE ("Options", "DL_PATH", cid->defaut->cDLPath);
-    cid->config->iImageSize      = CID_CONFIG_GET_INTEGER ("Options", "D_SIZE");
-    cid->config->iTimeToWait     = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("Options", "DELAY", DEFAULT_TIMERS);
     cid->config->bUnstable       = cid->config->bTesting && CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Options",
                                                             "B_UNSTABLE", TRUE);
+    
+    // [Downloads] configuration
+    cid->config->bDownload       = CID_CONFIG_GET_BOOLEAN ("Downloads", "DOWNLOAD");
+    cid->config->cDLPath         = CID_CONFIG_GET_DIR_PATH_FORCE ("Downloads", "DL_PATH", cid->defaut->cDLPath);
+    cid->config->iImageSize      = CID_CONFIG_GET_INTEGER ("Downloads", "D_SIZE");
+    cid->config->iTimeToWait     = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("Downloads", "DELAY", DEFAULT_TIMERS);
     
     // [Behaviour] configuration
     cid->config->iPosX          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_X");
@@ -382,9 +386,9 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     }
     cid->config->dRotate        = g_key_file_get_double  (cid->pKeyFile, "Behaviour", "ROTATION", &error);
     cid_free_and_debug_error(&error);
-    cid->config->dColor         = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "COLOR", &cid->config->gColorSize, &error);
+    cid->config->dColor         = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "COLOR", &cid->config->iColorSize, &error);
     cid_free_and_debug_error(&error);
-    cid->config->dFlyingColor   = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", &cid->config->gFlyingColorSize, &error);
+    cid->config->dFlyingColor   = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", &cid->config->iFlyiniColorSize, &error);
     cid_free_and_debug_error(&error);
     cid->config->bKeepCorners   = CID_CONFIG_GET_BOOLEAN ("Behaviour", "KEEP_CORNERS");
     cid->config->bAllDesktop    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "ALL_DESKTOP", TRUE);
@@ -482,8 +486,8 @@ cid_save_data (CidMainContainer **pCid)
     g_key_file_set_boolean (cid->pKeyFile, "System", "TITLE", cid->config->bDisplayTitle);
     g_key_file_set_boolean (cid->pKeyFile, "System", "CONTROLS", cid->config->bDisplayControl);
     g_key_file_set_double (cid->pKeyFile, "System", "POLICE_SIZE",(cid->config->dPoliceSize));
-    g_key_file_set_double_list (cid->pKeyFile, "System", "POLICE_COLOR", (cid->config->dPoliceColor), cid->config->gPlainTextSize);
-    g_key_file_set_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", (cid->config->dOutlineTextColor), cid->config->gOutlineTextSize);
+    g_key_file_set_double_list (cid->pKeyFile, "System", "POLICE_COLOR", (cid->config->dPoliceColor), cid->config->iPlainTextSize);
+    g_key_file_set_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", (cid->config->dOutlineTextColor), cid->config->iOutlineTextSize);
 
     // [Options] configuration
     g_key_file_set_boolean (cid->pKeyFile, "Options", "ANIMATION", cid->config->bRunAnimation);
@@ -493,16 +497,18 @@ cid_save_data (CidMainContainer **pCid)
     else
         g_key_file_set_string  (cid->pKeyFile, "Options", "IMAGE", "");
     g_key_file_set_boolean (cid->pKeyFile, "Options", "THREAD", cid->config->bThreaded);
-    g_key_file_set_boolean (cid->pKeyFile, "Options", "DOWNLOAD", cid->config->bDownload);
     g_key_file_set_integer (cid->pKeyFile, "Options", "ANIMATION_TYPE", cid->config->iAnimationType);
     g_key_file_set_integer (cid->pKeyFile, "Options", "ANIMATION_SPEED", cid->config->iAnimationSpeed);
-    g_key_file_set_integer (cid->pKeyFile, "Options", "DELAY", cid->config->iTimeToWait);
-    g_key_file_set_integer (cid->pKeyFile, "Options", "D_SIZE", cid->config->iImageSize);
     g_key_file_set_boolean (cid->pKeyFile, "Options", "B_UNSTABLE", cid->config->bUnstable);
+    
+    // [Downloads] configuration
+    g_key_file_set_boolean (cid->pKeyFile, "Downloads", "DOWNLOAD", cid->config->bDownload);
+    g_key_file_set_integer (cid->pKeyFile, "Downloads", "DELAY", cid->config->iTimeToWait);
+    g_key_file_set_integer (cid->pKeyFile, "Downloads", "D_SIZE", cid->config->iImageSize);
     if (strcmp(cid->config->cDLPath,cid->defaut->cDLPath) != 0)
-        g_key_file_set_string (cid->pKeyFile, "Options", "DL_PATH", cid->config->cDLPath);
+        g_key_file_set_string (cid->pKeyFile, "Downloads", "DL_PATH", cid->config->cDLPath);
     else
-        g_key_file_set_string (cid->pKeyFile, "Options", "DL_PATH", "");
+        g_key_file_set_string (cid->pKeyFile, "Downloads", "DL_PATH", "");
     
     // [Behaviour] configuration
     gint pSize[2] = {cid->config->iWidth,cid->config->iHeight};
@@ -512,8 +518,8 @@ cid_save_data (CidMainContainer **pCid)
     g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_Y",cid->config->iPosY);
     
     g_key_file_set_double (cid->pKeyFile, "Behaviour", "ROTATION",(cid->config->dRotate));
-    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "COLOR", (cid->config->dColor), cid->config->gColorSize);
-    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", (cid->config->dFlyingColor), cid->config->gFlyingColorSize);
+    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "COLOR", (cid->config->dColor), cid->config->iColorSize);
+    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", (cid->config->dFlyingColor), cid->config->iFlyiniColorSize);
     g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "KEEP_CORNERS", cid->config->bKeepCorners);
     g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "ALL_DESKTOP", cid->config->bAllDesktop);
     g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "LOCK", cid->config->bLockPosition);
