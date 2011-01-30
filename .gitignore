@@ -17,6 +17,8 @@ data/Makefile.in
 data/cid.conf
 depcomp
 doc/dox.config
+doc/latex/
+doc/html/
 install-sh
 libtool
 ltmain.sh
