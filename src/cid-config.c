@@ -13,9 +13,9 @@
 #include "cid-config.h"
 #include "cid-messages.h"
 #include "cid-utilities.h"
-#include "cid-conf-panel-factory.h"
+#include "cid-gui-factory.h"
 #include "cid-callbacks.h"
-#include "cid-panel-callbacks.h"
+#include "cid-gui-callback.h"
 #include "cid-constantes.h"
 #include "cid-draw.h"
 

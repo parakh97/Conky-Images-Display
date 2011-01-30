@@ -273,14 +273,15 @@ You can use it with the following options:\n"));
     if (bPrintVersion) 
     {
         gchar *env;
-        env = g_malloc (20*sizeof(*env));
 #ifdef HAVE_E17
-                        snprintf (env,20,"e17");
+        env = g_strdup ("e17 support");
+#elif HAVE_COMPIZ
+        env = g_strdup ("compiz support");
 #else
-                        snprintf (env,20,"gnome and/or kde");
+        env = g_strdup ("none");
 #endif
         fprintf (stdout,"Version: %s\n"
-                        "Compiled for: %s\n"
+                        "Options: %s\n"
                         ,CID_VERSION
                         ,env);
         g_free (env);

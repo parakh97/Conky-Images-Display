@@ -42,12 +42,6 @@
 
 #include "cid.h"
 
-typedef struct table_s
-    {
-        gchar *bf;
-        gchar *af;
-    } table_t;
-
 CidMainContainer *cid;
 int ret = CID_EXIT_SUCCESS;
 
@@ -69,8 +63,9 @@ cid_init (CidMainContainer *pCid)
 
 #ifdef HAVE_E17    
     pCid->config->iHint = GDK_WINDOW_TYPE_HINT_DESKTOP; 
+#elif HAVE_COMPIZ
+    pCid->config->iHint = GDK_WINDOW_TYPE_HINT_DOCK;
 #else
-//    pCid->config->iHint = GDK_WINDOW_TYPE_HINT_DOCK;
     pCid->config->iHint = GDK_WINDOW_TYPE_HINT_TOOLTIP;
 #endif
     
@@ -217,15 +212,6 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
         
     /* Enfin on lance la boucle Gtk */
     gtk_main();
-}
-
-static void
-_test_table (table_t table[])
-{
-    int i = 0;
-    for (;table[i].bf != NULL; i++) {
-        g_print ("%s -> %s\n",table[i].bf,table[i].af);
-    }
 }
 
 /* Fonction principale */

@@ -1,6 +1,6 @@
 /*
    *
-   *                         cid-panel-callbacks.c
+   *                         cid-gui-callback.c
    *                                -------
    *                          Conky Images Display
    *                    --------------------------------
@@ -9,8 +9,8 @@
 #include "cid-messages.h"
 #include "cid-config.h"
 #include "cid-struct.h"
-#include "cid-conf-panel-factory.h"
-#include "cid-panel-callbacks.h"
+#include "cid-gui-factory.h"
+#include "cid-gui-callback.h"
 #include "cid-utilities.h"
 
 //extern CidMainContainer *cid;

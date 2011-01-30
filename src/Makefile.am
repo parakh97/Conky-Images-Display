@@ -15,6 +15,10 @@ if E17_ENABLE
 have_e17=-DHAVE_E17="1"
 endif
 
+if COMPIZ_ENABLE
+have_compiz=-DHAVE_COMPIZ="1"
+endif
+
 if HAVE_LIBCRYPT
 have_libcrypt=-DHAVE_LIBCRYPT="1"
 endif
@@ -22,6 +26,7 @@ endif
 cid_CFLAGS = \
     $(PACKAGE_CFLAGS) \
     $(have_e17) \
+    $(have_compiz) \
     $(have_libcrypt) \
     -DCID_DEFAULT_IMAGE=\""$(pkgdatadir)/default.svg"\"\
     -DCID_CONFIG_FILE=\""cid.conf"\"\
@@ -58,8 +63,8 @@ cid_SOURCES = \
     cid-asynchrone.h \
     cid-callbacks.c \
     cid-callbacks.h \
-    cid-conf-panel-factory.c \
-    cid-conf-panel-factory.h \
+    cid-gui-factory.c \
+    cid-gui-factory.h \
     cid-config.c \
     cid-config.h \
     cid-console-call.c \
@@ -82,8 +87,8 @@ cid_SOURCES = \
     cid-modules.c \
     cid-modules.h \
     cid-mpd.c \
-    cid-panel-callbacks.c \
-    cid-panel-callbacks.h \
+    cid-gui-callback.c \
+    cid-gui-callback.h \
     cid-rhythmbox.c \
     cid-rhythmbox.h \
     cid-utilities.c \
@@ -118,7 +123,7 @@ cidsubinclude_HEADERS = \
     cid-applet-canvas.h \
     cid-asynchrone.h \
     cid-callbacks.h \
-    cid-conf-panel-factory.h \
+    cid-gui-factory.h \
     cid-config.h \
     cid-console-call.h \
     cid-constantes.h \
@@ -130,7 +135,7 @@ cidsubinclude_HEADERS = \
     cid-messages.h \
     cid-modules.h \
     cid-mpd.h \
-    cid-panel-callbacks.h \
+    cid-gui-callback.h \
     cid-rhythmbox.h \
     cid-struct.h \
     cid-utilities.h \

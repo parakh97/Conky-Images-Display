@@ -86,6 +86,9 @@ STATE=
 #r[White;Yellow;Red] Status symbols color
 SYMBOL_COLOR=
 
+#U Search the following files
+#{%user% stands for the username\n%home% stands for the user's home directory\n%artist% stands for the artist's name\n%album% stands for the album name}
+FILES_LIST=
 
 #tX+[Display Title;gtk-select-color]
 frame_title =
@@ -139,14 +142,24 @@ ANIMATION_SPEED=1
 THREAD=
 
 
+#X+
+frame_sep_ =
 
 
-#X+[Downloads;gtk-convert]
-frame_launcher =
+#tb Active unstable functions
+B_UNSTABLE=
+
+
+##########################################
+##############  DOWNLOADS  ###############
+##########################################
+
+#[gtk-convert]
+[Downloads]
 
 #b Allow CID to download missing covers
 #{You need to be connected to the Internet.}
-DOWNLOAD=
+DOWNLOAD=true
 
 #i[0;15] Delay before checking for missing covers
 #{in seconds}
@@ -154,23 +167,18 @@ DELAY=3
 
 #r[Medium;Large] Size of the downloaded covers
 #{A small image will be downloaded faster than a big one.}
-D_SIZE=
+D_SIZE=1
 
 #S+ Where to download missing covers
 #{By default in $HOME/.cache/cid}
 DL_PATH=
 
 
-#X+
-frame_sep_ =
+##########################################
+##############     MPD     ###############
+##########################################
 
-
-
-
-#tb Active unstable functions
-B_UNSTABLE=
-
-
+#[@prefix@/@DATADIRNAME@/@PACKAGE@/default.svg]
 [MPD]
 
 #S+ Songs directory

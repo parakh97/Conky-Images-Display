@@ -38,6 +38,14 @@ AC_ARG_ENABLE(e17,
             *)   echo "bad value ${enableval} for --enable-e17" ;;
         esac],[usee17=false])
 
+AC_ARG_ENABLE(compiz,
+        [ --enable-compiz  :  Enable Compiz support],
+        [case "${enableval}" in
+            yes) usecompiz=true ;;
+            no)  usecompiz=false ;;
+            *)   echo "bad value ${enableval} for --enable-compiz" ;;
+        esac],[usecompiz=false])
+
 #AC_ARG_ENABLE(opengl,
 #        [ --enable-opengl  :  Enable OpenGL],
 #        [case "${enableval}" in
@@ -66,6 +74,7 @@ AC_ARG_ENABLE(e17,
 
 #AM_CONDITIONAL( [WITH_OPENGL], [test "$opengl_detected" = "true" ] )
 AM_CONDITIONAL( [E17_ENABLE], [test "$usee17" = "true" ] )
+AM_CONDITIONAL( [COMPIZ_ENABLE], [test "$usecompiz" = "true" ])
 
 AC_CONFIG_FILES([
 		Makefile
@@ -88,4 +97,9 @@ if test "$usee17" = "true" ; then
     echo " * Enable E17 : yes"
 else
     echo " * Enable E17 : no"
+fi
+if test "$usecompiz" = "true" ; then
+    echo " * Enable Compiz : yes"
+else
+    echo " * Enable Compiz : no"
 fi

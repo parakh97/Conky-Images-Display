@@ -1,6 +1,6 @@
 /*
    *
-   *                         cid-conf-panel-factory.c
+   *                         cid-gui-factory.c
    *                                -------
    *                          Conky Images Display
    *                    --------------------------------
@@ -8,10 +8,10 @@
    * Author:  Fabrice Rey
 */
 
-#include "cid-conf-panel-factory.h"
+#include "cid-gui-factory.h"
 #include "cid-messages.h"
 #include "cid-callbacks.h"
-#include "cid-panel-callbacks.h"
+#include "cid-gui-callback.h"
 #include "cid-utilities.h"
 
 extern CidMainContainer *cid;
@@ -33,9 +33,9 @@ static int iNbConfigDialogs = 0;
 static GtkListStore *s_pRendererListStore = NULL;
 static GtkListStore *s_pDecorationsListStore = NULL;
 static GtkListStore *s_pDecorationsListStore2 = NULL;
-//static GtkWidget *s_pDialog = NULL;
 
-static void _cid_set_value_in_pair (GtkSpinButton *pSpinButton, gpointer *data)
+static void 
+_cid_set_value_in_pair (GtkSpinButton *pSpinButton, gpointer *data)
 {
     GtkWidget *pPairSpinButton = data[0];
     GtkWidget *pToggleButton = data[1];
@@ -50,11 +50,23 @@ static void _cid_set_value_in_pair (GtkSpinButton *pSpinButton, gpointer *data)
     }
 }
 
+static void 
+_cid_activate_one_element (GtkCellRendererToggle * cell_renderer, gchar * path, GtkTreeModel * model)
+{
+	GtkTreeIter iter;
+	if (! gtk_tree_model_get_iter_from_string (model, &iter, path))
+		return ;
+	gboolean bState;
+	gtk_tree_model_get (model, &iter, CID_MODEL_ACTIVE, &bState, -1);
+
+	gtk_list_store_set (GTK_LIST_STORE (model), &iter, CID_MODEL_ACTIVE, !bState, -1);
+}
+
 void 
 cid_config_panel_destroyed (void) 
 {
-    if (/*s_pDialog*/cid->pConfigPanel)
-        gtk_widget_destroy (/*s_pDialog*/cid->pConfigPanel);
+    if (cid->pConfigPanel)
+        gtk_widget_destroy (cid->pConfigPanel);
     iNbConfigDialogs --;
     if (iNbConfigDialogs <= 0) 
     {
@@ -73,10 +85,10 @@ cid_edit_conf_file_with_panel (GtkWindow *pWindow, gchar *cConfFilePath, const g
 gboolean 
 on_delete_main_gui (GMainLoop *pBlockingLoop) 
 {
-    cid_debug ("%s (%x)\n", __func__, (unsigned int)(long)pBlockingLoop);
+    cid_debug ("%s (%x)", __func__, (unsigned int)(long)pBlockingLoop);
     if (pBlockingLoop != NULL) 
     {
-        cid_debug ("dialogue detruit, on sort de la boucle\n");
+        cid_debug ("dialogue detruit, on sort de la boucle");
         if (g_main_loop_is_running (pBlockingLoop))
             g_main_loop_quit (pBlockingLoop);
     }
@@ -190,12 +202,13 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
     GtkWidget *pBackButton;
     GtkWidget *pToggleButton = NULL;
     GtkCellRenderer *rend;
+    GtkTreeSelection *selection;
     GtkTreeIter iter;
     gchar *cGroupName, *cGroupComment , *cKeyName, *cKeyComment, *cUsefulComment, *cAuthorizedValuesChain, *pTipString, **pAuthorizedValuesList, *cSmallGroupIcon;
     gpointer *pGroupKeyWidget;
     int i, j, k, iNbElements;
     int iNumPage=0, iPresentedNumPage=0;
-    char iElementType; 
+    char iElementType = 0; 
     char iHiddenType = 0;
     gboolean bIsAligned;
     gboolean bValue, *bValueList;
@@ -278,12 +291,26 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
             cKeyName = pKeyList[j];
 
             cKeyComment =  g_key_file_get_comment (pKeyFile, cGroupName, cKeyName, NULL);
+            
+            if (iElementType == '[')  // on gere le bug de la Glib, qui rajoute les nouvelles cles apres le commentaire du groupe suivant !
+            {
+                g_free (cKeyComment);
+                continue;
+            }
+            
             //g_print ("%s -> %s\n", cKeyName, cKeyComment);
             if (cKeyComment != NULL && strcmp (cKeyComment, "") != 0) 
             {
                 cUsefulComment = cKeyComment;
-                while (*cUsefulComment == '#' || *cUsefulComment == ' ')  // on saute les # et les espaces.
+                while (*cUsefulComment == '#' || *cUsefulComment == ' ' || *cUsefulComment == '\n')  // on saute les # et les espaces.
                     cUsefulComment ++;
+
+                length = strlen (cUsefulComment);
+                while (cUsefulComment[length-1] == '\n')
+                {
+                    cUsefulComment[length-1] = '\0';
+                    length --;
+                }
 
                 iElementType = *cUsefulComment;
                 if (iElementType == 't') 
@@ -292,6 +319,8 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                     iHiddenType = *cUsefulComment;
                 }
                 cUsefulComment ++;
+                if (*cUsefulComment == '-' || *cUsefulComment == '+')
+                    cUsefulComment ++;
 
                 if (! g_ascii_isdigit (*cUsefulComment) && *cUsefulComment != '[') 
                 {
@@ -320,13 +349,17 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                         GtkWidget *pImage = gtk_image_new ();
                         GdkPixbuf *pixbuf;
                         if (*cSmallGroupIcon != '/')
+                        {
                             pixbuf = gtk_widget_render_icon (pImage,
                                 cSmallGroupIcon ,
                                 GTK_ICON_SIZE_BUTTON,
                                 NULL);
+                        }
                         else
+                        {
 // taille des icones
                             pixbuf = gdk_pixbuf_new_from_file_at_size (cSmallGroupIcon, 16, 16, NULL);
+                        }
                         if (pixbuf != NULL) 
                         {
                             gtk_image_set_from_pixbuf (GTK_IMAGE (pImage), pixbuf);
@@ -386,12 +419,12 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 {
                     pAuthorizedValuesList = NULL;
                 }
-                if (cUsefulComment[strlen (cUsefulComment) - 1] == '\n')
-                    cUsefulComment[strlen (cUsefulComment) - 1] = '\0';
-                if (cUsefulComment[strlen (cUsefulComment) - 1] == '/') 
+                if (cUsefulComment[length - 1] == '\n')
+                    cUsefulComment[length - 1] = '\0';
+                if (cUsefulComment[length - 1] == '/') 
                 {
                     bIsAligned = FALSE;
-                    cUsefulComment[strlen (cUsefulComment) - 1] = '\0';
+                    cUsefulComment[length - 1] = '\0';
                 } 
                 else 
                 {
@@ -486,6 +519,208 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                         }
                         g_free (bValueList);
                     break;
+                    case CID_WIDGET_TREE_VIEW_SORT :  // N strings listed from top to bottom.
+                    case CID_WIDGET_TREE_VIEW_SORT_AND_MODIFY :  // same with possibility to add/remove some.
+                    case CID_WIDGET_TREE_VIEW_MULTI_CHOICE :  // N strings that can be selected or not.
+                        // on construit le tree view.
+                        cValueList = g_key_file_get_locale_string_list (pKeyFile, cGroupName, cKeyName, NULL, &length, NULL);
+                        pOneWidget = gtk_tree_view_new ();
+                        _allocate_new_model;
+                        gtk_tree_view_set_model (GTK_TREE_VIEW (pOneWidget), GTK_TREE_MODEL (modele));
+                        gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (modele), CID_MODEL_ORDER, 
+                                GTK_SORT_ASCENDING);
+                        gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (pOneWidget), FALSE);
+                        
+                        if (iElementType == CID_WIDGET_TREE_VIEW_MULTI_CHOICE)
+                        {
+                            rend = gtk_cell_renderer_toggle_new ();
+                            gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pOneWidget), -1, NULL, rend,
+                                    "active", CID_MODEL_ACTIVE, NULL);
+                            g_signal_connect (G_OBJECT (rend), "toggled", (GCallback) _cid_activate_one_element, 
+                                    modele);
+                        }
+                        
+                        rend = gtk_cell_renderer_text_new ();
+                        gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pOneWidget), -1, NULL, rend, 
+                                "text", CID_MODEL_NAME, NULL);
+                        selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (pOneWidget));
+                        gtk_tree_selection_set_mode (selection, GTK_SELECTION_SINGLE);
+                        
+                        pSubWidgetList = g_slist_append (pSubWidgetList, pOneWidget);
+                        
+                        pScrolledWindow = gtk_scrolled_window_new (NULL, NULL);
+                        //g_print ("length:%d\n", length);
+                        int k;
+                        if (pAuthorizedValuesList != NULL && pAuthorizedValuesList[0] != NULL)
+                            for (k = 0; pAuthorizedValuesList[k] != NULL; k++);
+                        else
+                            k = 1;
+                        gtk_widget_set (pScrolledWindow, "height-request", (iElementType == 
+                                CID_WIDGET_TREE_VIEW_SORT_AND_MODIFY ? 100 : MIN (100, k * 25)), NULL);
+                        gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (pScrolledWindow), GTK_POLICY_NEVER, 
+                                GTK_POLICY_AUTOMATIC);
+                        gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (pScrolledWindow), pOneWidget);
+                        _pack_in_widget_box (pScrolledWindow);
+                        
+                        if (iElementType != CID_WIDGET_TREE_VIEW_MULTI_CHOICE)
+                        {
+                            pSmallVBox = gtk_vbox_new (FALSE, 3);
+                            _pack_in_widget_box (pSmallVBox);
+                            
+                            pButtonUp = gtk_button_new_from_stock (GTK_STOCK_GO_UP);
+                            g_signal_connect (G_OBJECT (pButtonUp),
+                                "clicked",
+                                G_CALLBACK (_cid_go_up),
+                                pOneWidget);
+                            gtk_box_pack_start (GTK_BOX (pSmallVBox),
+                                pButtonUp,
+                                FALSE,
+                                FALSE,
+                                0);
+                            
+                            pButtonDown = gtk_button_new_from_stock (GTK_STOCK_GO_DOWN);
+                            g_signal_connect (G_OBJECT (pButtonDown),
+                                "clicked",
+                                G_CALLBACK (_cid_go_down),
+                                pOneWidget);
+                            gtk_box_pack_start (GTK_BOX (pSmallVBox),
+                                pButtonDown,
+                                FALSE,
+                                FALSE,
+                                0);
+                        }
+                        
+                        if (iElementType == CID_WIDGET_TREE_VIEW_SORT_AND_MODIFY)
+                        {
+                            pTable = gtk_table_new (2, 2, FALSE);
+                            _pack_in_widget_box (pTable);
+                                
+                            _allocate_new_buffer;
+                            
+                            pButtonAdd = gtk_button_new_from_stock (GTK_STOCK_ADD);
+                            g_signal_connect (G_OBJECT (pButtonAdd),
+                                "clicked",
+                                G_CALLBACK (_cid_add),
+                                data);
+                            gtk_table_attach (GTK_TABLE (pTable),
+                                pButtonAdd,
+                                0, 1,
+                                0, 1,
+                                GTK_SHRINK, GTK_SHRINK,
+                                0, 0);
+                            pButtonRemove = gtk_button_new_from_stock (GTK_STOCK_REMOVE);
+                            g_signal_connect (G_OBJECT (pButtonRemove),
+                                "clicked",
+                                G_CALLBACK (_cid_remove),
+                                data);
+                            gtk_table_attach (GTK_TABLE (pTable),
+                                pButtonRemove,
+                                0, 1,
+                                1, 2,
+                                GTK_SHRINK, GTK_SHRINK,
+                                0, 0);
+                            pEntry = gtk_entry_new ();
+                            gtk_table_attach (GTK_TABLE (pTable),
+                                pEntry,
+                                1, 2,
+                                0, 2,
+                                GTK_SHRINK, GTK_SHRINK,
+                                0, 0);
+                            
+                            data[0] = pOneWidget;
+                            data[1] = pEntry;
+                        }
+                        
+                        // on le remplit.
+                        if (iElementType == CID_WIDGET_TREE_VIEW_SORT_AND_MODIFY)  // on liste les choix actuels tout simplement.
+                        {
+                            for (k = 0; k < (int)length; k ++)
+                            {
+                                cValue = cValueList[k];
+                                if (cValue != NULL)  // paranoia.
+                                {
+                                    memset (&iter, 0, sizeof (GtkTreeIter));
+                                    gtk_list_store_append (modele, &iter);
+                                    gtk_list_store_set (modele, &iter,
+                                        CID_MODEL_ACTIVE, TRUE,
+                                        CID_MODEL_NAME, cValue,
+                                        CID_MODEL_RESULT, cValue,
+                                        CID_MODEL_ORDER, k, -1);
+                                }
+                            }
+                        }
+                        else if (pAuthorizedValuesList != NULL)  // on liste les choix possibles dans l'ordre choisi. Pour CID_WIDGET_TREE_VIEW_MULTI_CHOICE, on complete avec ceux n'ayant pas ete selectionnes.
+                        {
+                            gint iNbPossibleValues = 0, iOrder = 0;
+                            while (pAuthorizedValuesList[iNbPossibleValues] != NULL)
+                                iNbPossibleValues ++;
+                            guint l;
+                            for (l = 0; l < length; l ++)
+                            {
+                                cValue = cValueList[l];
+                                if (! g_ascii_isdigit (*cValue))  // ancien format.
+                                {
+                                    //g_print ("old format\n");
+                                    int k;
+                                    for (k = 0; k < iNbPossibleValues; k ++)  // on cherche la correspondance.
+                                    {
+                                        if (strcmp (cValue, pAuthorizedValuesList[k]) == 0)
+                                        {
+                                            //g_print (" correspondance %s <-> %d\n", cValue, k);
+                                            g_free (cValueList[l]);
+                                            cValueList[l] = g_strdup_printf ("%d", k);
+                                            cValue = cValueList[l];
+                                            break ;
+                                        }
+                                    }
+                                    if (k < iNbPossibleValues)
+                                        iValue = k;
+                                    else
+                                        continue;
+                                }
+                                else
+                                    iValue = atoi (cValue);
+                                
+                                if (iValue < iNbPossibleValues)
+                                {
+                                    memset (&iter, 0, sizeof (GtkTreeIter));
+                                    gtk_list_store_append (modele, &iter);
+                                    gtk_list_store_set (modele, &iter,
+                                        CID_MODEL_ACTIVE, TRUE,
+                                        CID_MODEL_NAME, dgettext (cGettextDomain, pAuthorizedValuesList[iValue]),
+                                        CID_MODEL_RESULT, cValue,
+                                        CID_MODEL_ORDER, iOrder ++, -1);
+                                }
+                            }
+                            
+                            if (iOrder < iNbPossibleValues)  // il reste des valeurs a inserer (ce peut etre de nouvelles valeurs apparues lors d'une maj du fichier de conf, donc CID_WIDGET_TREE_VIEW_SORT est concerne aussi). 
+                            {
+                                gchar cResult[10];
+                                for (k = 0; pAuthorizedValuesList[k] != NULL; k ++)
+                                {
+                                    cValue =  pAuthorizedValuesList[k];
+                                    for (l = 0; l < length; l ++)
+                                    {
+                                        iValue = atoi (cValueList[l]);
+                                        if (iValue == k)  // a deja ete inseree.
+                                            break;
+                                    }
+                                    
+                                    if (l == length)  // elle n'a pas encore ete inseree.
+                                    {
+                                        snprintf (cResult, 9, "%d", k);
+                                        memset (&iter, 0, sizeof (GtkTreeIter));
+                                        gtk_list_store_append (modele, &iter);
+                                        gtk_list_store_set (modele, &iter,
+                                            CID_MODEL_ACTIVE, (iElementType == CID_WIDGET_TREE_VIEW_SORT),
+                                            CID_MODEL_NAME, dgettext (cGettextDomain, cValue),
+                                            CID_MODEL_RESULT, cResult,
+                                            CID_MODEL_ORDER, iOrder ++, -1);
+                                    }
+                                }
+                            }
+                        }
+                    break ;
                     case 'i' :  // integer
                     case 'I' :  // integer dans un HScale
                     case 'j' :  // double integer WxH
@@ -719,7 +954,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                     case 'S' :  // string avec un selecteur de fichier a cote du GtkEntry.
                     case 'u' :  // string avec un selecteur de fichier a cote du GtkEntry et un boutton play.
                     case 'D' :  // string avec un selecteur de repertoire a cote du GtkEntry.
-                    case 'T' :  // string, mais sans pouvoir decochez les cases.
+//                    case 'T' :  // string, mais sans pouvoir decochez les cases.
                     case 'E' :  // string, mais avec un GtkComboBoxEntry pour le choix unique.
                     case 'R' :  // string, avec un label pour la description.
                     case 'P' :  // string avec un selecteur de font a cote du GtkEntry.

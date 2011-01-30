@@ -1,6 +1,6 @@
 /*
    *
-   *                        cid-panel-callbacks.h
+   *                        cid-gui-callback.h
    *                                -------
    *                          Conky Images Display
    *                    --------------------------------
