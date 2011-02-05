@@ -309,11 +309,11 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 while (cUsefulComment[length-1] == '\n')
                 {
                     cUsefulComment[length-1] = '\0';
-                    length --;
+                    length--;
                 }
 
                 iElementType = *cUsefulComment;
-                if (iElementType == 't') 
+                if (iElementType == CID_WIDGET_TESTING) 
                 {
                     cUsefulComment ++;
                     iHiddenType = *cUsefulComment;
@@ -419,18 +419,24 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 {
                     pAuthorizedValuesList = NULL;
                 }
+                length = strlen (cUsefulComment);
                 if (cUsefulComment[length - 1] == '\n')
+                {
                     cUsefulComment[length - 1] = '\0';
+                    length--;
+                }
                 if (cUsefulComment[length - 1] == '/') 
                 {
                     bIsAligned = FALSE;
                     cUsefulComment[length - 1] = '\0';
+                    length--;
                 } 
                 else 
                 {
                     bIsAligned = TRUE;
                 }
-                //g_print ("cUsefulComment : %s\n", cUsefulComment);
+                //g_print ("length: %d | %d\n",length,strlen(cUsefulComment));
+                //g_print ("cUsefulComment : %s (%s)\n", cUsefulComment, bIsAligned ? "TRUE" : "FALSE");
 
                 pTipString = (gchar *)(long)strchr (cUsefulComment, '{');
                 if (pTipString != NULL) 
@@ -460,7 +466,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 } else
                     pEventBox = NULL;
 
-                if (*cUsefulComment != '\0' && strcmp (cUsefulComment, "...") != 0 && iElementType != 'F' && iElementType != 'X' && (iElementType != 't' || (iElementType == 't' && cid->config->bTesting))) 
+                if (*cUsefulComment != '\0' && strcmp (cUsefulComment, "...") != 0 && iElementType != CID_WIDGET_FRAME && iElementType != CID_WIDGET_EXPANDER && (iElementType != CID_WIDGET_TESTING || (iElementType == 't' && cid->config->bTesting))) 
                 {
                         pLabel = gtk_label_new (dgettext (cGettextDomain, cUsefulComment));
                         GtkWidget *pAlign = gtk_alignment_new (0., 0.5, 0., 0.);
@@ -493,13 +499,13 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 pSubWidgetList = NULL;
                 bAddBackButton = FALSE;
 
-                if (iElementType=='t' && cid->config->bTesting)
+                if (iElementType==CID_WIDGET_TESTING && cid->config->bTesting)
                     iElementType = iHiddenType;
 
                 switch (iElementType) {
-                    case 't' :  // option cachee 
+                    case CID_WIDGET_TESTING :  // option cachee 
                     break;
-                    case 'b' :  // boolean
+                    case CID_WIDGET_CHECK_BUTTON :  // boolean
                         //g_print ("  + boolean\n");
                         length = 0;
                         bValueList = g_key_file_get_boolean_list (pKeyFile, cGroupName, cKeyName, &length, NULL);
@@ -721,9 +727,9 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             }
                         }
                     break ;
-                    case 'i' :  // integer
-                    case 'I' :  // integer dans un HScale
-                    case 'j' :  // double integer WxH
+                    case CID_WIDGET_SPIN_INTEGER :  // integer
+                    case CID_WIDGET_HSCALE_INTEGER :  // integer dans un HScale
+                    case CID_WIDGET_SIZE_INTEGER :  // double integer WxH
                         if (pAuthorizedValuesList != NULL && pAuthorizedValuesList[0] != NULL)
                             iMinValue = g_ascii_strtod (pAuthorizedValuesList[0], NULL);
                         else
@@ -732,13 +738,13 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             iMaxValue = g_ascii_strtod (pAuthorizedValuesList[1], NULL);
                         else
                             iMaxValue = 9999;
-                        if (iElementType == 'j')
+                        if (iElementType == CID_WIDGET_SIZE_INTEGER)
                             iNbElements *= 2;
                         length = 0;
                         iValueList = g_key_file_get_integer_list (pKeyFile, cGroupName, cKeyName, &length, NULL);
                         GtkWidget *pPrevOneWidget=NULL;
                         int iPrevValue=0;
-                        if (iElementType == 'j')
+                        if (iElementType == CID_WIDGET_SIZE_INTEGER)
                         {
                             pToggleButton = gtk_toggle_button_new ();
                             GtkWidget *pImage = gtk_image_new_from_stock (GTK_STOCK_MEDIA_PAUSE, GTK_ICON_SIZE_MENU);  // trouver une image...
@@ -754,7 +760,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                 MAX (1, (iMaxValue - iMinValue) / 20),
                                 0);
 
-                            if (iElementType == 'I')
+                            if (iElementType == CID_WIDGET_HSCALE_INTEGER)
                             {
                                 pOneWidget = gtk_hscale_new (GTK_ADJUSTMENT (pAdjustment));
                                 gtk_scale_set_digits (GTK_SCALE (pOneWidget), 0);
@@ -768,12 +774,12 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             gtk_adjustment_set_value (GTK_ADJUSTMENT (pAdjustment), iValue);
 
                             _pack_subwidget (pOneWidget);
-                            if (iElementType == 'j' && k+1 < iNbElements)  // on rajoute le separateur.
+                            if (iElementType == CID_WIDGET_SIZE_INTEGER && k+1 < iNbElements)  // on rajoute le separateur.
                             {
                                 GtkWidget *pLabelX = gtk_label_new ("x");
                                 _pack_in_widget_box (pLabelX);
                             }
-                            if (iElementType == 'j' && (k&1))  // on lie les 2 spins entre eux.
+                            if (iElementType == CID_WIDGET_SIZE_INTEGER && (k&1))  // on lie les 2 spins entre eux.
                             {
                                 if (iPrevValue == iValue)
                                     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (pToggleButton), TRUE);
@@ -789,16 +795,16 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             pPrevOneWidget = pOneWidget;
                             iPrevValue = iValue;
                         }
-                        if (iElementType == 'j')
+                        if (iElementType == CID_WIDGET_SIZE_INTEGER)
                         {
                             _pack_in_widget_box (pToggleButton);
                         }
                         bAddBackButton = TRUE;
                         g_free (iValueList);
                     break;
-                    case 'f' :  // float.
-                    case 'c' :  // float avec un bouton de choix de couleur.
-                    case 'e' :  // float dans un HScale.
+                    case CID_WIDGET_SPIN_DOUBLE :  // float.
+                    case CID_WIDGET_COLOR_SELECTOR_RGB :  // float avec un bouton de choix de couleur.
+                    case CID_WIDGET_HSCALE_DOUBLE :  // float dans un HScale.
                         //g_print ("  + float\n");
                         length = 0;
                         fValueList = g_key_file_get_double_list (pKeyFile, cGroupName, cKeyName, &length, NULL);
@@ -821,7 +827,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                 (fMaxValue - fMinValue) / 10.,
                                 0);
 
-                            if (iElementType == 'e') 
+                            if (iElementType == CID_WIDGET_HSCALE_DOUBLE) 
                             {
                                 bAddBackButton = TRUE;
                                 pOneWidget = gtk_hscale_new (GTK_ADJUSTMENT (pAdjustment));
@@ -844,7 +850,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                 FALSE,
                                 0);
                         }
-                        if (iElementType == 'c' && length > 2) 
+                        if (iElementType == CID_WIDGET_COLOR_SELECTOR_RGB && length > 2) 
                         {
                             gdkColor.red = fValueList[0] * 65535;
                             gdkColor.green = fValueList[1] * 65535;
@@ -868,7 +874,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                         g_free (fValueList);
                     break;
 
-                    case 'n' :
+                    case CID_WIDGET_VIEW_LIST :
                         cValue = g_key_file_get_string (pKeyFile, cGroupName, cKeyName, NULL);
                         modele = s_pRendererListStore;
                         pOneWidget = gtk_combo_box_new_with_model (GTK_TREE_MODEL (modele));
@@ -928,10 +934,10 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             0);
                     break ;
                     
-                    case 'd' :
-                    case 'o' :
+                    case CID_WIDGET_DOCK_LIST :
+                    case CID_WIDGET_DESKLET_DECORATION_LIST_WITH_DEFAULT :
                         cValue = g_key_file_get_string (pKeyFile, cGroupName, cKeyName, NULL);
-                        modele = (iElementType == 'd' ? s_pDecorationsListStore : s_pDecorationsListStore2);
+                        modele = (iElementType == CID_WIDGET_DOCK_LIST ? s_pDecorationsListStore : s_pDecorationsListStore2);
                         pOneWidget = gtk_combo_box_new_with_model (GTK_TREE_MODEL (modele));
                         
                         rend = gtk_cell_renderer_text_new ();
@@ -950,18 +956,18 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                         g_free (cValue);
                     break ;
                     
-                    case 's' :  // string
-                    case 'S' :  // string avec un selecteur de fichier a cote du GtkEntry.
-                    case 'u' :  // string avec un selecteur de fichier a cote du GtkEntry et un boutton play.
-                    case 'D' :  // string avec un selecteur de repertoire a cote du GtkEntry.
-//                    case 'T' :  // string, mais sans pouvoir decochez les cases.
-                    case 'E' :  // string, mais avec un GtkComboBoxEntry pour le choix unique.
-                    case 'R' :  // string, avec un label pour la description.
-                    case 'P' :  // string avec un selecteur de font a cote du GtkEntry.
+                    case CID_WIDGET_STRING_ENTRY :  // string
+                    case CID_WIDGET_FILE_SELECTOR :  // string avec un selecteur de fichier a cote du GtkEntry.
+                    case CID_WIDGET_SOUND_SELECTOR :  // string avec un selecteur de fichier a cote du GtkEntry et un boutton play.
+                    case CID_WIDGET_FOLDER_SELECTOR :  // string avec un selecteur de repertoire a cote du GtkEntry.
+//                    case CID_WIDGET_TREE_VIEW_SORT :  // string, mais sans pouvoir decochez les cases.
+                    case CID_WIDGET_LIST_WITH_ENTRY :  // string, mais avec un GtkComboBoxEntry pour le choix unique.
+                    case CID_WIDGET_THEME_SELECTOR :  // string, avec un label pour la description.
+                    case CID_WIDGET_FONT_SELECTOR :  // string avec un selecteur de font a cote du GtkEntry.
                     case 'r' :  // string representee par son numero dans une liste de choix.
-                    case 'M' :  // string, avec un label pour la description et un bouton configurer (specialement fait pour les modules).
-                    case 'k' :  // string avec un selecteur de touche clavier (Merci Ctaf !)
-                    case 'p' :  // string type password
+                    case CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS :  // string, avec un label pour la description et un bouton configurer (specialement fait pour les modules).
+                    case CID_WIDGET_SHORTKEY_SELECTOR :  // string avec un selecteur de touche clavier (Merci Ctaf !)
+                    case CID_WIDGET_PASSWORD_ENTRY :  // string type password
                         //g_print ("  + string (%s)\n", cUsefulComment);
                         pEntry = NULL;
                         pDescriptionLabel = NULL;
@@ -976,7 +982,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             {
                                 pOneWidget = gtk_entry_new ();
                                 pEntry = pOneWidget;
-                                if( iElementType == 'p' ) // password mode
+                                if( iElementType == CID_WIDGET_PASSWORD_ENTRY ) // password mode
                                 {
                                     gtk_entry_set_visibility(GTK_ENTRY (pOneWidget), FALSE);
                                     /*
@@ -999,7 +1005,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             else 
                             {
                                 _allocate_new_model
-                                if (iElementType == 'E') 
+                                if (iElementType == CID_WIDGET_LIST_WITH_ENTRY) 
                                 {
 // Model Name
                                     pOneWidget = gtk_combo_box_entry_new_with_model (GTK_TREE_MODEL (modele), CID_MODEL_NAME);
@@ -1018,7 +1024,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                 if (iElementType == 'r')
                                     iSelectedItem = atoi (cValue);
                                 gchar *cResult = (iElementType == 'r' ? g_new0 (gchar , 10) : NULL);
-                                int ii, iNbElementsByItem = (iElementType == 'R' ? 3 : (iElementType == 'M' ? 4 : 1));
+                                int ii, iNbElementsByItem = (iElementType == CID_WIDGET_THEME_SELECTOR ? 3 : (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? 4 : 1));
                                 while (pAuthorizedValuesList[k] != NULL) 
                                 {
                                     for (ii=0;ii<iNbElementsByItem;ii++) 
@@ -1041,19 +1047,19 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                     {
                                         snprintf (cResult, 10, "%d", k);
                                     }
-                                    if (iElementType == 'M')
+                                    if (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS)
 // Icon Size
                                         pixbuf = gdk_pixbuf_new_from_file_at_size (pAuthorizedValuesList[k+3], 16, 16, NULL);
                                         
                                     gtk_list_store_set (GTK_LIST_STORE (modele), &iter,
                                         CID_MODEL_NAME, (iElementType == 'r' ? dgettext (cGettextDomain, pAuthorizedValuesList[k]) : pAuthorizedValuesList[k]),
                                         CID_MODEL_RESULT, (cResult != NULL ? cResult : pAuthorizedValuesList[k]),
-                                        CID_MODEL_DESCRIPTION_FILE, (iElementType == 'R' || iElementType == 'M' ? pAuthorizedValuesList[k+1] : NULL),
-                                        CID_MODEL_IMAGE, (iElementType == 'R' || iElementType == 'M' ? pAuthorizedValuesList[k+2] : NULL),
-                                        CID_MODEL_ICON, (iElementType == 'M' ? pixbuf : NULL), -1);
+                                        CID_MODEL_DESCRIPTION_FILE, (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pAuthorizedValuesList[k+1] : NULL),
+                                        CID_MODEL_IMAGE, (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pAuthorizedValuesList[k+2] : NULL),
+                                        CID_MODEL_ICON, (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pixbuf : NULL), -1);
 
                                     k += iNbElementsByItem;
-                                    if (iElementType == 'R' || iElementType == 'M') 
+                                    if (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS) 
                                     {
                                         if (pAuthorizedValuesList[k-2] == NULL)  // ne devrait pas arriver si le fichier de conf est bien rempli.
                                             break;
@@ -1065,7 +1071,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                     j ++;
                                     continue;
                                 }
-                                if (iElementType == 'R' || iElementType == 'M') 
+                                if (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS) 
                                 {
                                     pDescriptionLabel = gtk_label_new (NULL);
                                     gtk_label_set_use_markup  (GTK_LABEL (pDescriptionLabel), TRUE);
@@ -1076,7 +1082,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                     g_signal_connect (G_OBJECT (pOneWidget), "changed", G_CALLBACK (_cid_select_one_item_in_combo), data);
                                 }
 
-                                if (iElementType != 'E' && iSelectedItem == -1)
+                                if (iElementType != CID_WIDGET_LIST_WITH_ENTRY && iSelectedItem == -1)
                                     iSelectedItem = 0;
                                 gtk_combo_box_set_active (GTK_COMBO_BOX (pOneWidget), iSelectedItem);
                             }
@@ -1096,14 +1102,14 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (pOneWidget), FALSE);
                             
                             GtkCellRenderer *rend;
-                            if (pAuthorizedValuesList != NULL && iElementType != 'T') 
+                            if (pAuthorizedValuesList != NULL && iElementType != CID_WIDGET_TREE_VIEW_SORT) 
                             { // && pAuthorizedValuesList[0] != NULL
                                 rend = gtk_cell_renderer_toggle_new ();
                                 gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pOneWidget), -1, NULL, rend, "active", CID_MODEL_ACTIVE, NULL);
-                                //\___________g_signal_connect (G_OBJECT (rend), "toggled", (GCallback) (iElementType == 'M' ? _cairo_dock_activate_one_module : _cairo_dock_activate_one_element), modele);
+                                //\___________g_signal_connect (G_OBJECT (rend), "toggled", (GCallback) (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? _cairo_dock_activate_one_module : _cairo_dock_activate_one_element), modele);
                             }
                             
-                            if (iElementType == 'M') 
+                            if (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS) 
                             {
                                 rend = gtk_cell_renderer_pixbuf_new ();
                                 gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pOneWidget), -1, NULL, rend, "pixbuf", CID_MODEL_ICON, NULL);
@@ -1118,7 +1124,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             pScrolledWindow = gtk_scrolled_window_new (NULL, NULL);
                             gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (pScrolledWindow), GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
                             gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW (pScrolledWindow), pOneWidget);
-                            if (iElementType == 'M')
+                            if (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS)
 // Preview Height
                                 gtk_widget_set (pScrolledWindow, "height-request", (int) (150 + 0), NULL);
                             gtk_box_pack_start (GTK_BOX (pHBox),
@@ -1134,7 +1140,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                 FALSE,
                                 0);
 
-                            if (iElementType != 'M') 
+                            if (iElementType != CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS) 
                             {
                                 pButtonUp = gtk_button_new_from_stock (GTK_STOCK_GO_UP);
                                 g_signal_connect (G_OBJECT (pButtonUp),
@@ -1177,7 +1183,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             }
 
                             GtkTreeIter iter;
-                            int iNbElementsByItem = (iElementType == 'R' ? 3 : (iElementType == 'M' ? 4 : 1));
+                            int iNbElementsByItem = (iElementType == CID_WIDGET_THEME_SELECTOR ? 3 : (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? 4 : 1));
                             if (pAuthorizedValuesList != NULL) 
                             { //  && pAuthorizedValuesList[0] != NULL
                                 int l, iOrder = 0;
@@ -1198,17 +1204,17 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                     { // c'etait bien une valeur autorisee.
                                         memset (&iter, 0, sizeof (GtkTreeIter));
                                         gtk_list_store_append (modele, &iter);
-                                        if (iElementType == 'M')
+                                        if (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS)
 // Icon Size
                                             pixbuf = gdk_pixbuf_new_from_file_at_size (pAuthorizedValuesList[k+3], 16, 16, NULL);
                                         gtk_list_store_set (modele, &iter,
                                             CID_MODEL_ACTIVE, TRUE,
                                             CID_MODEL_NAME, cValue,
                                             CID_MODEL_RESULT, cValue,
-                                            CID_MODEL_DESCRIPTION_FILE, (iElementType == 'R' || iElementType == 'M' ? pAuthorizedValuesList[k+1] : NULL),
+                                            CID_MODEL_DESCRIPTION_FILE, (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pAuthorizedValuesList[k+1] : NULL),
                                             CID_MODEL_ORDER, iOrder ++,
-                                            CID_MODEL_IMAGE, (iElementType == 'R' || iElementType == 'M' ? pAuthorizedValuesList[k+2] : NULL), 
-                                            CID_MODEL_ICON, (iElementType == 'M' ? pixbuf : NULL), -1);
+                                            CID_MODEL_IMAGE, (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pAuthorizedValuesList[k+2] : NULL), 
+                                            CID_MODEL_ICON, (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pixbuf : NULL), -1);
                                     }
                                 }
                                 k = 0;
@@ -1227,23 +1233,23 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                     { // elle n'a pas encore ete inseree.
                                         memset (&iter, 0, sizeof (GtkTreeIter));
                                         gtk_list_store_append (modele, &iter);
-                                        if (iElementType == 'M')
+                                        if (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS)
 // Icon Size
                                             pixbuf = gdk_pixbuf_new_from_file_at_size (pAuthorizedValuesList[k+3], 16, 16, NULL);
                                         gtk_list_store_set (modele, &iter,
                                             CID_MODEL_ACTIVE, FALSE,
                                             CID_MODEL_NAME, cValue,
                                             CID_MODEL_RESULT, cValue,
-                                            CID_MODEL_DESCRIPTION_FILE, (iElementType == 'R' || iElementType == 'M' ? pAuthorizedValuesList[k+1] : NULL),
+                                            CID_MODEL_DESCRIPTION_FILE, (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pAuthorizedValuesList[k+1] : NULL),
                                             CID_MODEL_ORDER, iOrder ++,
                                             CID_MODEL_IMAGE,
-                                            (iElementType == 'R' || iElementType == 'M' ? pAuthorizedValuesList[k+2] : NULL), 
-                                            CID_MODEL_ICON, (iElementType == 'M' ? pixbuf : NULL), -1);
+                                            (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pAuthorizedValuesList[k+2] : NULL), 
+                                            CID_MODEL_ICON, (iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS ? pixbuf : NULL), -1);
                                     }
                                     k += iNbElementsByItem;
                                 }
 
-                                if (iElementType == 'R' || iElementType == 'M') 
+                                if (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS) 
                                 {
                                     pDescriptionLabel = gtk_label_new (NULL);
                                     gtk_label_set_use_markup (GTK_LABEL (pDescriptionLabel), TRUE);
@@ -1327,13 +1333,13 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             }
                         }
 
-                        if (iElementType == 'S' || iElementType == 'D' || iElementType == 'u') 
+                        if (iElementType == CID_WIDGET_FILE_SELECTOR || iElementType == CID_WIDGET_FOLDER_SELECTOR || iElementType == CID_WIDGET_SOUND_SELECTOR) 
                         {
                             if (pEntry != NULL) 
                             {
                                 _allocate_new_buffer;
                                 data[0] = pEntry;
-                                data[1] = GINT_TO_POINTER (iElementType != 'u' ? (iElementType == 'S' ? 0 : 1) : 0);
+                                data[1] = GINT_TO_POINTER (iElementType != CID_WIDGET_SOUND_SELECTOR ? (iElementType == CID_WIDGET_FILE_SELECTOR ? 0 : 1) : 0);
                                 data[2] = GTK_WINDOW (pDialog);
                                 pButtonFileChooser = gtk_button_new_from_stock (GTK_STOCK_OPEN);
                                 g_signal_connect (G_OBJECT (pButtonFileChooser),
@@ -1346,7 +1352,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                     FALSE,
                                     0);
                             }
-                        } else if (iElementType == 'R' || iElementType == 'M') {
+                        } else if (iElementType == CID_WIDGET_THEME_SELECTOR || iElementType == CID_WIDGET_JUMP_TO_MODULE_IF_EXISTS) {
 // Marge
                             GtkWidget *pPreviewBox = gtk_vbox_new (FALSE, 1);
                             gtk_box_pack_start (GTK_BOX (pHBox),
@@ -1366,7 +1372,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                     FALSE,
                                     FALSE,
                                     0);
-                        } else if (iElementType == 'P' && pEntry != NULL) {
+                        } else if (iElementType == CID_WIDGET_FONT_SELECTOR && pEntry != NULL) {
                             pFontButton = gtk_font_button_new_with_font (gtk_entry_get_text (GTK_ENTRY (pEntry)));
                             gtk_font_button_set_show_style (GTK_FONT_BUTTON (pFontButton), FALSE);
                             gtk_font_button_set_show_size (GTK_FONT_BUTTON (pFontButton), FALSE);
@@ -1379,7 +1385,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                                 FALSE,
                                 FALSE,
                                 0);
-                        } else if (iElementType == 'k' && pEntry != NULL) {
+                        } else if (iElementType == CID_WIDGET_SHORTKEY_SELECTOR && pEntry != NULL) {
                             GtkWidget *pGrabKeyButton = gtk_button_new_with_label(_("grab"));
 
                             _allocate_new_buffer;
@@ -1401,8 +1407,8 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                         g_strfreev (cValueList);
                     break;
 
-                    case 'F' :
-                    case 'X' :
+                    case CID_WIDGET_FRAME :
+                    case CID_WIDGET_EXPANDER :
                         //g_print ("  + frame\n");
                         if (pAuthorizedValuesList == NULL) 
                         {
@@ -1451,7 +1457,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                             }
                             
                             GtkWidget *pExternFrame;
-                            if (iElementType == 'F') 
+                            if (iElementType == CID_WIDGET_FRAME) 
                             {
                                 pExternFrame = gtk_frame_new (NULL);
 // Marge GUI
@@ -1488,7 +1494,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                         }
                         break;
 
-                    case 'v' :  // separateur.
+                    case CID_WIDGET_SEPARATOR :  // separateur.
                         {
                             GtkWidget *pAlign = gtk_alignment_new (.5, 0., 0.5, 0.);
                             pOneWidget = gtk_hseparator_new ();
