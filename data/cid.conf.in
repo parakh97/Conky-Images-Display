@@ -46,10 +46,10 @@ ROTATION=0
 #b Keep corners during rotate
 KEEP_CORNERS=
 
-#c+4[0;1] Color of the background (r,g,b,a)
+#c+4[0;1] Color of the background (r,g,b,a)/
 COLOR=1;1;1;0.2;
 
-#c+4[0;1] Color of the mask when the mouse is over
+#c+4[0;1] Color of the mask when the mouse is over/
 FLYING_COLOR=0;0;0;0.7;
 
 #b Show the mask over the image
@@ -99,10 +99,10 @@ TITLE=
 #ti[5;20] Size of the police
 POLICE_SIZE=15
 
-#tc+4[0;1] Color of the text
+#tc+4[0;1] Color of the text/
 POLICE_COLOR=1;1;1;1;
 
-#tc+4[0;1] Color of outline's text
+#tc+4[0;1] Color of outline's text/
 OUTLINE_COLOR=0;0;0;0.5;
 
 

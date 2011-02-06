@@ -1130,4 +1130,32 @@ cid_free_substitute (CidSubstitute *pSub)
     g_free (pSub->replacement);
     g_free (pSub);
 }
+
+void
+cid_parse_nl (gchar **input)
+{
+    gchar *in = *input;
+    gint length = strlen (in);
+    gint ind = 0, cpt = 0;
+    gchar *output = g_malloc (sizeof(gchar)*length+1);
+    while (ind<length)
+    {
+        if (in[ind] == '\\' && ind < length-1 && in[ind+1] == 'n')
+        {
+            output[cpt] = '\n';
+            ind++;
+        }
+        else
+        {
+            output[cpt] = in[ind];
+        }
+        ind++,cpt++;
+    }
+    output[cpt] = '\0';
+    g_free (in);
+    in = NULL;
+    in = g_strdup (output);
+    g_free (output);
+}
+
     

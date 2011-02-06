@@ -275,11 +275,17 @@ void cid_substitute_user_params (gchar **cPath);
  */
  CidSubstitute *cid_new_substitute (const gchar *regex, const gchar *replacement);
  
- /**
-  * Libère une structure CidSubstitute.
-  * @param pSub La structure à libérer.
-  */
+/**
+ * Libère une structure CidSubstitute.
+ * @param pSub La structure à libérer.
+ */
 void cid_free_substitute (CidSubstitute *pSub);
+
+/**
+ * Permet de transformer une chaîne "\n" en caractère '\n'.
+ * @param input Pointeur vers la chaîne à parser.
+ */
+void cid_parse_nl (gchar **input);
 
 #define BEGIN_FOREACH_DT(dt) \
 CidDataTable *p_dt=dt; \

@@ -456,13 +456,16 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 pHBox = gtk_hbox_new (FALSE, 1);
                 if (pTipString != NULL) 
                 {
-                    //g_print ("pTipString : '%s'\n", pTipString);
+                    gchar *pTmpTip = g_strdup (dgettext (cGettextDomain, pTipString));
+                    cid_parse_nl (&pTmpTip);
+                    //g_print ("pTmpTip : '%s'\n", pTmpTip);
                     pEventBox = gtk_event_box_new ();
                     gtk_container_add (GTK_CONTAINER (pEventBox), pHBox);
                     gtk_tooltips_set_tip (GTK_TOOLTIPS (pToolTipsGroup),
                         pEventBox,
-                        dgettext (cGettextDomain, pTipString),
+                        pTmpTip,
                         "pouet");
+                    g_free (pTmpTip);
                 } else
                     pEventBox = NULL;
 

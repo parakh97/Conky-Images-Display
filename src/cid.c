@@ -221,7 +221,7 @@ main ( int argc, char **argv )
 {        
     //char **argvBis = malloc(sizeof(argv));
     //memcpy(argvBis,argv,sizeof(argv));
-    
+
     struct sigaction action;
 
     cid = g_malloc0 (sizeof(*cid));
@@ -230,7 +230,7 @@ main ( int argc, char **argv )
     cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
     
     /// TODO: debug
-/*
+    /*
     int argcBis = argc, a=0;
     char **argvBis = calloc(argc,sizeof(char));
     if (argvBis==NULL)
@@ -342,6 +342,17 @@ main ( int argc, char **argv )
     
     g_free (test);
 */    
+/*
+    int i = 1;
+    for (;i<argc;i++)
+    {
+        gchar *tmp = g_strdup (argv[i]);
+        fprintf (stdout,"avant: %s\n",tmp);
+        cid_parse_nl (&tmp);
+        fprintf (stdout,"après: %s\n",tmp);
+        g_free (tmp);
+    }
+*/
     fprintf (stdout,"Bye !\n");    
 
     return ret;
