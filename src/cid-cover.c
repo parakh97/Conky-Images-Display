@@ -133,7 +133,7 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
     xmlXPathContextPtr ctxt = xmlXPathNewContext(doc);
     if (ctxt == NULL) 
     {
-        cid_warning ( "Erreur lors de la création du contexte XPath");
+        cid_warning ("Erreur lors de la création du contexte XPath");
         return;
     }
     
@@ -221,7 +221,7 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
     /* Load the GKeyFile or return. */
     if (!g_key_file_load_from_file (pKeyFile, cDBFile, flags, &error)) 
     {
-        cid_warning (error->message);
+        cid_warning ("%s",error->message);
         g_error_free (error);
     }
     gchar *cDestFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, md5);
@@ -245,10 +245,13 @@ cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cA
     GKeyFile *pKeyFile;
     CURL *handle = curl_easy_init();
     gchar *cCoverPath = NULL;
-    gchar *cKey = g_strdup_printf ("%s_%s", curl_easy_escape (handle, cArtist, 0),
-                                            curl_easy_escape (handle, cAlbum, 0));
+    gchar *cKey = g_strdup_printf ("%s_%s", 
+                                  curl_easy_escape (handle, cArtist, 0),
+                                  curl_easy_escape (handle, cAlbum, 0));
     curl_easy_cleanup (handle);
-    gchar *cDBFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, CID_COVER_DB);
+    gchar *cDBFile = g_strdup_printf ("%s/%s", 
+                                      cid->config->cDLPath, 
+                                      CID_COVER_DB);
     GKeyFileFlags flags;
     GError *error = NULL;
 
@@ -258,7 +261,7 @@ cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cA
 
     if (!g_key_file_load_from_file (pKeyFile, cDBFile, flags, &error))
     {
-        cid_warning (error->message);
+        cid_warning ("%s",error->message);
         g_error_free (error);
         g_free (cKey);
         g_free (cDBFile);
@@ -268,7 +271,7 @@ cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cA
     gchar *cVal = g_key_file_get_value (pKeyFile, "DB", cKey, &error);
     if (error != NULL)
     {
-        cid_warning (error->message);
+        cid_warning ("%s",error->message);
         g_error_free (error);
     }
     if (cVal != NULL)

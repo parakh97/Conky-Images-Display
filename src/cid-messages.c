@@ -96,7 +96,7 @@ cid_exit (CidMainContainer **pCid, int code, const gchar *mess, ...)
     va_list args;
     va_start (args, mess);
     gchar *cFullText = g_strdup_vprintf (mess, args);
-    cid_error (cFullText);
+    cid_error ("%s",cFullText);
     g_free (cFullText);
     va_end (args);
     cid_sortie (pCid, code);

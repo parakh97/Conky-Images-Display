@@ -99,7 +99,7 @@ cid_focus (GtkWidget *pWidget, GdkEventExpose *event, gpointer *userdata)
 
     gboolean bFocusIn = GPOINTER_TO_INT (&userdata[0]);
     
-    cid_info ("CID is currently focused %s.", bFocusIn ? "in" : "out");
+    //cid_info ("CID is currently focused %s.", bFocusIn ? "in" : "out");
     
     if (cid->config->bShowAbove)
         gtk_window_set_keep_below (GTK_WINDOW (cid->pWindow), !bFocusIn);

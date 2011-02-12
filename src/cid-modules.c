@@ -285,7 +285,7 @@ cid_preload_module_from_directory (const gchar *cModuleDirPath, GError **erreur)
             pModule = cid_load_module (sFilePath->str, &tmp_erreur);
             if (tmp_erreur != NULL)
             {
-                cid_warning (tmp_erreur->message);
+                cid_warning ("%s",tmp_erreur->message);
                 g_error_free (tmp_erreur);
                 tmp_erreur = NULL;
             }

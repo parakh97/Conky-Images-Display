@@ -112,7 +112,7 @@ cid_edit_conf_file_core (GtkWindow *pWindow, gchar *cConfFilePath, const gchar *
     g_key_file_load_from_file (pKeyFile, cConfFilePath, G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS, &erreur);
     if (erreur != NULL) 
     {
-        cid_warning (erreur->message);
+        cid_warning ("%s",erreur->message);
         g_error_free (erreur);
         return FALSE;
     }
@@ -1580,7 +1580,7 @@ _cid_set_original_value (GtkButton *button, gpointer *data)
     g_key_file_load_from_file (pKeyFile, cOriginalConfFilePath, G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS, &erreur);
     if (erreur != NULL) 
     {
-        cid_warning (erreur->message);
+        cid_warning ("%s",erreur->message);
         g_error_free (erreur);
         erreur = NULL;
         return ;

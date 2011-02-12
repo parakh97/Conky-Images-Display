@@ -219,7 +219,7 @@ cid_load_key_file(CidMainContainer **pCid, GKeyFile **pKeyFile, const gchar *cFi
     /* Load the GKeyFile or return. */
     if (!g_key_file_load_from_file (*pKeyFile, cFile, flags, &error)) 
     {
-        cid_warning (error->message);
+        cid_warning ("%s",error->message);
         g_error_free (error);
         return FALSE;
     }

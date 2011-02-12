@@ -102,7 +102,7 @@ cid_launch_task (CidTask *pTask)
             GThread* pThread = g_thread_create ((GThreadFunc) _cid_threaded_calculation, pTask, FALSE, &erreur);
             if (erreur != NULL)  // on n'a pas pu lancer le thread.
             {
-                cid_warning (erreur->message);
+                cid_warning ("%s",erreur->message);
                 g_error_free (erreur);
                 g_atomic_int_set (&pTask->iThreadIsRunning, 0);
             }

@@ -77,7 +77,7 @@ cid_launch_measure (CidMeasure *pMeasureTimer)
         GThread* pThread = g_thread_create ((GThreadFunc) _cid_threaded_calculation, pMeasureTimer, FALSE, &erreur);
         if (erreur != NULL) 
         { // on n'a pas pu lancer le thread.
-            cid_warning (erreur->message);
+            cid_warning ("%s",erreur->message);
             g_error_free (erreur);
             g_atomic_int_set (&pMeasureTimer->iThreadIsRunning, 0);
         }

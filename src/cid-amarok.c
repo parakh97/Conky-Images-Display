@@ -38,7 +38,7 @@ get_amarock_musicData (CidMainContainer **pCid)
     
     if (error) 
     {
-        cid_warning (error->message);
+        cid_warning ("%s",error->message);
         
         musicData.opening = FALSE;
         musicData.playing = FALSE;
