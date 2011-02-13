@@ -186,7 +186,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
     GtkWidget *pOneWidget;
     GSList * pSubWidgetList;
     GtkWidget *pLabel, *pLabelContainer;
-    GtkWidget *pVBox, *pHBox, *pSmallVBox, *pEventBox, *pRightHBox;
+    GtkWidget *pVBox, *pHBox, *pSmallVBox, *pEventBox = NULL, *pRightHBox;
     GtkWidget *pEntry;
     GtkWidget *pTable;
     GtkWidget *pButtonAdd, *pButtonRemove;
@@ -457,15 +457,21 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                 if (pTipString != NULL) 
                 {
                     gchar *pTmpTip = g_strdup (dgettext (cGettextDomain, pTipString));
-                    cid_parse_nl (&pTmpTip);
-                    //g_print ("pTmpTip : '%s'\n", pTmpTip);
-                    pEventBox = gtk_event_box_new ();
-                    gtk_container_add (GTK_CONTAINER (pEventBox), pHBox);
-                    gtk_tooltips_set_tip (GTK_TOOLTIPS (pToolTipsGroup),
-                        pEventBox,
-                        pTmpTip,
-                        "pouet");
-                    g_free (pTmpTip);
+                    if (pTmpTip != NULL)
+                    {
+                        cid_parse_nl (&pTmpTip);
+                        if (pTmpTip != NULL)
+                        {
+                            //g_print ("pTmpTip : '%s'\n", pTmpTip);
+                            pEventBox = gtk_event_box_new ();
+                            gtk_container_add (GTK_CONTAINER (pEventBox), pHBox);
+                                gtk_tooltips_set_tip (GTK_TOOLTIPS (pToolTipsGroup),
+                                pEventBox,
+                                pTmpTip,
+                                "pouet");
+                            g_free (pTmpTip);
+                        }
+                    }
                 } else
                     pEventBox = NULL;
 

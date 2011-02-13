@@ -101,7 +101,7 @@ get_amarock_musicData (CidMainContainer **pCid)
     
     
     run = TRUE;
-    cid_info ("\nartist : %s\nalbum : %s\ntitle : %s\nsong uri : %s\ncover uri : %s\n",gArtist,gAlbum,gTitle,gPlayingURI,gCoverURI);
+    cid_info ("\nartist : %s\nalbum : %s\ntitle : %s\nsong uri : %s\ncover uri : %s",gArtist,gAlbum,gTitle,gPlayingURI,gCoverURI);
     g_free (gArtist);
     g_free (gAlbum);
     g_free (gTitle);
@@ -143,7 +143,7 @@ cid_check_amarok_cover_exists (CidMainContainer **pCid, gchar *cURI)
     if (g_strcasecmp(cSplitedURI[0],"nocover")==0) 
     {
         g_free (cRet);
-        cRet = cid_search_cover (pCid, musicData.playing_artist, musicData.playing_album);
+        cRet = cid_db_search_cover (pCid, musicData.playing_artist, musicData.playing_album);
         if (cRet == NULL)
         {
             cid->runtime->iCheckIter = 0;
@@ -166,7 +166,7 @@ cid_amarok_cover(CidMainContainer **pCid)
         /* Si Amarok ne joue pas, on affiche l'image par défaut. */
         if (!musicData.opening) 
         {
-            cid_debug ("Amarok isn't playing\n");
+            cid_debug ("Amarok isn't playing");
             cid_display_image (cid->config->cDefaultImage);
         } 
         else 

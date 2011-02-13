@@ -71,7 +71,7 @@ gboolean cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath
  * @return URI de la pochette apres stockage dans notre
  * 'magazin', NULL si stockage impossible.
  */
-gchar *cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
+gchar *cid_db_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
                         const gchar *cArtist, const gchar *cAlbum);
 
 /**
@@ -81,7 +81,7 @@ gchar *cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
  * @param cAlbum nom de l'album.
  * @return URI complet de l'image, NULL si non toruve.
  */
-gchar *cid_search_cover (CidMainContainer **pCid, const gchar *cArtist,
+gchar *cid_db_search_cover (CidMainContainer **pCid, const gchar *cArtist,
                          const gchar *cAlbum);
 
 G_END_DECLS

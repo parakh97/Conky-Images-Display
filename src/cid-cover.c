@@ -173,8 +173,8 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
 }
 
 gchar * 
-cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
-                 const gchar *cArtist, const gchar *cAlbum)
+cid_db_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
+                    const gchar *cArtist, const gchar *cAlbum)
 {
     g_return_val_if_fail (cCoverPath != NULL 
                           && cArtist != NULL 
@@ -238,7 +238,7 @@ cid_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
 }
 
 gchar *
-cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cAlbum)
+cid_db_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cAlbum)
 {
     g_return_val_if_fail (cArtist != NULL && cAlbum != NULL, NULL);
     CidMainContainer *cid = *pCid;
@@ -285,4 +285,10 @@ cid_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cA
     g_key_file_free (pKeyFile);
         
     return cCoverPath;
+}
+
+gchar *
+cid_cover_lookup (const gchar *cDir)
+{
+    return NULL;
 }

@@ -292,6 +292,9 @@ struct _CidRuntime {
     gboolean bPipeRunning;
     /// On est connecte au lecteur ?
     gboolean bConnected;
+    
+    /// liste des patterns de pochettes à rechercher
+    CidDataTable *pCoversList;
 };
 
 /// Structure contenant les paramètres de configuration de CID

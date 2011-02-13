@@ -360,7 +360,7 @@ _cid_check_and_display (gpointer *pSharedMemory)
         cid_display_image(DEFAULT_DOWNLOADED_IMAGE_LOCATION);
         
         gchar *tmp;
-        tmp = cid_store_cover (pCid, 
+        tmp = cid_db_store_cover (pCid, 
                          DEFAULT_DOWNLOADED_IMAGE_LOCATION,
                          cArtist,
                          cAlbum);

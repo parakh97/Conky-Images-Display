@@ -87,8 +87,8 @@ STATE=
 SYMBOL_COLOR=
 
 #U Search the following files
-#{%user% stands for the username\n%home% stands for the user's home directory\n%artist% stands for the artist's name\n%album% stands for the album name}
-FILES_LIST=
+#{%user% stands for the username\n%home% stands for the user's home directory\n%artist% stands for the artist's name\n%album% stands for the album name}/
+FILES_LIST=album;albumart;cover;folder;.cover;.folder;
 
 #tX+[Display Title;gtk-select-color]
 frame_title =

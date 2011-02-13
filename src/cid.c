@@ -169,12 +169,21 @@ cid_set_signal_interception (struct sigaction *action)
     (*action).sa_handler = cid_intercept_signal;
     sigfillset (&((*action).sa_mask));
     (*action).sa_flags = 0;
-    CidDataTable *p_signals = cid_create_datatable(G_TYPE_INT,SIGSEGV,SIGFPE,SIGILL,SIGABRT,SIGINT,SIGTERM,G_TYPE_INVALID);
+    CidDataTable *p_signals = cid_create_datatable(G_TYPE_INT,
+                                                   SIGSEGV,
+                                                   SIGFPE,
+                                                   SIGILL,
+                                                   SIGABRT,
+                                                   SIGINT,
+                                                   SIGTERM,
+                                                   G_TYPE_INVALID);
     BEGIN_FOREACH_DT(p_signals)
         // p_temp est declare par BEGIN_FOREACH_DT
         if (sigaction (p_temp->content->iNumber, action, NULL) != 0)
         {
-            cid_error ("Problem while catching signal %d",p_temp->content->iNumber);
+            cid_error ("Problem while catching signal %d (%s)",
+                       p_temp->content->iNumber,
+                       strsignal(p_temp->content->iNumber));
         }
     END_FOREACH_DT
 }
@@ -219,8 +228,6 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
 int 
 main ( int argc, char **argv ) 
 {        
-    //char **argvBis = malloc(sizeof(argv));
-    //memcpy(argvBis,argv,sizeof(argv));
 
     struct sigaction action;
 
@@ -228,22 +235,6 @@ main ( int argc, char **argv )
     cid->config = g_malloc0 (sizeof(*(cid->config)));
     cid->runtime = g_malloc0 (sizeof(*(cid->runtime)));
     cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
-    
-    /// TODO: debug
-    /*
-    int argcBis = argc, a=0;
-    char **argvBis = calloc(argc,sizeof(char));
-    if (argvBis==NULL)
-        cid_exit(&cid,CID_EXIT_ERROR,"Error while copying args");
-    for (;a<argc;a++) 
-    {
-        argvBis[a] = realloc (argvBis[a],strlen(argv[a])*sizeof(char));
-        if (argvBis[a]!=NULL)
-            strcpy(argvBis[a],argv[a]);
-        else
-            cid_exit(&cid,CID_EXIT_ERROR,"Error while copying args");
-    }
-*/
 
     curl_global_init(CURL_GLOBAL_ALL);
     
@@ -282,9 +273,7 @@ main ( int argc, char **argv )
     gdk_threads_init();
 
     // La on lance la boucle GTK
-    //cid_display_init (&cid,&argc,&argvBis);
-    cid_display_init (&cid,0,NULL);
-    //free (argvBis);
+    cid_display_init (&cid,&argc,&argv);
     
     // Si on est ici, c'est qu'on a coupé la boucle GTK
     // Du coup, on en profite pour faire un peu de ménage
@@ -353,6 +342,7 @@ main ( int argc, char **argv )
         g_free (tmp);
     }
 */
+    
     fprintf (stdout,"Bye !\n");    
 
     return ret;

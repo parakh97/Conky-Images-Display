@@ -228,9 +228,10 @@ getSongInfos(void)
         } 
         else 
         {
-            CidDataTable *p_tabFiles = cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
-                                                            ".folder",".cover","folder","Cover","Folder",
-                                                            G_TYPE_INVALID);
+            CidDataTable *p_tabFiles = cid_clone_datatable (cid->runtime->pCoversList);
+            //cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
+            //                                                ".folder",".cover","folder","Cover","Folder",
+            //                                                G_TYPE_INVALID);
             gchar *cSongPath = g_filename_from_uri (musicData.playing_uri, NULL, NULL);  // on teste d'abord dans le repertoire de la chanson.
             if (cSongPath != NULL)
             {
@@ -262,7 +263,7 @@ getSongInfos(void)
                 {
                     gchar *cCoverSave = g_strdup (musicData.playing_cover);
                     g_free (musicData.playing_cover);
-                    musicData.playing_cover = cid_search_cover (&cid, musicData.playing_artist, musicData.playing_album);
+                    musicData.playing_cover = cid_db_search_cover (&cid, musicData.playing_artist, musicData.playing_album);
                     if (musicData.playing_cover == NULL)
                     {
                         musicData.playing_cover = g_strdup (cCoverSave);

@@ -1066,22 +1066,6 @@ cid_encrypt_string( const gchar *cDecryptedString,  gchar **cEncryptedString )
 #endif
 }
 
-static gboolean
-eval_cb (const GMatchInfo *info,
-         GString          *res,
-         gpointer          data)
-{
-    gchar *match;
-    gchar *r;
-
-    match = g_match_info_fetch (info, 0);
-    r = g_hash_table_lookup ((GHashTable *)data, match);
-    g_string_append (res, r);
-    g_free (match);
-
-    return FALSE;
-}
-
 static void
 cid_proceed_substitute (CidDataCase *pCase, gpointer *pData)
 {
@@ -1158,4 +1142,65 @@ cid_parse_nl (gchar **input)
     g_free (output);
 }
 
-    
+CidDataTable *
+cid_char_table_to_datatable (gchar **table, gint iSize)
+{
+    g_return_val_if_fail (table != NULL,NULL);
+
+    gint cpt = 0;
+    CidDataTable *res = cid_datatable_new();
+    if (res != NULL)
+    {
+        while ((iSize == -1 ? table[cpt] != NULL : cpt<iSize) && table[cpt] != NULL)
+        {
+            CidDataContent *tmp = cid_datacontent_new(G_TYPE_STRING, table[cpt]);
+            cid_datatable_append(&res,tmp);
+            cpt++;
+        } 
+    }
+    return res;
+}
+
+static void
+cid_copy_datacase (CidDataCase *pCase, gpointer *pData)
+{
+    CidDataTable *table = (CidDataTable *)pData[1];
+    CidDataContent *ori = pCase->content;
+    CidDataContent *new;
+    switch (ori->type)
+    {
+        case G_TYPE_INT: 
+            new = cid_datacontent_new_int (GINT_TO_POINTER(pCase->content->iNumber));
+            break;
+        case G_TYPE_BOOLEAN:
+            new = cid_datacontent_new_boolean (GINT_TO_POINTER(ori->booleen));
+            break;
+        case G_TYPE_STRING:
+            new = cid_datacontent_new_string (ori->string);
+            break;
+        case CID_TYPE_SUBSTITUTE:
+            new = cid_datacontent_new_substitute (cid_new_substitute (ori->sub->regex,ori->sub->replacement));
+            break;
+        default:
+            new = NULL;
+    }
+    if (new != NULL)
+    {
+        cid_datatable_append (&table,new);
+    }
+}
+
+CidDataTable *
+cid_clone_datatable (CidDataTable *pSource)
+{
+    CidDataTable *res = cid_datatable_new ();
+    if (res != NULL)
+    {
+        gpointer *data = g_new0 (gpointer,2);
+        data[0] = GINT_TO_POINTER (0);
+        data[1] = res;
+        cid_datatable_foreach (pSource, cid_copy_datacase, data);
+        g_free (data);
+    }
+    return res;
+}

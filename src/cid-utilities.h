@@ -287,6 +287,22 @@ void cid_free_substitute (CidSubstitute *pSub);
  */
 void cid_parse_nl (gchar **input);
 
+/**
+ * Permet de convertir un tableau de chaînes classic en DataTable.
+ * @param table tableau de départ.
+ * @param iSize nombre d'élément à copier (-1 pour tout le tableau).
+ * @return un DataTable contenant une copie de l'ensemble des élements
+ *         du tableau passé en paramètre.
+ */
+CidDataTable *cid_char_table_to_datatable (gchar **table, gint iSize);
+
+/**
+ * Permet de cloner un datatable.
+ * @param pSource datatable à cloner.
+ * @return un clone du datatable source.
+ */
+CidDataTable *cid_clone_datatable (CidDataTable *pSource);
+
 #define BEGIN_FOREACH_DT(dt) \
 CidDataTable *p_dt=dt; \
 CidDataCase *p_temp=p_dt->head; \

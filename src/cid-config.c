@@ -349,6 +349,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid_free_and_debug_error(&error);
     cid->config->t_cCoverPatternList = g_key_file_get_string_list (cid->pKeyFile, "System", "FILES_LIST", &cid->config->iNbPatterns, &error);
     cid_free_and_debug_error(&error);
+    cid->runtime->pCoversList = cid_char_table_to_datatable (cid->config->t_cCoverPatternList, cid->config->iNbPatterns);
 
     // [Options] configuration
     cid->config->bHide           = CID_CONFIG_GET_BOOLEAN ("Options", "HIDE");
