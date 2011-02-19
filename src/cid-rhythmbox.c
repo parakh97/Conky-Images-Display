@@ -248,25 +248,22 @@ getSongInfos(void)
                     cid_debug ("   test de %s\n", musicData.playing_cover);
                 END_FOREACH_DT
                 */
-                if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
-                {
-                    cid_debug ("   test de %s (.gnome2)", 
-                               musicData.playing_cover);
-                    g_free (musicData.playing_cover);
-                    musicData.playing_cover = g_strdup_printf("%s/.gnome2/rhythmbox/covers/%s - %s.jpg", 
+                musicData.playing_cover = g_strdup_printf("%s/.gnome2/rhythmbox/covers/%s - %s.jpg", 
                                                g_getenv("HOME"),
                                                musicData.playing_artist, 
                                                musicData.playing_album);
-                }
+                cid_debug ("   test de %s (.gnome2)", 
+                           musicData.playing_cover);
+                               
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
-                    cid_debug ("    test de %s (.cache)", 
-                               musicData.playing_cover);
                     g_free (musicData.playing_cover);
                     musicData.playing_cover = g_strdup_printf("%s/.cache/rhythmbox/covers/%s - %s.jpg", 
                                                g_getenv("HOME"),
                                                musicData.playing_artist, 
                                                musicData.playing_album);
+                    cid_debug ("    test de %s (.cache)", 
+                               musicData.playing_cover);
                 }
                 
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
