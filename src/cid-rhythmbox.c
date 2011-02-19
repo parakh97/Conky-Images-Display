@@ -228,7 +228,7 @@ getSongInfos(void)
         } 
         else 
         {
-            CidDataTable *p_tabFiles = cid_clone_datatable (cid->runtime->pCoversList);
+            //CidDataTable *p_tabFiles = cid_clone_datatable (cid->runtime->pCoversList);
             //cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
             //                                                ".folder",".cover","folder","Cover","Folder",
             //                                                G_TYPE_INVALID);
@@ -237,6 +237,7 @@ getSongInfos(void)
             {
                 gchar *cSongDir = g_path_get_dirname (cSongPath);
                 g_free (cSongPath);
+                /*
                 musicData.playing_cover = g_strdup_printf ("%s/%s - %s.jpg", cSongDir, musicData.playing_artist, musicData.playing_album);
                 cid_debug ("   test de %s\n", musicData.playing_cover);
                 BEGIN_FOREACH_DT(p_tabFiles)
@@ -246,36 +247,53 @@ getSongInfos(void)
                     musicData.playing_cover = g_strdup_printf ("%s/%s.jpg", cSongDir, p_temp->content->string);
                     cid_debug ("   test de %s\n", musicData.playing_cover);
                 END_FOREACH_DT
+                */
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
-                    cid_debug ("   test de %s (.gnome2)\n", musicData.playing_cover);
+                    cid_debug ("   test de %s (.gnome2)", 
+                               musicData.playing_cover);
                     g_free (musicData.playing_cover);
-                    musicData.playing_cover = g_strdup_printf("%s/.gnome2/rhythmbox/covers/%s - %s.jpg", g_getenv("HOME"),musicData.playing_artist, musicData.playing_album);
+                    musicData.playing_cover = g_strdup_printf("%s/.gnome2/rhythmbox/covers/%s - %s.jpg", 
+                                               g_getenv("HOME"),
+                                               musicData.playing_artist, 
+                                               musicData.playing_album);
                 }
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
-                    cid_debug ("    test de %s (.cache)\n", musicData.playing_cover);
+                    cid_debug ("    test de %s (.cache)", 
+                               musicData.playing_cover);
                     g_free (musicData.playing_cover);
-                    musicData.playing_cover = g_strdup_printf("%s/.cache/rhythmbox/covers/%s - %s.jpg", g_getenv("HOME"),musicData.playing_artist, musicData.playing_album);
+                    musicData.playing_cover = g_strdup_printf("%s/.cache/rhythmbox/covers/%s - %s.jpg", 
+                                               g_getenv("HOME"),
+                                               musicData.playing_artist, 
+                                               musicData.playing_album);
                 }
-                g_free (cSongDir);
+                
                 if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
                 {
                     gchar *cCoverSave = g_strdup (musicData.playing_cover);
                     g_free (musicData.playing_cover);
-                    musicData.playing_cover = cid_db_search_cover (&cid, musicData.playing_artist, musicData.playing_album);
+                    musicData.playing_cover = 
+                            cid_cover_lookup (&cid, 
+                                              musicData.playing_artist, 
+                                              musicData.playing_album,
+                                              cSongDir);
+                    
                     if (musicData.playing_cover == NULL)
                     {
                         musicData.playing_cover = g_strdup (cCoverSave);
+                        /*
                         cid->runtime->iCheckIter = 0;
                         if (musicData.iSidCheckCover == 0) 
                         {
                             cid_debug ("l'image n'existe pas encore => on boucle.\n");
                             musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, &cid);
                         }
+                        */
                     }
                     g_free (cCoverSave);
                 }
+                g_free (cSongDir);
             }
         }
         cid_message ("  playing_cover <- %s\n", musicData.playing_cover);

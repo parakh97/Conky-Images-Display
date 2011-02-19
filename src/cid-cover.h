@@ -62,7 +62,7 @@ gboolean cid_get_xml_file (const gchar *artist, const gchar *album);
  * @param cDestPath Ou en enregistre la pochette telechargee.
  * @return succes du telechargement.
  */
-gboolean cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/);
+gboolean cid_download_missing_cover (const gchar *cURL);
 
 /**
  * On sauvegarde la pochette dans notre 'magazin'.
@@ -71,18 +71,35 @@ gboolean cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath
  * @return URI de la pochette apres stockage dans notre
  * 'magazin', NULL si stockage impossible.
  */
-gchar *cid_db_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
-                        const gchar *cArtist, const gchar *cAlbum);
+gchar *cid_db_store_cover (CidMainContainer **pCid,
+                           const gchar *cCoverPath,
+                           const gchar *cArtist, 
+                           const gchar *cAlbum);
 
 /**
  * Recherche une pochette dans notre 'magazin'.
  * @param pCid Structure de controle de cid.
  * @param cArtist nom de l'artiste.
  * @param cAlbum nom de l'album.
- * @return URI complet de l'image, NULL si non toruve.
+ * @return URI complet de l'image, NULL si non toruvé.
  */
-gchar *cid_db_search_cover (CidMainContainer **pCid, const gchar *cArtist,
-                         const gchar *cAlbum);
+gchar *cid_db_search_cover (CidMainContainer **pCid, 
+                            const gchar *cArtist,
+                            const gchar *cAlbum);
+
+/**
+ * Recherche une pochette sur la machine par analyse brute des fichiers.
+ * @param pCid Structure de controle de cid.
+ * @param cArtist nom de l'artiste.
+ * @param cAlbum nom de l'album.
+ * @param cDir répertoire dans lequel se trouve la musique en cours de
+ *             lecture.
+ * @return URI complet de l'image, NULL si non trouvé.
+ */
+gchar *cid_cover_lookup (CidMainContainer **pCid, 
+                         const gchar *cArtist, 
+                         const gchar *cAlbum, 
+                         const gchar *cDir);
 
 G_END_DECLS
 #endif

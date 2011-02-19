@@ -9,6 +9,7 @@
 */
 
 //#include "cid-constantes.h"
+#include "cid-callbacks.h"
 #include "cid-cover.h"
 #include "cid-struct.h"
 #include "cid-messages.h"
@@ -25,26 +26,33 @@ gchar *TAB_IMAGE_SIZES[] = {"large","extralarge"};
 #ifdef LIBXML_READER_ENABLED
 
 gboolean 
-cid_get_xml_file (const gchar *artist, const gchar *album) 
+cid_get_xml_file (const gchar *artist, 
+                  const gchar *album) 
 {
     if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS))
     {
         cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     }
     
-    if (g_strcasecmp("Unknown",artist)==0 || g_strcasecmp("Unknown",album)==0 ||
-        g_strcasecmp("Inconnu",artist)==0 || g_strcasecmp("Inconnu",album)==0)
+    if (g_strcasecmp("Unknown",artist)==0 
+        || g_strcasecmp("Unknown",album)==0 
+        || g_strcasecmp("Inconnu",artist)==0 
+        || g_strcasecmp("Inconnu",album)==0)
     {
         return FALSE;
     }
     
-    gchar *cURLBegin = g_strdup_printf("%s%s&api_key=%s",LAST_API_URL,LAST_ALBUM,LAST_ID_KEY);
+    gchar *cURLBegin = g_strdup_printf("%s%s&api_key=%s",
+                                       LAST_API_URL,LAST_ALBUM,
+                                       LAST_ID_KEY);
     gchar *cTmpFilePath = g_strdup (DEFAULT_XML_LOCATION);
     
     CURL *handle = curl_easy_init(); 
     gchar *cArtistClean = curl_easy_escape (handle, artist, 0);
     gchar *cAlbumClean = curl_easy_escape (handle, album, 0);
-    gchar *cURLArgs = g_strdup_printf ("&artist=%s&album=%s", cArtistClean, cAlbumClean);
+    gchar *cURLArgs = g_strdup_printf ("&artist=%s&album=%s", 
+                                       cArtistClean, 
+                                       cAlbumClean);
     gchar *cURLFull = g_strdup_printf ("%s%s", cURLBegin, cURLArgs);
     g_free (cURLArgs);
     g_free (cArtistClean);
@@ -62,8 +70,9 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
     
     if (rename (DEFAULT_XML_LOCATION".tmp",DEFAULT_XML_LOCATION) == -1)
     {
-        cid_warning ("Cannot rename '%s' to '%s'", DEFAULT_XML_LOCATION".tmp",
-                                                   DEFAULT_XML_LOCATION);
+        cid_warning ("Cannot rename '%s' to '%s'", 
+                     DEFAULT_XML_LOCATION".tmp",
+                     DEFAULT_XML_LOCATION);
     }
     
     g_free (cTmpFilePath);
@@ -75,7 +84,8 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
 #else
 
 gboolean 
-cid_get_xml_file (const gchar *artist, const gchar *album) 
+cid_get_xml_file (const gchar *artist, 
+                  const gchar *album) 
 {
     return FALSE;
 }
@@ -83,7 +93,7 @@ cid_get_xml_file (const gchar *artist, const gchar *album)
 #endif
 
 gboolean 
-cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/) 
+cid_download_missing_cover (const gchar *cURL) 
 {
     CURL *handle = curl_easy_init ();
     curl_easy_setopt(handle, CURLOPT_URL, cURL);
@@ -98,8 +108,9 @@ cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/)
     
     if (rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",DEFAULT_DOWNLOADED_IMAGE_LOCATION) == -1)
     {
-        cid_warning ("Cannot rename '%s' to '%s'",DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",
-                                                  DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        cid_warning ("Cannot rename '%s' to '%s'",
+                     DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",
+                     DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     }
         
     return TRUE;
@@ -112,7 +123,10 @@ cid_download_missing_cover (const gchar *cURL/*, const gchar *cDestPath*/)
  * @param imageSize Taille de l'image que l'on souhaite
  */
 void
-cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, ...)
+cid_search_xml_xpath (const char *filename, 
+                      gchar **cValue, 
+                      const gchar*xpath, 
+                      ...)
 {
     xmlDocPtr doc;
     *cValue = NULL;
@@ -173,8 +187,10 @@ cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar*xpath, .
 }
 
 gchar * 
-cid_db_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
-                    const gchar *cArtist, const gchar *cAlbum)
+cid_db_store_cover (CidMainContainer **pCid,
+                    const gchar *cCoverPath,
+                    const gchar *cArtist, 
+                    const gchar *cAlbum)
 {
     g_return_val_if_fail (cCoverPath != NULL 
                           && cArtist != NULL 
@@ -186,10 +202,16 @@ cid_db_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
     CidMainContainer *cid = *pCid;
     GKeyFile *pKeyFile;
     CURL *handle = curl_easy_init(); 
-    gchar *cKey = g_strdup_printf ("%s_%s", curl_easy_escape (handle, cArtist, 0), 
-                                            curl_easy_escape (handle, cAlbum, 0));
+    gchar *cKey = g_strdup_printf ("%s_%s", curl_easy_escape (handle, 
+                                                              cArtist, 
+                                                              0), 
+                                            curl_easy_escape (handle, 
+                                                              cAlbum, 
+                                                              0));
     curl_easy_cleanup (handle);
-    gchar *cDBFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, CID_COVER_DB);
+    gchar *cDBFile = g_strdup_printf ("%s/%s", 
+                                      cid->config->cDLPath, 
+                                      CID_COVER_DB);
     gchar *md5 = cid_md5sum (cCoverPath);
     GKeyFileFlags flags;
     GError *error = NULL;
@@ -224,7 +246,9 @@ cid_db_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
         cid_warning ("%s",error->message);
         g_error_free (error);
     }
-    gchar *cDestFile = g_strdup_printf ("%s/%s", cid->config->cDLPath, md5);
+    gchar *cDestFile = g_strdup_printf ("%s/%s", 
+                                        cid->config->cDLPath, 
+                                        md5);
     cid_copy_file (cCoverPath, cDestFile);
     cid_remove_file (cCoverPath);
     g_key_file_set_value (pKeyFile, "DB", cKey, md5);
@@ -238,7 +262,9 @@ cid_db_store_cover (CidMainContainer **pCid,const gchar *cCoverPath,
 }
 
 gchar *
-cid_db_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar *cAlbum)
+cid_db_search_cover (CidMainContainer **pCid, 
+                     const gchar *cArtist, 
+                     const gchar *cAlbum)
 {
     g_return_val_if_fail (cArtist != NULL && cAlbum != NULL, NULL);
     CidMainContainer *cid = *pCid;
@@ -276,7 +302,9 @@ cid_db_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar 
     }
     if (cVal != NULL)
     {
-        cCoverPath =  g_strdup_printf ("%s/%s", cid->config->cDLPath, cVal);
+        cCoverPath =  g_strdup_printf ("%s/%s", 
+                                       cid->config->cDLPath, 
+                                       cVal);
         g_free (cVal);
     }
 
@@ -288,7 +316,46 @@ cid_db_search_cover (CidMainContainer **pCid, const gchar *cArtist, const gchar 
 }
 
 gchar *
-cid_cover_lookup (const gchar *cDir)
+cid_cover_lookup (CidMainContainer **pCid, 
+                  const gchar *cArtist, 
+                  const gchar *cAlbum, 
+                  const gchar *cDir)
 {
+    CidMainContainer *cid = *pCid;
+    gchar *cRes = NULL;
+    
+    BEGIN_FOREACH_DT (cid->runtime->pCoversList)
+        g_free (cRes);
+        gchar *file = g_strdup (p_temp->content->string);
+        cid_substitute_user_params (&file);
+        if (*file == '/')
+            cRes = g_strdup (file);
+        else
+            cRes = g_strdup_printf ("%s/%s.jpg", cDir, file);
+        cid_debug ("   test de %s\n", musicData.playing_cover);
+        if (g_file_test (cRes, G_FILE_TEST_EXISTS))
+        {
+            return cRes;
+        }
+    END_FOREACH_DT_NF
+    
+    g_free (cRes);
+    cRes = cid_db_search_cover (pCid, cArtist, cAlbum);
+    
+    if (cRes != NULL)
+        return cRes;
+        
+    cid->runtime->iCheckIter = 0;
+    if (musicData.iSidCheckCover != 0) 
+    {
+        g_source_remove (musicData.iSidCheckCover);
+        musicData.iSidCheckCover = 0;
+    }
+    cid_debug ("l'image n'existe pas encore => on boucle.\n");
+    musicData.iSidCheckCover = 
+                g_timeout_add (1000, 
+                               (GSourceFunc) _check_cover_is_present, 
+                               pCid);
+
     return NULL;
 }

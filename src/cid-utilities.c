@@ -855,8 +855,8 @@ cid_create_sized_datatable_with_default_full (size_t iSize, GType iType, void *v
 void
 cid_str_replace_all (gchar **string, const gchar *sFrom, const gchar *sTo)
 {
-    if (*string == NULL || sFrom == NULL || sTo == NULL)
-        return;
+    g_return_if_fail (*string != NULL && sFrom != NULL && sTo != NULL);
+    
     gchar **tmp = g_strsplit(*string,sFrom,0);
     CidDataTable *t_temp = cid_datatable_new();
     while (*tmp != NULL)

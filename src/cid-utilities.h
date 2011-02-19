@@ -314,6 +314,9 @@ p_temp=p_temp->next; \
 } \
 cid_free_datatable(&p_dt);
 
+#define END_FOREACH_DT_NF \
+p_temp=p_temp->next; \
+} 
 
 G_END_DECLS
 #endif

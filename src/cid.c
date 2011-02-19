@@ -45,8 +45,6 @@
 CidMainContainer *cid;
 int ret = CID_EXIT_SUCCESS;
 
-static gchar *cLaunchCommand = NULL;
-
 static void 
 cid_init (CidMainContainer *pCid) 
 {    
@@ -84,8 +82,6 @@ cid_intercept_signal (int number)
         return;
     }
     cid_warning ("Attention : cid has crashed (%s).", strsignal(number));
-    //execl ("/bin/sh", "/bin/sh", "-c", cLaunchCommand, NULL);  // on ne revient pas de cette fonction.
-    //cid_warning ("Sorry, couldn't restart cid");
     fflush (stdout);
     signal (number, SIG_DFL);
     raise (number);
@@ -160,12 +156,6 @@ cid_run_with_player (CidMainContainer **pCid)
 static void 
 cid_set_signal_interception (struct sigaction *action) 
 {
-    /*
-    signal (SIGSEGV, cid_intercept_signal);  // Segmentation violation
-    signal (SIGFPE, cid_intercept_signal);  // Floating-point exception
-    signal (SIGILL, cid_intercept_signal);  // Illegal instruction
-    signal (SIGABRT, cid_intercept_signal);  // Abort
-    */
     (*action).sa_handler = cid_intercept_signal;
     sigfillset (&((*action).sa_mask));
     (*action).sa_flags = 0;
@@ -199,10 +189,6 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
     if (!cid->runtime->bRunning)
         cid_exit (pCid, CID_GTK_ERROR,"Unable to load gtk context");
     
-    /* On intercepte les signaux */
-//    signal (SIGINT, cid_interrupt); // ctrl+c
-//    signal (SIGTERM, cid_interrupt);
-
     if (cid->config->bSafeMode) 
     {
         _cid_conf_panel(NULL,NULL);
@@ -230,28 +216,18 @@ main ( int argc, char **argv )
 {        
 
     struct sigaction action;
-
+    
     cid = g_malloc0 (sizeof(*cid));
     cid->config = g_malloc0 (sizeof(*(cid->config)));
     cid->runtime = g_malloc0 (sizeof(*(cid->runtime)));
     cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
-
-    curl_global_init(CURL_GLOBAL_ALL);
     
-    int i;
-    GString *sCommandString = g_string_new (argv[0]);
-    for (i = 1; i < argc; i ++) 
-    {
-        g_string_append_printf (sCommandString, " %s", argv[i]);
-    }
-    g_string_append_printf (sCommandString, " -s");
-    cLaunchCommand = sCommandString->str;
-    g_string_free (sCommandString, FALSE);
+    curl_global_init(CURL_GLOBAL_ALL);
     
     cid_log_set_level(0);
     
     cid_init(cid);
-
+    
     // On internationalise l'appli.
     setlocale (LC_ALL,"");
     bindtextdomain (CID_GETTEXT_PACKAGE, CID_LOCALE_DIR);
