@@ -1204,3 +1204,10 @@ cid_clone_datatable (CidDataTable *pSource)
     }
     return res;
 }
+
+gboolean
+cid_file_lookup (const gchar *cFileName)
+{
+    
+    return FALSE;
+}

@@ -332,7 +332,7 @@ cid_cover_lookup (CidMainContainer **pCid,
             cRes = g_strdup (file);
         else
             cRes = g_strdup_printf ("%s/%s.jpg", cDir, file);
-        cid_debug ("   test de %s\n", musicData.playing_cover);
+        cid_debug ("   test de %s\n", cRes);
         if (g_file_test (cRes, G_FILE_TEST_EXISTS))
         {
             return cRes;
