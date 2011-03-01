@@ -37,14 +37,20 @@ gint cid_console_get_int_with_error_full (const gchar *cCommand, gint iDefault, 
 #define cid_console_get_int_full(cCommand,iDefault) cid_console_get_int_with_error_full(cCommand,iDefault,NULL)
 
 /**
- * Lecture d'un booleen sur un pipe
+ * Lecture d'un booleen sur un pipe.
+ * @param cCommand Commande à éxecuter.
+ * @param bDefault Valeur par défaut à retourner.
+ * @param error Pointeur vers une structure de type #CIDError
+ * qui sera initialisée en cas d'erreur.
+ * @return booléen en fonction de la sortie de la commande éxecutée.
  */
 gboolean cid_console_get_boolean_with_error_full (const gchar *cCommand, gboolean bDefault, CIDError **error);
 #define cid_console_get_boolean(cCommand) cid_console_get_boolean_with_error_full(cCommand,FALSE,NULL)
 #define cid_console_get_boolean_full(cCommand,bDefault) cid_console_get_boolean_with_error_full(cCommand,bDefault,NULL)
 
 /**
- * Permet de liberer une erreur
+ * Permet de liberer une erreur.
+ * @param error Erreur à libérer.
  */
 void cid_free_error (CIDError *error);
 
