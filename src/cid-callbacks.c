@@ -42,7 +42,7 @@ _cid_quit (GtkWidget *p_widget, gpointer user_data)
 {
     cid_save_data (&cid);
 
-    cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+    cid_file_remove (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     
     cid_sortie (&cid, CID_EXIT_SUCCESS);
 
@@ -202,7 +202,7 @@ on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int 
                     cid_debug("Le fichier est local");
                     gchar *cFileSrc = (**cReceivedDataList == '/' ? *cReceivedDataList : g_filename_from_uri (*cReceivedDataList, NULL, NULL));
                     gchar *cFileDst = g_strdup_printf ("/tmp/\"%s - %s.jpg\"",musicData.playing_artist,musicData.playing_album);
-                    cid_copy_file (cFileSrc,cFileDst);
+                    cid_file_copy (cFileSrc,cFileDst);
                     g_free (cFileSrc);
                     g_free (cFileDst);
                 }

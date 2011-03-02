@@ -40,7 +40,7 @@ cid_check_file (const gchar *f)
             g_free (cCompareWith);
             gchar *cSrc = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
             cid_debug ("Copying file from %s to %s",cSrc,f);
-            cid_copy_file (cSrc,f);
+            cid_file_copy (cSrc,f);
             g_free (cSrc);
             return;
         }
@@ -106,7 +106,7 @@ cid_check_file (const gchar *f)
         g_free (cFileTest);
         gchar *cSrc = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
         cid_debug ("Copying file from %s to %s",cSrc,f);
-        cid_copy_file (cSrc,f);
+        cid_file_copy (cSrc,f);
         g_free (cSrc);
     }
 }
@@ -133,9 +133,9 @@ cid_check_conf_file_version (CidMainContainer **pCid, const gchar *f)
     if (strcmp(line_f1,line_f2)!=0 || bUnvalidKey) 
     {
         cid_warning ("bad file version, building a new one\n");
-        cid_remove_file (f);
+        cid_file_remove (f);
         gchar *cTmpPath = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
-        cid_copy_file(cTmpPath,f);
+        cid_file_copy(cTmpPath,f);
         g_free (cTmpPath);
         
         cid_save_data (pCid);

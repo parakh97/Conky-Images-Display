@@ -28,19 +28,6 @@ G_BEGIN_DECLS
 #define cid_launch_command(cCommand,...) cid_launch_command_full(cCommand, NULL, ##__VA_ARGS__)
 
 /**
- * Permet de copier un fichier
- * @param cSrc Le fichier source
- * @param cDst Le fichier destination
- */
-void cid_copy_file (const gchar *cSrc, const gchar *cDst);
-
-/**
- * Permet de supprimer un fichier
- * @param cSrc Le fichier a supprimer
- */
-void cid_remove_file (const gchar* cFilePath);
-
-/**
  * converti une chaine en son equivalent MAJUSCULE
  * @param cSrc chaine source
  * @return la chaine 'uppee'

@@ -123,58 +123,6 @@ cid_free_main_structure (CidMainContainer *pCid)
     pCid = NULL;
 }
     
-void
-cid_copy_file (const gchar *cSrc, const gchar *cDst)
-{
-    if (!cSrc || !cDst)
-    {
-        cid_warning ("Unable to copy file due to missing field ! (%s,%s)",cSrc,cDst);
-        return;
-    }
-    FILE *src = fopen (cSrc,"rb");
-    if (!src)
-    {
-        cid_warning ("Unable to open file: %s",cSrc);
-        return;
-    }
-    FILE *dst = fopen (cDst,"wb");
-    if (!dst)
-    {
-        cid_warning ("Unable to open file: %s",cDst);
-        return;
-    }
-    
-    char ch;
-    while(!feof(src)) {
-        ch = fgetc(src);
-        if(ferror(src)) {
-            cid_warning ("Error reading source file.");
-            return;
-        }
-        if(!feof(src)) fputc(ch, dst);
-        if(ferror(dst)) {
-            cid_warning ("Error writing destination file.");
-            return;
-        }
-    }
-    fclose (src);
-    fclose (dst);
-}
-
-void
-cid_remove_file (const gchar* cFilePath)
-{
-    if (!g_file_test (cFilePath, G_FILE_TEST_EXISTS))
-    {
-        cid_warning ("The file '%s' does not exist", cFilePath);
-        return;
-    }
-    if (remove(cFilePath) == -1)
-    {
-        cid_warning ("Error while removing %s",cFilePath);
-    }
-}
-
 void 
 cid_read_parameters (int *argc, char ***argv) 
 {

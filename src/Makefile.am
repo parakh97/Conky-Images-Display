@@ -63,6 +63,8 @@ cid_SOURCES = \
     cid-asynchrone.h \
     cid-callbacks.c \
     cid-callbacks.h \
+    cid-file-utilities.c \
+    cid-file-utilities.h \
     cid-gui-factory.c \
     cid-gui-factory.h \
     cid-config.c \

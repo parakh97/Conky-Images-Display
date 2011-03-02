@@ -31,7 +31,7 @@ cid_get_xml_file (const gchar *artist,
 {
     if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS))
     {
-        cid_remove_file (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
+        cid_file_remove (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     }
     
     if (g_strcasecmp("Unknown",artist)==0 
@@ -134,7 +134,7 @@ cid_search_xml_xpath (const char *filename,
     va_start(args,xpath);
     doc = xmlParseFile(filename);
     
-    cid_remove_file (filename);
+    cid_file_remove (filename);
     
     if (doc == NULL) 
     {
@@ -249,8 +249,8 @@ cid_db_store_cover (CidMainContainer **pCid,
     gchar *cDestFile = g_strdup_printf ("%s/%s", 
                                         cid->config->cDLPath, 
                                         md5);
-    cid_copy_file (cCoverPath, cDestFile);
-    cid_remove_file (cCoverPath);
+    cid_file_copy (cCoverPath, cDestFile);
+    cid_file_remove (cCoverPath);
     g_key_file_set_value (pKeyFile, "DB", cKey, md5);
     cid_write_keys_to_file (pKeyFile, cDBFile);
     g_key_file_free (pKeyFile);
