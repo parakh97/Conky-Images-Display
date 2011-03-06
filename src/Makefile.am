@@ -63,10 +63,6 @@ cid_SOURCES = \
     cid-asynchrone.h \
     cid-callbacks.c \
     cid-callbacks.h \
-    cid-file-utilities.c \
-    cid-file-utilities.h \
-    cid-gui-factory.c \
-    cid-gui-factory.h \
     cid-config.c \
     cid-config.h \
     cid-console-call.c \
@@ -74,12 +70,20 @@ cid_SOURCES = \
     cid-constantes.h \
     cid-cover.c \
     cid-cover.h \
+    cid-datatables.c \
+    cid-datatables.h \
     cid-dbus.c \
     cid-dbus.h \
     cid-draw.c \
     cid-draw.h \
     cid-exaile.c \
     cid-exaile.h \
+    cid-file-utilities.c \
+    cid-file-utilities.h \
+    cid-gui-callback.c \
+    cid-gui-callback.h \
+    cid-gui-factory.c \
+    cid-gui-factory.h \
     cid-md5.c \
     cid-md5.h \
     cid-menu-factory.c \
@@ -89,10 +93,10 @@ cid_SOURCES = \
     cid-modules.c \
     cid-modules.h \
     cid-mpd.c \
-    cid-gui-callback.c \
-    cid-gui-callback.h \
     cid-rhythmbox.c \
     cid-rhythmbox.h \
+    cid-string-utilities.c \
+    cid-string-utilities.h \
     cid-utilities.c \
     cid-utilities.h \
     cid-X-utilities.c \
@@ -125,20 +129,22 @@ cidsubinclude_HEADERS = \
     cid-applet-canvas.h \
     cid-asynchrone.h \
     cid-callbacks.h \
-    cid-gui-factory.h \
     cid-config.h \
     cid-console-call.h \
     cid-constantes.h \
+    cid-datatables.h \
     cid-dbus.h \
     cid-draw.h \
     cid-exaile.h \
+    cid-gui-callback.h \
+    cid-gui-factory.h \
     cid-md5.h \
     cid-menu-factory.h \
     cid-messages.h \
     cid-modules.h \
     cid-mpd.h \
-    cid-gui-callback.h \
     cid-rhythmbox.h \
+    cid-string-utilities.h \
     cid-struct.h \
     cid-utilities.h \
     cid-X-utilities.h \

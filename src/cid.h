@@ -24,6 +24,7 @@
 #include "cid-console-call.h"
 #include "cid-constantes.h"
 #include "cid-cover.h"
+#include "cid-datatables.h"
 #include "cid-dbus.h"
 #include "cid-draw.h"
 #include "cid-exaile.h"
@@ -36,6 +37,7 @@
 #include "cid-modules.h"
 #include "cid-mpd.h"
 #include "cid-rhythmbox.h"
+#include "cid-string-utilities.h"
 #include "cid-struct.h"
 #include "cid-utilities.h"
 

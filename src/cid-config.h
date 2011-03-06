@@ -15,18 +15,20 @@ G_BEGIN_DECLS
 
 /**
  * Fonction permettant de recuperer un boolean dans un fichier de configuration.
+ * @param pCid Structure de configuration.
  * @param pKeyFile Fichier de configuration.
  * @param cGroup Groupe auquel appartient la cle recherchee.
  * @param cKey Cle recherchee.
  * @param bDefault Valeur par defaut.
  * @return Le booleen correspondant aux criteres.
  */
-gboolean cid_get_boolean_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault);
-#define CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT(cGroup,cKey,bDefault) cid_get_boolean_value_full (cid->pKeyFile,cGroup,cKey,bDefault)
-#define CID_CONFIG_GET_BOOLEAN(cGroup,cKey) cid_get_boolean_value_full (cid->pKeyFile,cGroup,cKey,FALSE)
+gboolean cid_get_boolean_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault);
+#define CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT(cGroup,cKey,bDefault) cid_get_boolean_value_full (pCid,cid->pKeyFile,cGroup,cKey,bDefault)
+#define CID_CONFIG_GET_BOOLEAN(cGroup,cKey) cid_get_boolean_value_full (pCid,cid->pKeyFile,cGroup,cKey,FALSE)
 
 /**
  * Fonction permettant de recuperer une chaine dans un fichier de configuration.
+ * @param pCid Structure de configuration.
  * @param pKeyFile Fichier de configuration.
  * @param cGroup Groupe auquel appartient la cle recherchee.
  * @param cKey Cle recherchee.
@@ -36,15 +38,16 @@ gboolean cid_get_boolean_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *c
  * @param bDir Si on veut tester l'existance d'un dossier.
  * @return La chaine correspondante aux criteres.
  */
-gchar *cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir, gboolean bForce);
-#define CID_CONFIG_GET_STRING(cGroup,cKey) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,NULL,FALSE,FALSE,FALSE)
-#define CID_CONFIG_GET_STRING_WITH_DEFAULT(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,FALSE,FALSE)
-#define CID_CONFIG_GET_FILE_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,TRUE,cDefault,TRUE,FALSE,FALSE)
-#define CID_CONFIG_GET_DIR_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,TRUE,FALSE)
-#define CID_CONFIG_GET_DIR_PATH_FORCE(cGroup,cKey,cDefault) cid_get_string_value_full (cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,TRUE,TRUE)
+gchar *cid_get_string_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir, gboolean bForce);
+#define CID_CONFIG_GET_STRING(cGroup,cKey) cid_get_string_value_full (pCid,cid->pKeyFile,cGroup,cKey,FALSE,NULL,FALSE,FALSE,FALSE)
+#define CID_CONFIG_GET_STRING_WITH_DEFAULT(cGroup,cKey,cDefault) cid_get_string_value_full (pCid,cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,FALSE,FALSE)
+#define CID_CONFIG_GET_FILE_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (pCid,cid->pKeyFile,cGroup,cKey,TRUE,cDefault,TRUE,FALSE,FALSE)
+#define CID_CONFIG_GET_DIR_PATH(cGroup,cKey,cDefault) cid_get_string_value_full (pCid,cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,TRUE,FALSE)
+#define CID_CONFIG_GET_DIR_PATH_FORCE(cGroup,cKey,cDefault) cid_get_string_value_full (pCid,cid->pKeyFile,cGroup,cKey,FALSE,cDefault,FALSE,TRUE,TRUE)
 
 /**
  * Fonction permettant de recuperer un int dans un fichier de configuration.
+ * @param pCid Structure de configuration.
  * @param pKeyFile Fichier de configuration.
  * @param cGroup Groupe auquel appartient la cle recherchee.
  * @param cKey Cle recherchee.
@@ -54,22 +57,16 @@ gchar *cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey
  * @param iMax Valeur maximale.
  * @return L'entier correspondant aux criteres.
  */
-gint cid_get_int_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gint iDefault, gboolean bMax, gint iMax);
-#define CID_CONFIG_GET_INTEGER(cGroup,cKey) cid_get_int_value_full (cid->pKeyFile,cGroup,cKey,FALSE,0,FALSE,0)
-#define CID_CONFIG_GET_INTEGER_WITH_DEFAULT(cGroup,cKey,iDefault) cid_get_int_value_full (cid->pKeyFile,cGroup,cKey,TRUE,iDefault,FALSE,0)
-#define CID_CONFIG_GET_INTEGER_WITH_DEFAULT_AND_MAX(cGroup,cKey,iDefault,iMax) cid_get_int_value_full (cid->pKeyFile,cGroup,cKey,TRUE,iDefault,TRUE,iMax)
+gint cid_get_int_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gint iDefault, gboolean bMax, gint iMax);
+#define CID_CONFIG_GET_INTEGER(cGroup,cKey) cid_get_int_value_full (pCid,cid->pKeyFile,cGroup,cKey,FALSE,0,FALSE,0)
+#define CID_CONFIG_GET_INTEGER_WITH_DEFAULT(cGroup,cKey,iDefault) cid_get_int_value_full (pCid,cid->pKeyFile,cGroup,cKey,TRUE,iDefault,FALSE,0)
+#define CID_CONFIG_GET_INTEGER_WITH_DEFAULT_AND_MAX(cGroup,cKey,iDefault,iMax) cid_get_int_value_full (pCid,cid->pKeyFile,cGroup,cKey,TRUE,iDefault,TRUE,iMax)
 
 /**
  * Fonction qui charge la configuration .
  * @param f fichier de configuration à lire.
  */
 int cid_read_config (CidMainContainer **pCid, const char *f);
-
-/**
- * vérifie que le fichier de configuration existe.
- * @param f fichier de configuration à lire.
- */
-void cid_check_file (const char *f);
 
 /**
  * sauvegarde les données de cid
@@ -82,12 +79,6 @@ void cid_save_data (CidMainContainer **pCid);
  * @param cConfFilePath chemin du fichier à sauvegarder.
  */
 void cid_write_keys_to_file (GKeyFile *pKeyFile, const gchar *cConfFilePath);
-
-/**
- * vérifie la version du fichier de configuration.
- * @param f path du fichier à vérifier.
- */
-gboolean cid_check_conf_file_version (CidMainContainer **pCid, const gchar *f);
 
 /**
  * Permet de recharger la configuration lorsqu'on applique des changement via le GUI.

@@ -21,129 +21,11 @@
 
 static gint iNbRead = 0;
 static gboolean bChangedDesktop;
-static gboolean bUnvalidKey;
+//static gboolean bUnvalidKey;
 static gboolean bReloaded = FALSE;
 static PlayerIndice iPlayerChanged;
 static SymbolColor iSymbolChanged;
 static gint iOldWidth, iOldHeight;
-
-void 
-cid_check_file (const gchar *f) 
-{
-    gchar *cFileTest;
-    if (!g_file_test (f, G_FILE_TEST_EXISTS))
-    {
-        /*
-        gchar *cCompareWith = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
-        if (g_strcmp(f,cCompareWith)) // f correspond a un chemin entre par l'utilisateur
-        {
-            g_free (cCompareWith);
-            gchar *cSrc = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
-            cid_debug ("Copying file from %s to %s",cSrc,f);
-            cid_file_copy (cSrc,f);
-            g_free (cSrc);
-            return;
-        }
-        */
-        /*
-        CidDataTable *p_folders = cid_create_datatable(G_TYPE_STRING,"%s/.config","%s/.config/cid",G_TYPE_INVALID);
-        BEGIN_FOREACH_DT(p_folders)
-            gchar *cDirName = g_strdup_printf(p_temp->content->string,g_getenv("HOME"));
-            if (!g_file_test (cDirName,G_FILE_TEST_IS_DIR))
-            {
-                cid_debug ("Creating directory: %s",cDirName);
-                mkdir(cDirName,S_IRWXU);
-            }
-            g_free (cDirName);
-        END_FOREACH_DT
-        */
-        gchar *cDirectory = g_path_get_dirname (f);
-        if (! g_file_test (cDirectory, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE)) 
-        {
-            cid_info ("Creating path '%s'", cDirectory);
-            g_mkdir_with_parents (cDirectory, 7*8*8+7*8+5);
-        }
-        g_free (cDirectory);
-        
-        cFileTest = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE) ;
-        if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
-        {
-            gchar *cSrc = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE);
-            gchar *cDst = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
-            cid_debug ("Moving file from %s to %s",cSrc,cDst);
-            rename(cSrc,cDst);
-            g_free (cSrc);
-            g_free (cDst);
-            g_free (cFileTest);
-            return;
-        }
-        g_free (cFileTest);
-        cFileTest = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),OLD_CONFIG_FILE);
-        if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
-        {
-            gchar *cSrc = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),OLD_CONFIG_FILE);
-            gchar *cDst = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
-            cid_debug ("Moving file from %s to %s",cSrc,cDst);
-            rename(cSrc,cDst);
-            g_free (cSrc);
-            g_free (cDst);
-            g_free (cFileTest);
-            return;
-        }
-        g_free (cFileTest);
-        cFileTest = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),CID_CONFIG_FILE);
-        if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
-        {
-            gchar *cSrc = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),CID_CONFIG_FILE);
-            gchar *cDst = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
-            cid_debug ("Moving file from %s to %s",cSrc,cDst);
-            rename(cSrc,cDst);
-            g_free (cSrc);
-            g_free (cDst);
-            g_free (cFileTest);
-            return;
-        }
-        g_free (cFileTest);
-        gchar *cSrc = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
-        cid_debug ("Copying file from %s to %s",cSrc,f);
-        cid_file_copy (cSrc,f);
-        g_free (cSrc);
-    }
-}
-
-gboolean 
-cid_check_conf_file_version (CidMainContainer **pCid, const gchar *f) 
-{
-    gchar *cCommand=NULL;
-    gchar line_f1[80], line_f2[80];
-    FILE *f1, *f2;
-    gchar *cOrigFile = g_strdup_printf("%s/%s",CID_DATA_DIR, CID_CONFIG_FILE);
-    f1 = fopen ((const char *)cOrigFile,"r");
-    f2 = fopen ((const char *)f,"r");
-    g_free (cOrigFile);
-    
-    if (!fgets(line_f1,80,f1) || !fgets(line_f2,80,f2))
-        cid_exit (pCid, 3,"couldn't read conf file, try to delete it");
-    
-    fclose (f1);
-    fclose (f2);
-    
-    cid_info ("line_f1 %s\nline_f2 %s",line_f1,line_f2);
-        
-    if (strcmp(line_f1,line_f2)!=0 || bUnvalidKey) 
-    {
-        cid_warning ("bad file version, building a new one\n");
-        cid_file_remove (f);
-        gchar *cTmpPath = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
-        cid_file_copy(cTmpPath,f);
-        g_free (cTmpPath);
-        
-        cid_save_data (pCid);
-        cid_read_key_file (pCid, f);
-        return FALSE;
-    }
-    return TRUE;
-}
 
 void 
 cid_read_config_after_update (CidMainContainer **pCid, const char *f) 
@@ -180,7 +62,7 @@ cid_read_config_after_update (CidMainContainer **pCid, const char *f)
     if (iSymbolChanged != cid->config->iSymbolColor || iPlayerChanged != cid->config->iPlayer)
         cid_load_symbols();
     
-    cid_check_position();
+    cid_check_position(pCid);
     
     gtk_window_move (GTK_WINDOW(cid->pWindow), cid->config->iPosX, cid->config->iPosY);
     gtk_window_resize (GTK_WINDOW (cid->pWindow), cid->config->iWidth, cid->config->iHeight);
@@ -233,13 +115,13 @@ cid_key_file_free(CidMainContainer **pCid)
 }
 
 gboolean 
-cid_get_boolean_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault) 
+cid_get_boolean_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault) 
 {
     GError *error = NULL;
     gboolean bGet = g_key_file_get_boolean (pKeyFile, cGroup, cKey, &error);
     if (error != NULL) 
     {
-        bUnvalidKey = TRUE;
+        (*pCid)->config->bUnvalidKey = TRUE;
         cid_warning("key '%s' in group '%s'\n=> %s",cKey,cGroup,error->message);
         g_error_free(error);
         error = NULL;
@@ -250,13 +132,13 @@ cid_get_boolean_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboo
 }
 
 gchar *
-cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir, gboolean bForce) 
+cid_get_string_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir, gboolean bForce) 
 {
     GError *error = NULL;
     gchar *cGet = g_key_file_get_string (pKeyFile, cGroup, cKey, &error);
     if (error != NULL && bDefault) 
     {
-        bUnvalidKey = TRUE;
+        (*pCid)->config->bUnvalidKey = TRUE;
         cid_warning("key '%s' in group '%s'\n=> %s",cKey,cGroup,error->message);
         g_error_free(error);
         error = NULL;
@@ -282,13 +164,13 @@ cid_get_string_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gbool
 }
 
 gint 
-cid_get_int_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gint iDefault, gboolean bMax, gint iMax) 
+cid_get_int_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gint iDefault, gboolean bMax, gint iMax) 
 {
     GError *error = NULL;
     gint iGet = g_key_file_get_integer (pKeyFile, cGroup, cKey, &error);
     if (error != NULL && bDefault) 
     {
-        bUnvalidKey = TRUE;
+        (*pCid)->config->bUnvalidKey = TRUE;
         cid_warning("key '%s' in group '%s'\n=> %s",cKey,cGroup,error->message);
         g_error_free(error);
         error = NULL;
@@ -300,12 +182,12 @@ cid_get_int_value_full (GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean
     return iGet;
 }
 
-gboolean 
-cid_free_and_debug_error (GError **error) 
+static gboolean 
+cid_free_and_debug_error (CidMainContainer **pCid, GError **error) 
 {
     if (*error != NULL) 
     {
-        bUnvalidKey = TRUE;
+        (*pCid)->config->bUnvalidKey = TRUE;
         cid_warning("\n=> %s",(*error)->message);
         g_error_free(*error);
         *error = NULL;
@@ -331,7 +213,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     gsize iReadSize;
 
     GError *error = NULL;
-    bUnvalidKey = FALSE;
+    cid->config->bUnvalidKey = FALSE;
     
     // [System] configuration
     cid->config->iPlayer         = CID_CONFIG_GET_INTEGER ("System", "PLAYER");
@@ -342,13 +224,13 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->iSymbolColor    = CID_CONFIG_GET_INTEGER ("System", "SYMBOL_COLOR");
     cid->config->bDisplayControl = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "CONTROLS", TRUE);
     cid->config->dPoliceSize     = g_key_file_get_double  (cid->pKeyFile, "System", "POLICE_SIZE", &error);
-    cid_free_and_debug_error(&error);
+    cid_free_and_debug_error(pCid, &error);
     cid->config->dPoliceColor    = g_key_file_get_double_list (cid->pKeyFile, "System", "POLICE_COLOR", &cid->config->iPlainTextSize, &error);
-    cid_free_and_debug_error(&error);
+    cid_free_and_debug_error(pCid, &error);
     cid->config->dOutlineTextColor = g_key_file_get_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", &cid->config->iOutlineTextSize, &error);
-    cid_free_and_debug_error(&error);
+    cid_free_and_debug_error(pCid, &error);
     cid->config->t_cCoverPatternList = g_key_file_get_string_list (cid->pKeyFile, "System", "FILES_LIST", &cid->config->iNbPatterns, &error);
-    cid_free_and_debug_error(&error);
+    cid_free_and_debug_error(pCid, &error);
     cid->runtime->pCoversList = cid_char_table_to_datatable (cid->config->t_cCoverPatternList, cid->config->iNbPatterns);
 
     // [Options] configuration
@@ -372,7 +254,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->iPosX          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_X");
     cid->config->iPosY          = CID_CONFIG_GET_INTEGER ("Behaviour", "GAP_Y");
     pSize               = g_key_file_get_integer_list (cid->pKeyFile, "Behaviour", "SIZE", &iReadSize, &error);
-    if (cid_free_and_debug_error(&error) || iReadSize != 2)
+    if (cid_free_and_debug_error(pCid, &error) || iReadSize != 2)
     {
         pSize = g_realloc (pSize, 2 * sizeof(int));
         if (pSize != NULL)
@@ -386,11 +268,11 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
         }
     }
     cid->config->dRotate        = g_key_file_get_double  (cid->pKeyFile, "Behaviour", "ROTATION", &error);
-    cid_free_and_debug_error(&error);
+    cid_free_and_debug_error(pCid, &error);
     cid->config->dColor         = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "COLOR", &cid->config->iColorSize, &error);
-    cid_free_and_debug_error(&error);
+    cid_free_and_debug_error(pCid, &error);
     cid->config->dFlyingColor   = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", &cid->config->iFlyiniColorSize, &error);
-    cid_free_and_debug_error(&error);
+    cid_free_and_debug_error(pCid, &error);
     cid->config->bKeepCorners   = CID_CONFIG_GET_BOOLEAN ("Behaviour", "KEEP_CORNERS");
     cid->config->bAllDesktop    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "ALL_DESKTOP", TRUE);
     cid->config->bLockPosition  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "LOCK", TRUE);
@@ -415,7 +297,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->iWidth = pSize[0] <= MAX_SIZE ? pSize[0] : MAX_SIZE;
     cid->config->iHeight = pSize[1] <= MAX_SIZE ? pSize[1] : MAX_SIZE;
     
-    if (!bUnvalidKey) 
+    if (!cid->config->bUnvalidKey) 
     {
         cid->config->dRed            = cid->config->dColor[0];
         cid->config->dGreen          = cid->config->dColor[1];
@@ -429,7 +311,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     
     cid_key_file_free(pCid);
 
-    if (bUnvalidKey && !bReloaded)
+    if (cid->config->bUnvalidKey && !bReloaded)
     {
         cid_save_data (pCid);
         cid_read_key_file (pCid, f);
@@ -445,12 +327,18 @@ cid_read_config (CidMainContainer **pCid, const char *f)
     cid_info ("Reading file : %s",f);
     
     if (!cid->config->bDevMode) 
-        cid_check_file (f);
-            
+    {
+        if (!cid_file_check (f))
+            cid_exit (pCid, CID_ERROR_READING_FILE, "Unable to find configuration file");
+    }
+    
     cid_read_key_file (pCid, f);
     
     if (!cid->config->bDevMode) 
-        cid_check_conf_file_version (pCid, f);
+    {
+        if (!cid_file_check_config_version (pCid, f))
+            cid_exit (pCid, CID_ERROR_READING_FILE, "Unable to replace configuration file");
+    }
     
     iNbRead++;
 

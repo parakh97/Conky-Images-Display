@@ -234,7 +234,7 @@ main ( int argc, char **argv )
     bind_textdomain_codeset (CID_GETTEXT_PACKAGE, "UTF-8");
     textdomain (CID_GETTEXT_PACKAGE);
 
-    cid_read_parameters (&argc,&argv);
+    cid_read_parameters (&cid, &argc,&argv);
     cid_set_verbosity (cid->config->cVerbosity);
     
     cid_read_config (&cid, cid->config->cConfFile);

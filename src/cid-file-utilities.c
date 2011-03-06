@@ -10,6 +10,8 @@
 #include "cid-file-utilities.h"
 #include "cid-messages.h"
 #include "cid-md5.h"
+#include "cid-constantes.h"
+#include "cid-config.h"
 
 gboolean
 cid_file_copy (const gchar *cSrc, const gchar *cDst)
@@ -80,3 +82,116 @@ cid_file_remove (const gchar* cFilePath)
     }    
 }
 
+gboolean 
+cid_file_check_config_version (CidMainContainer **pCid, const gchar *f) 
+{
+    gchar *cCommand=NULL;
+    gchar line_f1[80], line_f2[80];
+    FILE *f1, *f2;
+    gchar *cOrigFile = g_strdup_printf("%s/%s",CID_DATA_DIR, CID_CONFIG_FILE);
+    f1 = fopen ((const char *)cOrigFile,"r");
+    f2 = fopen ((const char *)f,"r");
+    g_free (cOrigFile);
+    
+    if (!fgets(line_f1,80,f1) || !fgets(line_f2,80,f2))
+        cid_exit (pCid, 3,"couldn't read conf file, try to delete it");
+    
+    fclose (f1);
+    fclose (f2);
+    
+    cid_info ("line_f1 %s\nline_f2 %s",line_f1,line_f2);
+        
+    if (strcmp(line_f1,line_f2)!=0 || (*pCid)->config->bUnvalidKey) 
+    {
+        cid_warning ("bad file version, building a new one\n");
+        cid_file_remove (f);
+        gchar *cTmpPath = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
+        cid_file_copy(cTmpPath,f);
+        g_free (cTmpPath);
+        
+        cid_save_data (pCid);
+        cid_read_key_file (pCid, f);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+gboolean 
+cid_file_move (const gchar *cSrc, const gchar *cDst)
+{
+    if (cid_file_copy (cSrc, cDst))
+        cid_file_remove (cSrc);
+    else
+        return FALSE;
+    
+    return TRUE;
+}
+
+gboolean 
+cid_file_check (const gchar *f) 
+{
+    gchar *cFileTest;
+    gboolean ret = TRUE;
+    if (!g_file_test (f, G_FILE_TEST_EXISTS))
+    {
+        gchar *cDirectory = g_path_get_dirname (f);
+        if (! g_file_test (cDirectory, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE)) 
+        {
+            cid_info ("Creating path '%s'", cDirectory);
+            g_mkdir_with_parents (cDirectory, 7*8*8+7*8+5);
+        }
+        g_free (cDirectory);
+        
+        cFileTest = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE) ;
+        if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
+        {
+            gchar *cSrc = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE);
+            gchar *cDst = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
+            cid_debug ("Moving file from %s to %s",cSrc,cDst);
+            ret = cid_file_move (cSrc,cDst);
+            g_free (cSrc);
+            g_free (cDst);
+            g_free (cFileTest);
+            return ret;
+        }
+        g_free (cFileTest);
+        cFileTest = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),OLD_CONFIG_FILE);
+        if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
+        {
+            gchar *cSrc = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),OLD_CONFIG_FILE);
+            gchar *cDst = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
+            cid_debug ("Moving file from %s to %s",cSrc,cDst);
+            ret = cid_file_move (cSrc,cDst);
+            g_free (cSrc);
+            g_free (cDst);
+            g_free (cFileTest);
+            return ret;
+        }
+        g_free (cFileTest);
+        cFileTest = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),CID_CONFIG_FILE);
+        if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
+        {
+            gchar *cSrc = g_strdup_printf("%s/.config/%s",g_getenv("HOME"),CID_CONFIG_FILE);
+            gchar *cDst = g_strdup_printf("%s/.config/cid/%s",g_getenv("HOME"),CID_CONFIG_FILE);
+            cid_debug ("Moving file from %s to %s",cSrc,cDst);
+            ret = cid_file_move (cSrc,cDst);
+            g_free (cSrc);
+            g_free (cDst);
+            g_free (cFileTest);
+            return ret;
+        }
+        g_free (cFileTest);
+        gchar *cSrc = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
+        cid_debug ("Copying file from %s to %s",cSrc,f);
+        ret = cid_file_copy (cSrc,f);
+        g_free (cSrc);
+    }
+    return ret;
+}
+
+gboolean
+cid_file_lookup (const gchar *cFileName)
+{
+    
+    return FALSE;
+}

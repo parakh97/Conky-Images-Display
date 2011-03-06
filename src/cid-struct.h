@@ -11,6 +11,7 @@
 #define  __CID_STRUCT__
 
 #include <gtk/gtk.h>
+#include "cid-datatables.h"
 
 G_BEGIN_DECLS
 ///\______ Structures de donnees
@@ -20,9 +21,6 @@ typedef struct _CidRuntime CidRuntime;
 typedef struct _CidDefault CidDefault;
 typedef struct _CidLabelDescription CidLabelDescription;
 typedef struct _CidControlFunctionsList CidControlFunctionsList;
-typedef struct _CidDataTable CidDataTable;
-typedef struct _CidDataContent CidDataContent;
-typedef struct _CidDataCase CidDataCase;
 
 typedef struct _CidModule CidModule;
 typedef struct _CidModuleInterface CidModuleInterface;
@@ -34,7 +32,6 @@ typedef struct _CidInternalModule CidInternalModule;
 typedef void (* CidReadConfigFunc) (CidMainContainer **pCid, gchar *cConfFile);
 typedef void (* CidControlFunction) (CidMainContainer **pCid);
 typedef void (* CidManagePlaylistFunction) (gchar *cSong);
-typedef void (* CidDataAction) (CidDataCase *pCase, gpointer *pData);
 typedef void (* CidConnectPlayer) (gint iDelay);
 typedef void (* CidDisconnectPlayer) (void);
 
@@ -64,55 +61,6 @@ struct data {
     gboolean playing;
     gboolean opening;
 } musicData;
-
-/// Structure représentant un couple regex/replacement
-typedef struct _CidSubstitute
-{
-    /// la regex recherchée
-    gchar *regex;
-    /// par quoi on remplace
-    gchar *replacement;
-} CidSubstitute;
-
-/// Structure de données représentant un tableau
-struct _CidDataTable {
-    /// taille de la table
-    size_t length;
-    /// premier élément de la table
-    CidDataCase *head;
-    /// dernier élément de la table
-    CidDataCase *tail;
-};
-
-/// Structure représentant le contenu d'une case
-struct _CidDataContent {
-    /// structure anonyme servant à encapsuler un seul type de donnée dans une case
-    union {
-        /// type chaine de caractère
-        gchar *string;
-        /// type entier
-        gint iNumber;
-        /// type booléen
-        gboolean booleen;
-        /// type #CidSubstitute
-        CidSubstitute *sub;
-    };
-    /// type contenu dans la case
-    GType type;
-};
-
-/// Structure représentant une case
-struct _CidDataCase {
-    /// contenu de la case de type #CidDataContent
-    CidDataContent *content;
-    /// case suivante
-    CidDataCase *next;
-    /// case précédante
-    CidDataCase *prev;
-};
-
-/// Définition d'un nouveau type 'SUBSTITUTE'
-#define CID_TYPE_SUBSTITUTE G_TYPE_MAKE_FUNDAMENTAL (49)
 
 /// Liste des lecteurs supportés
 typedef enum {
@@ -400,6 +348,8 @@ struct _CidConfig {
     gboolean bShowAbove;
     /// On ne fait que configurer cid ?
     gboolean bConfigPanel;
+    /// La configuration est invalide ?
+    gboolean bUnvalidKey;
 
     
     /// taille de la couleur

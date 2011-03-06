@@ -1,0 +1,185 @@
+/*
+   *
+   *                cid-string-utilities.c
+   *                      -------
+   *                Conky Images Display
+   *             --------------------------
+   *
+*/
+
+#include "cid-string-utilities.h"
+#include "cid-struct.h"
+
+gchar *
+cid_toupper (gchar *cSrc) 
+{
+    register int t;
+    gchar *cRes = g_malloc (sizeof(gchar)*(strlen(cSrc)+1));
+
+    for(t=0; cSrc[t]; t++)  
+    {
+        cRes[t] = toupper(cSrc[t]);
+    }
+    cRes[t] = '\0';
+    return cRes;
+}
+
+static void
+cid_datacase_replace (CidDataCase *pCase, gpointer *pData)
+{
+    if (pCase != NULL)
+    {
+        gchar **c_tmp = pData[2];
+        if (GPOINTER_TO_INT(pData[0]) < GPOINTER_TO_INT(pData[1]))
+        {
+            gchar *tmp = g_strdup(*c_tmp);
+            g_free (*c_tmp);
+            *c_tmp = NULL;
+            *c_tmp = g_strdup_printf ("%s%s%s",tmp,pCase->content->string,pData[3]);
+            g_free (tmp);
+        } 
+        else
+        {
+            gchar *tmp = g_strdup(*c_tmp);
+            g_free (*c_tmp);
+            *c_tmp = NULL;
+            *c_tmp = g_strdup_printf ("%s%s",tmp,pCase->content->string);
+            g_free (tmp);
+        }
+    }
+}
+
+void
+cid_str_replace_all (gchar **string, const gchar *sFrom, const gchar *sTo)
+{
+    g_return_if_fail (*string != NULL && sFrom != NULL && sTo != NULL);
+    
+    gchar **tmp = g_strsplit(*string,sFrom,0);
+    CidDataTable *t_temp = cid_datatable_new();
+    while (*tmp != NULL)
+    {
+        cid_datatable_append(&t_temp,cid_datacontent_new_string(*tmp));
+        g_free (*tmp);
+        tmp++;
+    }
+    size_t size = cid_datatable_length(t_temp);
+    if (size < 2)
+    {
+        cid_free_datatable(&t_temp);
+        return;
+    }
+    int length = (strlen(*string)+((strlen(sTo)-strlen(sFrom))*size))*sizeof(gchar)+1;
+    g_free (*string);
+    *string = NULL;
+    *string = g_malloc0(length);
+    gpointer *pData = g_new(gpointer,5);
+    pData[0] = GINT_TO_POINTER(0);
+    pData[1] = GINT_TO_POINTER(size);
+    pData[2] = string;
+    pData[3] = (gchar *)g_strdup(sTo);
+    cid_datatable_foreach(t_temp,(CidDataAction)cid_datacase_replace,pData);
+    cid_free_datatable(&t_temp);
+    g_free (pData[3]);
+    g_free (pData);
+}
+
+void
+cid_str_replace_all_seq (gchar **string, gchar *seqFrom, gchar *seqTo)
+{
+//    if (strlen(seqFrom) != strlen(seqTo))
+//        return;
+    /*
+    while (*seqFrom != '\0' && *seqTo != '\0')
+    {
+        gchar *from = g_malloc0(2*sizeof(gchar)), *to = g_malloc0(2*sizeof(gchar));
+        g_sprintf(from,"%c",*seqFrom);
+        g_sprintf(to,"%c",*seqTo);
+        g_print("from: %s, to: %s\n",from,to);
+        cid_str_replace_all (string,from,to);
+        g_free(from), from = NULL;
+        g_free(to), to = NULL;
+        seqFrom++;
+        seqTo++;
+    }
+    */
+    for(;*seqFrom != '\0';seqFrom++)
+    {
+        fprintf (stdout,"%c\n",*seqFrom);
+    }
+}
+
+void
+cid_parse_nl (gchar **input)
+{
+    gchar *in = *input;
+    gint length = strlen (in);
+    gint ind = 0, cpt = 0;
+    gchar *output = g_malloc (sizeof(gchar)*length+1);
+    while (ind<length)
+    {
+        if (in[ind] == '\\' && ind < length-1 && in[ind+1] == 'n')
+        {
+            output[cpt] = '\n';
+            ind++;
+        }
+        else
+        {
+            output[cpt] = in[ind];
+        }
+        ind++,cpt++;
+    }
+    output[cpt] = '\0';
+    g_free (in);
+    in = NULL;
+    in = g_strdup (output);
+    g_free (output);
+}
+
+static void
+cid_proceed_substitute (CidDataCase *pCase, gpointer *pData)
+{
+    cid_str_replace_all (pData[1],pCase->content->sub->regex,pCase->content->sub->replacement);
+}
+
+void 
+cid_substitute_user_params (gchar **cPath)
+{
+    CidDataTable *table = cid_create_datatable (CID_TYPE_SUBSTITUTE, 
+                                                cid_new_substitute ("%artist%",musicData.playing_artist ? 
+                                                                               musicData.playing_artist :
+                                                                               ""),
+                                                cid_new_substitute ("%album%",musicData.playing_album ?
+                                                                              musicData.playing_album :
+                                                                              ""),
+                                                cid_new_substitute ("%home%",g_getenv ("HOME")),
+                                                cid_new_substitute ("%user%",g_getenv ("USER")),
+                                                G_TYPE_INVALID);
+
+    gpointer *pData = g_new0(gpointer, 2);
+    pData[0] = GINT_TO_POINTER(0);
+    pData[1] = cPath;
+    cid_datatable_foreach (table, (CidDataAction) cid_proceed_substitute, pData);
+    cid_free_datatable (&table);
+}
+
+CidSubstitute *
+cid_new_substitute (const gchar *regex, const gchar *replacement)
+{
+    CidSubstitute *ret = g_new0 (CidSubstitute, 1);
+    if (ret != NULL)
+    {
+        ret->regex = g_strdup (regex);
+        ret->replacement = g_strdup (replacement);
+    }
+    return ret;
+}
+
+void
+cid_free_substitute (CidSubstitute *pSub)
+{
+    if (pSub == NULL)
+        return;
+    g_free (pSub->regex);
+    g_free (pSub->replacement);
+    g_free (pSub);
+}

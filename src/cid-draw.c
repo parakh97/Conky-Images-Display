@@ -188,7 +188,7 @@ cid_create_main_window()
     /* On crée la fenêtre */
     cid->pWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     
-    cid_check_position ();
+    cid_check_position (&cid);
     
     /* On place, nomme, et dimenssione la fenetre */
     gtk_window_set_title (GTK_WINDOW (cid->pWindow), "cid");
