@@ -51,5 +51,11 @@ void cid_str_replace_all (gchar **string, const gchar *sFrom, const gchar *sTo);
 
 void cid_str_replace_all_seq (gchar **string, gchar *seqFrom, gchar *seqTo);
 
+/**
+ * Permet de préparer une chaîne pour la recherche sur Last.fm.
+ * @param cString chaîne à préparer.
+ */
+void cid_str_prepare (gchar **cString);
+
 G_END_DECLS
 #endif

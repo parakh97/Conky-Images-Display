@@ -160,6 +160,7 @@ cid_substitute_user_params (gchar **cPath)
     pData[1] = cPath;
     cid_datatable_foreach (table, (CidDataAction) cid_proceed_substitute, pData);
     cid_free_datatable (&table);
+    g_free (pData);
 }
 
 CidSubstitute *
@@ -182,4 +183,58 @@ cid_free_substitute (CidSubstitute *pSub)
     g_free (pSub->regex);
     g_free (pSub->replacement);
     g_free (pSub);
+}
+
+static void
+cid_proceed_regex (gchar **cString, const gchar *regex, const gchar *replacement)
+{
+    g_return_if_fail (*cString != NULL);
+    
+    GError *error = NULL;
+    GRegex *reg = g_regex_new (regex,0,0,&error);
+    if (error != NULL)
+    {
+        fprintf (stderr,"g_regex_new error: %s\n",error->message);
+        g_error_free (error);
+        error = NULL;
+        g_regex_unref (reg);
+        return;
+    }
+    gchar *res = g_regex_replace (reg, *cString, -1, 0, replacement, 0, &error);
+    if (error != NULL)
+    {
+        fprintf (stderr,"g_regex_replace error: %s\n",error->message);
+        g_error_free (error);
+        error = NULL;
+        g_regex_unref (reg);
+        return;
+    }
+    g_free (*cString);
+    *cString = g_strdup (res);
+    g_free (res);
+    g_regex_unref (reg);
+}
+
+static void
+cid_foreach_proceed_regex (CidDataCase *pCase, gpointer *pData)
+{
+    cid_proceed_regex (pData[1],pCase->content->sub->regex,pCase->content->sub->replacement);
+}
+
+void 
+cid_str_prepare (gchar **cString)
+{
+    CidDataTable *table = cid_create_datatable (CID_TYPE_SUBSTITUTE, 
+                                                cid_new_substitute ("\\(.*\\)",""),
+                                                cid_new_substitute ("\\[.*\\]",""),
+                                                cid_new_substitute (" +"," "),
+                                                cid_new_substitute (" $",""),
+                                                G_TYPE_INVALID);
+
+    gpointer *pData = g_new0(gpointer, 2);
+    pData[0] = GINT_TO_POINTER(0);
+    pData[1] = cString;
+    cid_datatable_foreach (table, (CidDataAction) cid_foreach_proceed_regex, pData);
+    cid_free_datatable (&table);
+    g_free (pData);
 }

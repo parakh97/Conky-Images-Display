@@ -261,9 +261,9 @@ main ( int argc, char **argv )
 /*
     GError *error = NULL;
     GMatchInfo *match_info;
-    GRegex *reg = g_regex_new ("%al",0,0,&error);
-    gchar *init = "blah %al bloh";
-    gchar *replacement = "blih";
+    GRegex *reg = g_regex_new ("(\\(|\\[).*(\\)|\\])",0,0,&error);
+    gchar *init = "blah (%al) bloh";
+    gchar *replacement = "";
     if (error != NULL)
     {
         fprintf (stderr,"g_regex_new error: %s\n",error->message);
@@ -318,7 +318,15 @@ main ( int argc, char **argv )
         g_free (tmp);
     }
 */
+/*
+    gchar *init = g_strdup("blah     %home% (toto) [tata] ");
     
+    fprintf (stdout,"before: '%s'\n",init);
+    cid_str_prepare (&init);
+    fprintf (stdout,"after: '%s'\n",init);
+    
+    g_free (init);
+*/
     fprintf (stdout,"Bye !\n");    
 
     return ret;

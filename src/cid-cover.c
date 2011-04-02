@@ -48,12 +48,18 @@ cid_get_xml_file (const gchar *artist,
     gchar *cTmpFilePath = g_strdup (DEFAULT_XML_LOCATION);
     
     CURL *handle = curl_easy_init(); 
-    gchar *cArtistClean = curl_easy_escape (handle, artist, 0);
-    gchar *cAlbumClean = curl_easy_escape (handle, album, 0);
+    gchar *cTmpArtist = g_strdup (artist);
+    gchar *cTmpAlbum = g_strdup (album);
+    cid_str_prepare (&cTmpArtist);
+    cid_str_prepare (&cTmpAlbum);
+    gchar *cArtistClean = curl_easy_escape (handle, cTmpArtist, 0);
+    gchar *cAlbumClean = curl_easy_escape (handle, cTmpAlbum, 0);
     gchar *cURLArgs = g_strdup_printf ("&artist=%s&album=%s", 
                                        cArtistClean, 
                                        cAlbumClean);
     gchar *cURLFull = g_strdup_printf ("%s%s", cURLBegin, cURLArgs);
+    g_free (cTmpArtist);
+    g_free (cTmpAlbum);
     g_free (cURLArgs);
     g_free (cArtistClean);
     g_free (cAlbumClean);
