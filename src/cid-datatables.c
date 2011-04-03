@@ -228,7 +228,7 @@ cid_free_datatable (CidDataTable *p_list)
 }
 
 void
-cid_clear_datatable (CidDataTable *p_list)
+cid_clear_datatable (CidDataTable **p_list)
 {
     if (*p_list != NULL)
     {

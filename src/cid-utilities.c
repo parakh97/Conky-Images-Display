@@ -118,8 +118,8 @@ cid_free_main_structure (CidMainContainer *pCid)
     pCid->config->cConfFile = NULL;
     pCid->config->cVerbosity = NULL;
     
-    cid_free_datatable (&pCid->runtime->pCoversList);
-    cid_free_datatable (&pCid->runtime->pImagesList);
+    cid_clear_datatable (&pCid->runtime->pCoversList);
+    cid_clear_datatable (&pCid->runtime->pImagesList);
     
     if (pCid->runtime->pLookupDirectory)
         g_dir_close (pCid->runtime->pLookupDirectory);

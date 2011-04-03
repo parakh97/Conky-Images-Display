@@ -344,7 +344,7 @@ main ( int argc, char **argv )
     }
     g_free (test);
     
-    cid_free_datatable (&table);
+    cid_clear_datatable (&table);
 */
     fprintf (stdout,"Bye !\n");    
 

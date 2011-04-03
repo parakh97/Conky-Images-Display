@@ -65,7 +65,7 @@ cid_str_replace_all (gchar **string, const gchar *sFrom, const gchar *sTo)
     size_t size = cid_datatable_length(t_temp);
     if (size < 2)
     {
-        cid_free_datatable(&t_temp);
+        cid_clear_datatable(&t_temp);
         return;
     }
     int length = (strlen(*string)+((strlen(sTo)-strlen(sFrom))*size))*sizeof(gchar)+1;
@@ -78,7 +78,7 @@ cid_str_replace_all (gchar **string, const gchar *sFrom, const gchar *sTo)
     pData[2] = string;
     pData[3] = (gchar *)g_strdup(sTo);
     cid_datatable_foreach(t_temp,(CidDataAction)cid_datacase_replace,pData);
-    cid_free_datatable(&t_temp);
+    cid_clear_datatable(&t_temp);
     g_free (pData[3]);
     g_free (pData);
 }
@@ -159,7 +159,7 @@ cid_substitute_user_params (gchar **cPath)
     pData[0] = GINT_TO_POINTER(0);
     pData[1] = cPath;
     cid_datatable_foreach (table, (CidDataAction) cid_proceed_substitute, pData);
-    cid_free_datatable (&table);
+    cid_clear_datatable (&table);
     g_free (pData);
 }
 
@@ -235,6 +235,6 @@ cid_str_prepare (gchar **cString)
     pData[0] = GINT_TO_POINTER(0);
     pData[1] = cString;
     cid_datatable_foreach (table, (CidDataAction) cid_foreach_proceed_regex, pData);
-    cid_free_datatable (&table);
+    cid_clear_datatable (&table);
     g_free (pData);
 }

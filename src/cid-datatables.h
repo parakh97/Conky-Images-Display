@@ -96,7 +96,14 @@ CidDataTable *cid_create_sized_datatable_with_default_full (size_t iSize, GType 
  * Fonction permettant de liberer notre liste
  * @param pointeur vers notre liste
  */
-void cid_free_datatable(CidDataTable **p_list);
+void cid_free_datatable(CidDataTable *p_list);
+
+/**
+ * Fonction permettant de liberer notre liste.
+ * De plus, le pointeur sera réinitialisé à NULL.
+ * @param pointeur vers notre liste
+ */
+void cid_clear_datatable (CidDataTable **p_list);
 
 /**
  * Permet de supprimer le premier element 'data' de la liste 'p_list'
@@ -262,7 +269,7 @@ while(p_temp!=NULL) \
 #define END_FOREACH_DT \
 p_temp=p_temp->next; \
 } \
-cid_free_datatable(&p_dt);
+cid_clear_datatable(&p_dt);
 
 #define END_FOREACH_DT_NF \
 p_temp=p_temp->next; \
