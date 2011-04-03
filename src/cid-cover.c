@@ -257,7 +257,7 @@ cid_db_store_cover (CidMainContainer **pCid,
                                         md5);
     cid_file_copy (cCoverPath, cDestFile);
     cid_file_remove (cCoverPath);
-    g_key_file_set_value (pKeyFile, "DB", cKey, md5);
+    g_key_file_set_value (pKeyFile, DB_GROUP_DOWNLOAD, cKey, md5);
     cid_write_keys_to_file (pKeyFile, cDBFile);
     g_key_file_free (pKeyFile);
     g_free (cKey);
@@ -300,7 +300,7 @@ cid_db_search_cover (CidMainContainer **pCid,
         return NULL;
     }
 
-    gchar *cVal = g_key_file_get_value (pKeyFile, "DB", cKey, &error);
+    gchar *cVal = g_key_file_get_value (pKeyFile, DB_GROUP_DOWNLOAD, cKey, &error);
     if (error != NULL)
     {
         cid_warning ("%s",error->message);
@@ -339,6 +339,7 @@ cid_cover_lookup (CidMainContainer **pCid,
         else
             cRes = g_strdup_printf ("%s/%s.jpg", cDir, file);
         cid_debug ("   test de %s\n", cRes);
+        g_free (file);
         if (g_file_test (cRes, G_FILE_TEST_EXISTS))
         {
             return cRes;

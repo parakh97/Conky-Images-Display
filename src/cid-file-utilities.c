@@ -12,6 +12,7 @@
 #include "cid-md5.h"
 #include "cid-constantes.h"
 #include "cid-config.h"
+#include "cid-string-utilities.h"
 
 gboolean
 cid_file_copy (const gchar *cSrc, const gchar *cDst)
@@ -190,8 +191,21 @@ cid_file_check (const gchar *f)
 }
 
 gboolean
-cid_file_lookup (const gchar *cFileName)
+cid_images_lookup (CidMainContainer **pCid, const gchar *cDirName)
 {
+    g_return_val_if_fail (cDirName != NULL, FALSE);
+    
+    CidMainContainer *cid = *pCid;
+    GError *error;
+    if (cid->runtime->pLookupDirectory)
+        g_dir_close (cid->runtime->pLookupDirectory);
+    cid->runtime->pLookupDirectory = g_dir_open (cDirName,0,&error);
+    if (error != NULL)
+    {
+        cid_warning ("%s", error->message);
+        g_clear_error (&error);
+        return FALSE;
+    }
     
     return FALSE;
 }

@@ -222,6 +222,15 @@ void cid_free_datacontent_full (CidDataContent *pContent, gpointer *pData);
 CidDataTable *cid_char_table_to_datatable (gchar **table, gint iSize);
 
 /**
+ * Permet de convertir un DataTable en tableau de chaînes.
+ * @param pTable table à convertir.
+ * @param iSize pointeur retournant le nombre d'éléments.
+ * @return un tableau de chaînes de caractères contenant une copie de 
+ *         l'ensemble des chaînes de la table.
+ */
+gchar **cid_datatable_to_char_table (CidDataTable *pTable, gint *iSize);
+
+/**
  * Permet de cloner un datatable.
  * @param pSource datatable à cloner.
  * @return un clone du datatable source.

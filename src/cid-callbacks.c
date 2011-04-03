@@ -284,10 +284,10 @@ _cid_about (GtkMenuItem *pMenuItem, gpointer *data)
         GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_INFO,
         GTK_BUTTONS_CLOSE,
-        "\nConky Images Display (2008-2010)\n version %s",CID_VERSION);
+        "\nConky Images Display (2008-2011)\n version %s",CID_VERSION);
     
 #if GTK_MINOR_VERSION >= 12
-    GtkWidget *pLink = gtk_link_button_new_with_label (CID_WEBSITE, "Conky Images Display (2008-2010)\n version "CID_VERSION);
+    GtkWidget *pLink = gtk_link_button_new_with_label (CID_WEBSITE, "Conky Images Display (2008-2011)\n version "CID_VERSION);
     gtk_container_add (GTK_CONTAINER (GTK_DIALOG(pDialog)->vbox), pLink);
     //gtk_link_button_set_uri_hook ((GtkLinkButtonUriFunc) _cid_web_button_clicked, NULL, NULL);
 #endif

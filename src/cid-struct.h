@@ -243,6 +243,11 @@ struct _CidRuntime {
     
     /// liste des patterns de pochettes à rechercher
     CidDataTable *pCoversList;
+    /// liste des images trouvées 
+    CidDataTable *pImagesList;
+    
+    /// Répertoire dans lequel on recherche des pochettes
+    GDir *pLookupDirectory;
 };
 
 /// Structure contenant les paramètres de configuration de CID

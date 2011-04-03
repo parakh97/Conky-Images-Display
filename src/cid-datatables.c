@@ -219,13 +219,54 @@ cid_free_datacontent_full (CidDataContent *pContent, gpointer *pData)
 }
 
 void
-cid_free_datatable (CidDataTable **p_list)
+cid_free_datatable (CidDataTable *p_list)
+{
+    if (p_list != NULL)
+    {
+        cid_datatable_foreach(p_list,(CidDataAction) cid_free_datacase_full, NULL);
+    }
+}
+
+void
+cid_clear_datatable (CidDataTable *p_list)
 {
     if (*p_list != NULL)
     {
-        cid_datatable_foreach(*p_list,(CidDataAction) cid_free_datacase_full, NULL);
+        cid_free_datatable (*p_list);
         g_free(*p_list), *p_list = NULL;
     }
+}
+
+static CidDataCase *
+cid_clone_datacase (const CidDataCase *pCase)
+{
+    CidDataCase *res = cid_datacase_new ();
+    if (res != NULL)
+    {
+        CidDataContent *ori = pCase->content;
+        CidDataContent *new;
+        switch (ori->type)
+        {
+            case G_TYPE_INT: 
+                new = cid_datacontent_new_int (GINT_TO_POINTER(pCase->content->iNumber));
+                break;
+            case G_TYPE_BOOLEAN:
+                new = cid_datacontent_new_boolean (GINT_TO_POINTER(ori->booleen));
+                break;
+            case G_TYPE_STRING:
+                new = cid_datacontent_new_string (ori->string);
+                break;
+            case CID_TYPE_SUBSTITUTE:
+                new = cid_datacontent_new_substitute (cid_new_substitute (ori->sub->regex,ori->sub->replacement));
+                break;
+            default:
+                return NULL;
+        }
+        res->content = new;
+        res->next = pCase->next;
+        res->prev = pCase->prev;
+    }
+    return res;
 }
 
 void
@@ -244,11 +285,10 @@ cid_datatable_foreach (CidDataTable *p_list, CidDataAction func, gpointer *pData
         while (p_temp != NULL)
         {
             pData[0] = GINT_TO_POINTER(cpt);
-            CidDataCase *p_del = g_malloc0(sizeof(*p_temp));
-            memcpy(p_del,p_temp,sizeof(*p_temp));
+            CidDataCase *p_del = cid_clone_datacase (p_temp);
             func (p_temp, pData);
             p_temp = p_del->next;
-            g_free(p_del);
+            cid_free_datacase (p_del);
             cpt++;
         }
         if (bCreateData)
@@ -472,12 +512,37 @@ cid_char_table_to_datatable (gchar **table, gint iSize)
     CidDataTable *res = cid_datatable_new();
     if (res != NULL)
     {
-        while ((iSize == -1 ? table[cpt] != NULL : cpt<iSize) && table[cpt] != NULL)
+        while (iSize == -1 ? table[cpt] != NULL : (cpt<iSize && table[cpt] != NULL))
         {
             CidDataContent *tmp = cid_datacontent_new(G_TYPE_STRING, table[cpt]);
             cid_datatable_append(&res,tmp);
             cpt++;
         } 
+    }
+    return res;
+}
+
+gchar **
+cid_datatable_to_char_table (CidDataTable *pTable, gint *iSize)
+{
+    g_return_val_if_fail (pTable != NULL, NULL);
+    
+    size_t size = cid_datatable_length (pTable);
+    gchar **res = g_malloc0_n (size,sizeof(gchar *));
+    gint cpt = 0;
+    if (res != NULL) 
+    {
+        BEGIN_FOREACH_DT (pTable)
+            g_free (res[cpt]);
+            res[cpt] = g_strdup (p_temp->content->string);
+            cpt++;
+        END_FOREACH_DT_NF
+    
+        *iSize = cpt;
+    } 
+    else 
+    {
+        *iSize = -1;
     }
     return res;
 }

@@ -214,7 +214,6 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
 int 
 main ( int argc, char **argv ) 
 {        
-
     struct sigaction action;
     
     cid = g_malloc0 (sizeof(*cid));
@@ -326,6 +325,26 @@ main ( int argc, char **argv )
     fprintf (stdout,"after: '%s'\n",init);
     
     g_free (init);
+*/
+/*
+    gint size, i = 0;
+    gchar **test;
+    CidDataTable *table = cid_char_table_to_datatable (argv, -1);
+    
+    cid_datatable_foreach (table, cid_datacase_print, NULL);
+    
+    test = cid_datatable_to_char_table (table, &size);
+    
+    //g_print ("size: %d | argc: %d\n", size, argc);
+    
+    for (;i < size; i++)
+    {
+        //g_print ("test[%d]: %s\n",i,test[i]);
+        g_free (test[i]);
+    }
+    g_free (test);
+    
+    cid_free_datatable (&table);
 */
     fprintf (stdout,"Bye !\n");    
 

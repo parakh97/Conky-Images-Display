@@ -34,7 +34,9 @@ G_BEGIN_DECLS
 
 #define TEST_XML "../data/test.xml"
 
-#define CID_COVER_DB "cover.db"
+#define CID_COVER_DB      "cover.db"
+#define DB_GROUP_DOWNLOAD "DB"
+#define DB_GROUP_LOCAL    "LOCAL"
 
 
 /**
