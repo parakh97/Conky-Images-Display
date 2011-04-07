@@ -52,5 +52,13 @@ gboolean cid_file_check_conf_version (CidMainContainer **pCid, const gchar *f);
  */
 gboolean cid_file_move (const gchar *cSrc, const gchar *cDst);
 
+/**
+ * Retourne la liste de toutes les images d'un dossier.
+ * @param pCid Structure de configuration.
+ * @param cDirName Dossier dans lequel il faut chercher les images.
+ * @return CidDataTable contenant l'ensemble des images.
+ */
+CidDataTable *cid_images_lookup (CidMainContainer **pCid, const gchar *cDirName);
+
 G_END_DECLS
 #endif

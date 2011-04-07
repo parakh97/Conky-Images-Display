@@ -15,6 +15,7 @@
 #include "cid-messages.h"
 #include "cid-utilities.h"
 #include "cid-md5.h"
+#include "cid-file-utilities.h"
 
 #include <curl/curl.h>
 #include <fcntl.h>
@@ -330,6 +331,8 @@ cid_cover_lookup (CidMainContainer **pCid,
     CidMainContainer *cid = *pCid;
     gchar *cRes = NULL;
     
+    cid_clear_datatable (&cid->runtime->pImagesList);
+    
     BEGIN_FOREACH_DT (cid->runtime->pCoversList)
         g_free (cRes);
         gchar *file = g_strdup (p_temp->content->string);
@@ -351,7 +354,20 @@ cid_cover_lookup (CidMainContainer **pCid,
     
     if (cRes != NULL)
         return cRes;
-        
+    
+    g_free (cRes);
+    
+    cid->runtime->pImagesList = cid_images_lookup (pCid, cDir);
+    
+    if (cid_datatable_length (cid->runtime->pImagesList) > 0)
+    {
+        CidDataCase *p_tmp = cid->runtime->pImagesList->head;
+        cRes = g_strdup_printf ("%s/%s", cDir, p_tmp->content->string);
+    }
+    
+    if (cRes != NULL)
+        return cRes;
+    
     cid->runtime->iCheckIter = 0;
     if (musicData.iSidCheckCover != 0) 
     {

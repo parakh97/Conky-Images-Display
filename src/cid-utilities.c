@@ -121,9 +121,6 @@ cid_free_main_structure (CidMainContainer *pCid)
     cid_clear_datatable (&pCid->runtime->pCoversList);
     cid_clear_datatable (&pCid->runtime->pImagesList);
     
-    if (pCid->runtime->pLookupDirectory)
-        g_dir_close (pCid->runtime->pLookupDirectory);
-    
     g_free (pCid);
     pCid = NULL;
 }

@@ -227,6 +227,7 @@ cid_str_prepare (gchar **cString)
     CidDataTable *table = cid_create_datatable (CID_TYPE_SUBSTITUTE, 
                                                 cid_new_substitute ("\\(.*\\)",""),
                                                 cid_new_substitute ("\\[.*\\]",""),
+                                                cid_new_substitute ("_"," "),
                                                 cid_new_substitute (" +"," "),
                                                 cid_new_substitute (" $",""),
                                                 G_TYPE_INVALID);
@@ -237,4 +238,10 @@ cid_str_prepare (gchar **cString)
     cid_datatable_foreach (table, (CidDataAction) cid_foreach_proceed_regex, pData);
     cid_clear_datatable (&table);
     g_free (pData);
+}
+
+gboolean
+cid_str_match (const gchar *cString, const gchar *cRegex)
+{
+    return g_regex_match_simple (cRegex, cString, G_REGEX_CASELESS, 0);
 }

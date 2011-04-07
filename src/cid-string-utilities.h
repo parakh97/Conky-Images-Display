@@ -57,5 +57,13 @@ void cid_str_replace_all_seq (gchar **string, gchar *seqFrom, gchar *seqTo);
  */
 void cid_str_prepare (gchar **cString);
 
+/**
+ * Permet de tester une expression régulière.
+ * @param cString la chaîne à tester.
+ * @param cRegex expression régulière à passer sur la chaîne.
+ * @return TRUE si on match, FALSE sinon.
+ */
+gboolean cid_str_match (const gchar *cString, const gchar *cRegex);
+
 G_END_DECLS
 #endif

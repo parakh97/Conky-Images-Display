@@ -206,6 +206,8 @@ struct _CidRuntime {
     gint iCursorX;
     /// position en y du curseur
     gint iCursorY;
+    /// indice de l'image à utiliser
+    gint iImageIndex;
     
     /// avancement de l'animation
     gdouble dAnimationProgress;

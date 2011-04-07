@@ -81,7 +81,7 @@ cid_intercept_signal (int number)
         cid_interrupt ();
         return;
     }
-    cid_warning ("Attention : cid has crashed (%s).", strsignal(number));
+    cid_warning ("Attention : cid has crashed (%d).", /*strsignal(*/number);
     fflush (stdout);
     signal (number, SIG_DFL);
     raise (number);

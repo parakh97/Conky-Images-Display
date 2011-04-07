@@ -143,6 +143,8 @@ cid_file_check (const gchar *f)
         }
         g_free (cDirectory);
         
+        /// retro-compatibilité: on déplace les anciens fichiers de conf
+        /// si existants.
         cFileTest = g_strdup_printf("%s/%s",g_getenv("HOME"),OLD_CONFIG_FILE) ;
         if (g_file_test (cFileTest, G_FILE_TEST_EXISTS))
         {
@@ -182,6 +184,9 @@ cid_file_check (const gchar *f)
             return ret;
         }
         g_free (cFileTest);
+        
+        /// Si on a pas trouvé d'ancienne conf, on recopie la conf par
+        /// défaut.
         gchar *cSrc = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
         cid_debug ("Copying file from %s to %s",cSrc,f);
         ret = cid_file_copy (cSrc,f);
@@ -190,22 +195,38 @@ cid_file_check (const gchar *f)
     return ret;
 }
 
-gboolean
+CidDataTable *
 cid_images_lookup (CidMainContainer **pCid, const gchar *cDirName)
 {
     g_return_val_if_fail (cDirName != NULL, FALSE);
     
     CidMainContainer *cid = *pCid;
-    GError *error;
-    if (cid->runtime->pLookupDirectory)
-        g_dir_close (cid->runtime->pLookupDirectory);
-    cid->runtime->pLookupDirectory = g_dir_open (cDirName,0,&error);
-    if (error != NULL)
+    CidDataTable *ret = cid_datatable_new ();
+    GError *error = NULL;
+    if (ret != NULL)
     {
-        cid_warning ("%s", error->message);
-        g_clear_error (&error);
-        return FALSE;
+        cid->runtime->pLookupDirectory = g_dir_open (cDirName,0,&error);
+        if (error != NULL)
+        {
+            cid_warning ("%s", error->message);
+            g_clear_error (&error);
+            return FALSE;
+        }
+        const gchar *cEntry = NULL;
+        while ((cEntry = g_dir_read_name (cid->runtime->pLookupDirectory)) != NULL)
+        {
+            fprintf(stdout,"Testing file: %s ",cEntry);
+            if (cid_str_match (cEntry,"\\.(jpg|png|gif|svg)$"))
+            {
+                cid_datatable_append (&ret, cid_datacontent_new_string (cEntry));
+                fprintf(stdout,"[OK]\n");
+            }
+            else
+            {
+                fprintf(stdout,"[KO]\n");
+            }
+        }
+        g_dir_close (cid->runtime->pLookupDirectory);
     }
-    
-    return FALSE;
+    return ret;
 }
