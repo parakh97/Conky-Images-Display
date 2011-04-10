@@ -41,6 +41,8 @@
 #include "cid-struct.h"
 #include "cid-utilities.h"
 
+#include "config.h"
+
 #include "libmpdclient.h"
 
 #endif

@@ -270,12 +270,6 @@ on_motion (GtkWidget *widget, GdkEventMotion *event)
     }
 }
 
-static void 
-_cid_web_button_clicked (GtkLinkButton *button, const gchar *link_, gpointer *user_data) 
-{
-    cid_launch_web_browser(link_);
-}
-
 void 
 _cid_about (GtkMenuItem *pMenuItem, gpointer *data) 
 {
@@ -289,7 +283,6 @@ _cid_about (GtkMenuItem *pMenuItem, gpointer *data)
 #if GTK_MINOR_VERSION >= 12
     GtkWidget *pLink = gtk_link_button_new_with_label (CID_WEBSITE, "Conky Images Display (2008-2011)\n version "CID_VERSION);
     gtk_container_add (GTK_CONTAINER (GTK_DIALOG(pDialog)->vbox), pLink);
-    //gtk_link_button_set_uri_hook ((GtkLinkButtonUriFunc) _cid_web_button_clicked, NULL, NULL);
 #endif
     
     gchar *cImagePath = g_strdup (CID_DEFAULT_IMAGE);

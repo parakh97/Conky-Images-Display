@@ -215,16 +215,16 @@ cid_images_lookup (CidMainContainer **pCid, const gchar *cDirName)
         const gchar *cEntry = NULL;
         while ((cEntry = g_dir_read_name (cid->runtime->pLookupDirectory)) != NULL)
         {
-            fprintf(stdout,"Testing file: %s ",cEntry);
+            //fprintf(stdout,"Testing file: %s ",cEntry);
             if (cid_str_match (cEntry,"\\.(jpg|png|gif|svg)$"))
             {
                 cid_datatable_append (&ret, cid_datacontent_new_string (cEntry));
-                fprintf(stdout,"[OK]\n");
+                //fprintf(stdout,"[OK]\n");
             }
-            else
-            {
-                fprintf(stdout,"[KO]\n");
-            }
+            //else
+            //{
+            //    fprintf(stdout,"[KO]\n");
+            //}
         }
         g_dir_close (cid->runtime->pLookupDirectory);
     }

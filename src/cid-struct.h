@@ -12,6 +12,7 @@
 
 #include <gtk/gtk.h>
 #include "cid-datatables.h"
+#include "config.h"
 
 G_BEGIN_DECLS
 ///\______ Structures de donnees
