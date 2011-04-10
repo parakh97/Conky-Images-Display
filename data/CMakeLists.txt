@@ -28,7 +28,7 @@ install (FILES
 
 # appli
 install (FILES
-	default.svg
+	cid.svg
 	DESTINATION ${datadir}/pixmaps)
 
 install (FILES
