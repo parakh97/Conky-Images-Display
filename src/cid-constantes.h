@@ -29,7 +29,7 @@ G_BEGIN_DECLS
 
 #define TESTING_COVER "default.svg"
 #define TESTING_FILE "cid.conf"
-#define TESTING_DIR "../data"
+#define TESTING_DIR "../../data"
 
 #define IMAGE_CROSS "cross.png"
 #define IMAGE_CONNECT "connect.png"

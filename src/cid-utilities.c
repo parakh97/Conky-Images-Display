@@ -154,7 +154,7 @@ cid_read_parameters (CidMainContainer **pCid, int *argc, char ***argv)
                 g_free (cid->config->cConfFile);
             if (cid->config->cDefaultImage)
                 g_free (cid->config->cDefaultImage);
-            cid->config->cConfFile = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_FILE);
+            cid->config->cConfFile = g_strdup_printf ("../data/%s", TESTING_FILE);
             cid->config->cDefaultImage = g_strdup_printf ("%s/%s", TESTING_DIR, TESTING_COVER);
             cid->config->bDevMode = TRUE;
         }

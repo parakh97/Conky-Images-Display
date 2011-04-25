@@ -214,6 +214,7 @@ cid_display_init(CidMainContainer **pCid, int *argc, char ***argv)
 int 
 main ( int argc, char **argv ) 
 {        
+/*
     struct sigaction action;
     
     cid = g_malloc0 (sizeof(*cid));
@@ -256,7 +257,7 @@ main ( int argc, char **argv )
     cid_key_file_free(&cid);
     cid_free_musicData();
     cid_free_main_structure (cid);
-
+*/
 /*
     GError *error = NULL;
     GMatchInfo *match_info;
@@ -346,6 +347,23 @@ main ( int argc, char **argv )
     
     cid_clear_datatable (&table);
 */
+    CidDataTable *table = cid_create_datatable (G_TYPE_INT,  
+                                                1, 
+                                                2,
+                                                3,
+                                                4,
+                                                5,
+                                                6,
+                                                7,
+                                                8,
+                                                9,
+                                                G_TYPE_INVALID);
+    
+    gint ind = 0;
+    fprintf (stdout, "table[%d] = %d\n", ind, cid_datatable_get_id (table, ind)->content->iNumber);
+    
+    cid_clear_datatable (&table);
+    
     fprintf (stdout,"Bye !\n");    
 
     return ret;

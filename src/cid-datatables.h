@@ -162,6 +162,14 @@ void cid_datatable_prepend(CidDataTable **p_list, CidDataContent *data);
 void cid_datatable_append(CidDataTable **p_list, CidDataContent *data);
 
 /**
+ * Permet de retourner la case de l'indice donné.
+ * @param pTable liste dont on souhaite l'élément.
+ * @param iPos indice de l'élément souhaité.
+ * @return case de l'indice demandé.
+ */
+CidDataCase *cid_datatable_get_id (CidDataTable *pTable, gint iPos);
+
+/**
  * Permet de creer un nouvel element pouvant etre insere dans une liste
  * @param iType type de l'element
  * @param value valeur de l'element

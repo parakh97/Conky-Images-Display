@@ -195,6 +195,41 @@ cid_datatable_insert(CidDataTable **p_list, CidDataContent *data, gint position)
     }
 }
 
+CidDataCase *
+cid_datatable_get_id (CidDataTable *pTable, gint iPos)
+{
+    g_return_val_if_fail (pTable != NULL, NULL);
+    
+    size_t iSize = cid_datatable_length (pTable);
+    
+    g_return_val_if_fail (iPos < (gint)iSize && iPos > -1, NULL);
+    
+    CidDataCase *pRet = NULL;
+    gint cpt = 0;
+    if (iPos < (gint)iSize/2)
+    {
+        CidDataCase *pCase = pTable->head;
+        pRet = pCase;
+        for (; cpt < iPos; cpt++)
+        {
+            pRet = pCase->next;
+            pCase = pRet;
+        }
+    }
+    else
+    {
+        CidDataCase *pCase = pTable->tail;
+        pRet = pCase;
+        cpt = iSize - 1;
+        for (; cpt > iPos; cpt --)
+        {
+            pRet = pCase->prev;
+            pCase = pRet;
+        }
+    }
+    return pRet;
+}
+
 void
 cid_free_datacase_full (CidDataCase *pCase, gpointer *pData)
 {
