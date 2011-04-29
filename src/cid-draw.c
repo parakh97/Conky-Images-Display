@@ -26,7 +26,7 @@ extern gboolean bFlyingButton;
 static gchar *
 cid_get_symbol_path (StateSymbol iState, SymbolColor iColor) 
 {
-    return g_strdup_printf("%s/%s-%s.png",cid->config->bDevMode ? "../data" : CID_DATA_DIR, STATE_SYMBOL[iState], STATE_COLOR[iColor]);
+    return g_strdup_printf("%s/%s-%s.png",cid->config->bDevMode ? TESTING_DIR : CID_DATA_DIR, STATE_SYMBOL[iState], STATE_COLOR[iColor]);
 }
 
 /* Fonction qui nous sert à afficher l'image dont le chemin
@@ -261,10 +261,7 @@ cid_create_main_window()
     cid_set_colormap (cid->pWindow, NULL, NULL);
     
     /* Chargement des dessins */
-    if (cid->config->iPlayer != PLAYER_NONE)
-    {
-        cid_load_symbols ();
-    }
+    cid_load_symbols ();
     
     gtk_widget_show_all(cid->pWindow);
 }
@@ -542,33 +539,6 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
         cairo_restore (cr); 
     }
     
-    // Si on survolle et qu'on autorise le deplacement, on affiche une petite croix
-    if (cid->runtime->bCurrentlyFlying && !cid->config->bLockPosition) 
-    {
-        cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
-        cairo_save(cr);
-        cairo_set_source_rgba (cr, 0, 0, 0, 0);
-        cairo_translate (cr, cid->config->iWidth-cid->config->iExtraSize, 0);
-        cairo_set_source_surface (cr, cid->p_cCross, 0, 0);
-        cairo_paint (cr);
-        cairo_restore (cr); 
-    }
-    
-    // On affiche l'image de connexion/deconnexion
-    if (cid->runtime->bCurrentlyFlying && cid->config->iPlayer == PLAYER_MPD)
-    {
-        cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
-        cairo_save (cr);
-        cairo_set_source_rgba (cr, 0, 0, 0, 0);
-        cairo_translate (cr, 0, cid->config->iHeight-cid->config->iExtraSize);
-        if (cid->runtime->iCursorX < cid->config->iExtraSize && cid->runtime->iCursorY > cid->config->iHeight-cid->config->iExtraSize)
-            cairo_set_source_surface (cr, cid->runtime->bConnected ? cid->p_cConnect : cid->p_cDisconnect, 0, 0);
-        else
-            cairo_set_source_surface (cr, cid->runtime->bConnected ? cid->p_cDisconnect : cid->p_cConnect, 0, 0);
-        cairo_paint (cr);
-        cairo_restore (cr);
-    }
-    
     // Si on survolle et qu'on autorise l'affichage des controles
     if (cid->runtime->bCurrentlyFlying && cid->config->bDisplayControl && cid->config->iPlayer != PLAYER_NONE && cid->config->bMonitorPlayer) 
     {
@@ -647,7 +617,34 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
         }
     }
     
-    cairo_destroy (cr);
+    // On affiche l'image de connexion/deconnexion
+    if (cid->runtime->bCurrentlyFlying && cid->config->iPlayer == PLAYER_MPD)
+    {
+        cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
+        if (cid->runtime->iCursorX < cid->config->iExtraSize && cid->runtime->iCursorY > cid->config->iHeight-cid->config->iExtraSize)
+            cairo_set_source_surface (cr, cid->runtime->bConnected ? cid->p_cConnect : cid->p_cDisconnect, 0, cid->config->iHeight-cid->config->iExtraSize);
+        else
+            cairo_set_source_surface (cr, cid->runtime->bConnected ? cid->p_cDisconnect : cid->p_cConnect, 0, cid->config->iHeight-cid->config->iExtraSize);
+        cairo_paint (cr);
+    }
+    
+    // Si on survolle et qu'on autorise le deplacement, on affiche une petite croix
+    if (cid->runtime->bCurrentlyFlying && !cid->config->bLockPosition) 
+    {
+        cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
+        cairo_set_source_surface (cr, cid->p_cCross, cid->config->iWidth-cid->config->iExtraSize, 0);
+        cairo_paint (cr);
+    }
+    
+    ///\___ On s'amuse avec des petits dessins o/
+    cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
+    cairo_save(cr);
+    cairo_move_to (cr, 0, 0);
+    cairo_set_source_rgb(cr, 1, 1, 1);
+    
+    
+    cairo_paint (cr);
+    cairo_restore (cr);
 }
 
 void 

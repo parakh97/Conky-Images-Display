@@ -327,7 +327,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile, const gchar *cTitle, GtkWindo
                     if (iIdentifier != 0 && *cUsefulComment != iIdentifier) 
                     {
                         g_free (cKeyComment);
-                        j ++;
+                        j++;
                         continue;
                     }
                     cUsefulComment ++;

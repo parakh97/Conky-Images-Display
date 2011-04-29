@@ -35,7 +35,7 @@ cid_datacase_replace (CidDataCase *pCase, gpointer *pData)
             gchar *tmp = g_strdup(*c_tmp);
             g_free (*c_tmp);
             *c_tmp = NULL;
-            *c_tmp = g_strdup_printf ("%s%s%s",tmp,pCase->content->string,pData[3]);
+            *c_tmp = g_strdup_printf ("%s%s%s",tmp,pCase->content->string,(gchar *)pData[3]);
             g_free (tmp);
         } 
         else
@@ -111,7 +111,7 @@ cid_str_replace_all_seq (gchar **string, gchar *seqFrom, gchar *seqTo)
 void
 cid_parse_nl (gchar **input)
 {
-    gchar *in = *input;
+    gchar *in = g_locale_from_utf8(*input, -1, NULL, NULL, NULL);
     gint length = strlen (in);
     gint ind = 0, cpt = 0;
     gchar *output = g_malloc (sizeof(gchar)*length+1);
@@ -131,7 +131,7 @@ cid_parse_nl (gchar **input)
     output[cpt] = '\0';
     g_free (in);
     in = NULL;
-    in = g_strdup (output);
+    in = g_locale_to_utf8 (output, -1, NULL, NULL, NULL);
     g_free (output);
 }
 
