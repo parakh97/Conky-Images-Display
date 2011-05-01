@@ -637,6 +637,7 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
     }
     
     ///\___ On s'amuse avec des petits dessins o/
+    /*
     cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
     cairo_save(cr);
     cairo_move_to (cr, 0, 0);
@@ -645,6 +646,7 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
     
     cairo_paint (cr);
     cairo_restore (cr);
+    */
 }
 
 void 

@@ -169,6 +169,8 @@ on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int 
     if (cReceivedData[length-1] == '\r')
         cReceivedData[--length] = '\0';
         
+    fprintf (stdout, "before: %s\n", cReceivedData);
+        
     gchar **cReceivedDataList = g_strsplit(cReceivedData,"\n",0);
     //g_free (cReceivedData);
     
@@ -183,6 +185,8 @@ on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int 
                         || g_str_has_suffix(*cReceivedDataList,"png")
                         || g_str_has_suffix(*cReceivedDataList,"SVG")
                         || g_str_has_suffix(*cReceivedDataList,"svg");
+        
+        fprintf (stdout, "POUET: '%s' (%s)\n", *cReceivedDataList, isImage ? "TRUE" : "FALSE");
         if(isImage) 
         {
             if(musicData.playing_artist != NULL && musicData.playing_album != NULL) 
@@ -200,7 +204,7 @@ on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int 
                 else 
                 {
                     cid_debug("Le fichier est local");
-                    gchar *cFileSrc = (**cReceivedDataList == '/' ? *cReceivedDataList : g_filename_from_uri (*cReceivedDataList, NULL, NULL));
+                    gchar *cFileSrc = (**cReceivedDataList == '/' ? g_strdup(*cReceivedDataList) : g_filename_from_uri (*cReceivedDataList, NULL, NULL));
                     gchar *cFileDst = g_strdup_printf ("/tmp/\"%s - %s.jpg\"",musicData.playing_artist,musicData.playing_album);
                     cid_file_copy (cFileSrc,cFileDst);
                     g_free (cFileSrc);
@@ -215,9 +219,13 @@ on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int 
             } 
             else 
             {
-                cid_display_image((**cReceivedDataList == '/' ? *cReceivedDataList : g_filename_from_uri (*cReceivedDataList, NULL, NULL)));
+                gchar *cTmpImagePath = (**cReceivedDataList == '/' ? g_strdup(*cReceivedDataList) : g_filename_from_uri (*cReceivedDataList, NULL, NULL));
+                cid_display_image(cTmpImagePath);
                 cid_animation(cid->config->iAnimationType);
+                g_free (cTmpImagePath);
             }
+            gtk_main_quit ();
+            gtk_main ();
         } 
         else 
         {
@@ -225,13 +233,14 @@ on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int 
             if (cid->runtime->pMonitorList->p_fAddToQueue!=NULL)
                 cid->runtime->pMonitorList->p_fAddToQueue(*cReceivedDataList);
         }
+        g_free (*cReceivedDataList);
         cReceivedDataList++;
     }
         
     //g_print("d&d >>> %s\n",cReceivedData);
     //system (g_strdup_printf("nautilus %s &",cReceivedData));
-    g_strfreev (cReceivedDataList);
-    //g_free (cReceivedData);
+    //g_strfreev (cReceivedDataList);
+    g_free (cReceivedData);
 }
 
 
