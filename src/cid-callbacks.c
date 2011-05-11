@@ -32,23 +32,22 @@ gboolean bFlyingButton;
 static CidTask *pMeasureDownload = NULL;
 
 void 
-cid_interrupt (void) 
+cid_interrupt (CidMainContainer **pCid) 
 {
-    _cid_quit(NULL,NULL);
+    _cid_quit(NULL,(gpointer *)pCid);
 }
 
 void 
-_cid_quit (GtkWidget *p_widget, gpointer user_data) 
+_cid_quit (GtkWidget *p_widget, gpointer *user_data) 
 {
-    cid_save_data (&cid);
+    cid_save_data ((CidMainContainer **)user_data);
 
     cid_file_remove (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     
-    cid_sortie (&cid, CID_EXIT_SUCCESS);
+    cid_sortie ((CidMainContainer **)user_data, CID_EXIT_SUCCESS);
 
     /* Parametres inutilises */
     (void)p_widget;
-    (void)user_data;
 }
 
 gpointer 

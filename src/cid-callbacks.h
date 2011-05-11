@@ -20,12 +20,12 @@ G_BEGIN_DECLS
  * @param p_widget non utilisé
  * @param user_data non utilisé
  */
-void _cid_quit (GtkWidget *p_widget, gpointer user_data);
+void _cid_quit (GtkWidget *p_widget, gpointer *user_data);
 
 /**
  * Fonction exécutée en cas d'interruption du programme 
  */
-void cid_interrupt (void);
+void cid_interrupt (CidMainContainer **pCid);
 
 /**
  * Fonction executée lors d'un clic de souris

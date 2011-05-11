@@ -51,6 +51,7 @@ cid_read_config_after_update (CidMainContainer **pCid, const char *f)
         if (cid->runtime->pMonitorList) 
         {
             //g_slice_free (CidControlFunctionsList,cid->runtime->pMonitorList);
+            g_free (cid->runtime->pMonitorList);
             cid->runtime->pMonitorList = NULL;
         }
     
@@ -221,7 +222,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->bMonitorPlayer  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "MONITOR", TRUE);
     cid->config->bPlayerState    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "STATE", TRUE);
     cid->config->bDisplayTitle   = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "TITLE", TRUE);
-    cid->config->iSymbolColor    = CID_CONFIG_GET_INTEGER ("System", "SYMBOL_COLOR");
+    //cid->config->iSymbolColor    = CID_CONFIG_GET_INTEGER ("System", "SYMBOL_COLOR");
     cid->config->bDisplayControl = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "CONTROLS", TRUE);
     cid->config->dPoliceSize     = g_key_file_get_double  (cid->pKeyFile, "System", "POLICE_SIZE", &error);
     cid_free_and_debug_error(pCid, &error);
@@ -369,7 +370,7 @@ cid_save_data (CidMainContainer **pCid)
     // [System] configuration
     g_key_file_set_integer (cid->pKeyFile, "System", "PLAYER", cid->config->iPlayer);
     g_key_file_set_integer (cid->pKeyFile, "System", "INTER", cid->config->iInter/1000);
-    g_key_file_set_integer (cid->pKeyFile, "System", "SYMBOL_COLOR", cid->config->iSymbolColor);
+    //g_key_file_set_integer (cid->pKeyFile, "System", "SYMBOL_COLOR", cid->config->iSymbolColor);
     g_key_file_set_boolean (cid->pKeyFile, "System", "MONITOR", cid->config->bMonitorPlayer);
     g_key_file_set_boolean (cid->pKeyFile, "System", "STATE", cid->config->bPlayerState);
     g_key_file_set_boolean (cid->pKeyFile, "System", "TITLE", cid->config->bDisplayTitle);

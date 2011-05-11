@@ -43,7 +43,9 @@ cid_build_menu (CidMainContainer **pCid)
     gtk_menu_shell_append (GTK_MENU_SHELL (pSubMenu), sep1);
     
     _add_entry_in_menu (_("About"), GTK_STOCK_ABOUT, _cid_about, pSubMenu);
+    data = (gpointer *)pCid;
     _add_entry_in_menu (_("Quit"), GTK_STOCK_QUIT, _cid_quit, pSubMenu);
+    data = NULL;
     
     if (cid->config->bMonitorPlayer && cid->config->iPlayer!=PLAYER_NONE) 
     {

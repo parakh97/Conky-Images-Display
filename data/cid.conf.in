@@ -74,7 +74,7 @@ PLAYER=0
 INTER=5
 
 #b Allow CID to monitor your player
-#{Contextual menu in right clic. Play/Pause by left clicking. Next by middle clicking.}
+#{Contextual menu in right clic.\n - Play/Pause by left clicking\n - Next by middle clicking}
 MONITOR=
 
 #b Display the controls
@@ -82,9 +82,6 @@ CONTROLS=
 
 #b Give the play/pause status
 STATE=
-
-#r[White;Yellow;Red] Status symbols color
-SYMBOL_COLOR=
 
 #U Search the following files
 #{%user% stands for the username\n%home% stands for the user's home directory\n%artist% stands for the artist's name\n%album% stands for the album name}/

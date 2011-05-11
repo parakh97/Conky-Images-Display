@@ -20,6 +20,15 @@ G_BEGIN_DECLS
 static gchar *STATE_SYMBOL[] = {"play","pause","next","prev"};
 static gchar *STATE_COLOR[]  = {"white","yellow","red"};
 
+/// Liste des lecteurs supportés
+typedef enum {
+    SHAPE_NONE,
+    SHAPE_PLAY,
+    SHAPE_PAUSE,
+    SHAPE_NEXT,
+    SHAPE_PREV
+} CidShapes;
+
 /**
  * Permet de redessiner la fenêtre
  */

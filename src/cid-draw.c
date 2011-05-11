@@ -58,6 +58,8 @@ cid_display_image(gchar *image)
         {
             g_free(musicData.playing_cover);
             musicData.playing_cover = g_strdup(image);
+        } else if (!musicData.playing_cover) {
+            musicData.playing_cover = g_strdup(image);
         }
         musicData.cover_exist = TRUE;
         
@@ -221,7 +223,7 @@ cid_create_main_window()
     g_signal_connect (G_OBJECT (cid->pWindow), "expose-event", G_CALLBACK (cid_draw_window), NULL);
     g_signal_connect (G_OBJECT (cid->pWindow), "screen-changed", G_CALLBACK (cid_set_colormap), NULL);
     
-    g_signal_connect (G_OBJECT(cid->pWindow), "delete-event", G_CALLBACK(_cid_quit), NULL); // On ferme la fenêtre
+    g_signal_connect (G_OBJECT(cid->pWindow), "delete-event", G_CALLBACK(_cid_quit), (gpointer *)&cid); // On ferme la fenêtre
     
     /* Ici on traite le focus in/out */
     g_signal_connect (G_OBJECT(cid->pWindow), "enter-notify-event", G_CALLBACK(cid_focus), GINT_TO_POINTER(TRUE)); // On passe le curseur sur la fenêtre
@@ -385,6 +387,136 @@ cid_draw_text (cairo_t *cr)
 */
 }
 
+static cairo_surface_t *
+_cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint iHeight)
+{
+    CidMainContainer *cid = *pCid;
+    cairo_surface_t *pRet = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, iWidth, iHeight);
+    cairo_t *ctx = cairo_create (pRet);
+    
+    cairo_set_operator (ctx, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_rgba (ctx, 0, 0, 0, 0);
+    cairo_paint (ctx);
+    
+    switch (iShape)
+    {
+        case SHAPE_PLAY:
+            cairo_set_operator (ctx, CAIRO_OPERATOR_DEST_OVER);
+            cairo_save(ctx);
+            cairo_set_source_rgba (ctx, 0, 0, 0, 0);
+
+            cairo_set_line_width(ctx, 1);
+
+            //cairo_move_to (ctx, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
+            cairo_move_to (ctx, 0, 0);
+            cairo_rel_line_to (ctx, iWidth, iHeight/2);
+            cairo_rel_line_to (ctx, - iWidth, iHeight/2);
+            cairo_close_path (ctx);
+
+            cairo_set_source_rgb(ctx, 0, 0, 0);
+            cairo_stroke_preserve(ctx);
+
+            cairo_set_source_rgb(ctx, 1, 1, 1);
+            cairo_fill(ctx);
+
+            cairo_restore (ctx);
+            cairo_paint (ctx);
+            break;
+        case SHAPE_PAUSE:
+            cairo_set_operator (ctx, CAIRO_OPERATOR_DEST_OVER);
+            cairo_save(ctx);
+            cairo_set_source_rgba (ctx, 0, 0, 0, 0);
+
+            cairo_set_line_width(ctx, 1);
+
+            cairo_rectangle (ctx, 0, 0, iWidth/2 - iWidth/10, iHeight);
+            cairo_rectangle (ctx, (iWidth/2 + iWidth/10), 0, iWidth/2 - iWidth/10, iHeight);
+
+            cairo_set_source_rgb(ctx, 0, 0, 0);
+            cairo_stroke_preserve(ctx);
+
+            cairo_set_source_rgb(ctx, 1, 1, 1);
+            cairo_fill(ctx);
+
+            cairo_restore (ctx);
+            cairo_paint (ctx);
+            break;
+        case SHAPE_NEXT:
+            cairo_set_operator (ctx, CAIRO_OPERATOR_DEST_OVER);
+            cairo_save(ctx);
+            cairo_set_source_rgba (ctx, 0, 0, 0, 0);
+
+            cairo_set_line_width(ctx, 1);
+
+            //cairo_move_to (ctx, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
+            cairo_move_to (ctx, 0, 0);
+            cairo_rel_line_to (ctx, iWidth/2, iHeight/2);
+            cairo_rel_line_to (ctx, - iWidth/2, iHeight/2);
+            cairo_close_path (ctx);
+
+            cairo_set_source_rgb(ctx, 0, 0, 0);
+            cairo_stroke_preserve(ctx);
+
+            cairo_set_source_rgb(ctx, 1, 1, 1);
+            cairo_fill(ctx);
+
+
+            cairo_move_to (ctx, iWidth/2, 0);
+            cairo_rel_line_to (ctx, iWidth/2, iHeight/2);
+            cairo_rel_line_to (ctx, - iWidth/2, iHeight/2);
+            cairo_close_path (ctx);
+
+            cairo_set_source_rgb(ctx, 0, 0, 0);
+            cairo_stroke_preserve(ctx);
+
+            cairo_set_source_rgb(ctx, 1, 1, 1);
+            cairo_fill(ctx);
+
+            cairo_restore (ctx);
+            cairo_paint (ctx);
+            break;
+        case SHAPE_PREV:
+            cairo_set_operator (ctx, CAIRO_OPERATOR_DEST_OVER);
+            cairo_save(ctx);
+            cairo_set_source_rgba (ctx, 0, 0, 0, 0);
+
+            cairo_set_line_width(ctx, 1);
+
+            //cairo_move_to (ctx, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
+            cairo_move_to (ctx, iWidth, 0);
+            cairo_rel_line_to (ctx, - iWidth/2, iHeight/2);
+            cairo_rel_line_to (ctx, iWidth/2, iHeight/2);
+            cairo_close_path (ctx);
+
+            cairo_set_source_rgb(ctx, 0, 0, 0);
+            cairo_stroke_preserve(ctx);
+
+            cairo_set_source_rgb(ctx, 1, 1, 1);
+            cairo_fill(ctx);
+
+
+            cairo_move_to (ctx, iWidth/2, 0);
+            cairo_rel_line_to (ctx, - iWidth/2, iHeight/2);
+            cairo_rel_line_to (ctx, iWidth/2, iHeight/2);
+            cairo_close_path (ctx);
+
+            cairo_set_source_rgb(ctx, 0, 0, 0);
+            cairo_stroke_preserve(ctx);
+
+            cairo_set_source_rgb(ctx, 1, 1, 1);
+            cairo_fill(ctx);
+
+            cairo_restore (ctx);
+            cairo_paint (ctx);
+            break;
+    }
+    
+    pRet = cairo_get_target (ctx);
+    cairo_destroy (ctx);
+    
+    return pRet;
+}
+
 /* Charge les symbols */
 void 
 cid_load_symbols (void) 
@@ -405,24 +537,30 @@ cid_load_symbols (void)
         cairo_surface_destroy (cid->p_cCross);
     
     gchar *cTmpPath;
-    cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
-    cid->p_cPlay      = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
-    g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
-    cid->p_cPause     = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
-    g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_NEXT,cid->config->iSymbolColor);
-    cid->p_cNext      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
-    g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PREV,cid->config->iSymbolColor);
-    cid->p_cPrev      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
-    g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
-    cid->p_cPlay_big  = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
-    g_free (cTmpPath);
-    cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
-    cid->p_cPause_big = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
-    g_free (cTmpPath);
+    //cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
+    //cid->p_cPlay      = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
+    //g_free (cTmpPath);
+    //cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
+    //cid->p_cPause     = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
+    //g_free (cTmpPath);
+    //cTmpPath = cid_get_symbol_path(CID_NEXT,cid->config->iSymbolColor);
+    //cid->p_cNext      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    //g_free (cTmpPath);
+    //cTmpPath = cid_get_symbol_path(CID_PREV,cid->config->iSymbolColor);
+    //cid->p_cPrev      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    //g_free (cTmpPath);
+    //cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
+    //cid->p_cPlay_big  = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    //g_free (cTmpPath);
+    //cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
+    //cid->p_cPause_big = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    //g_free (cTmpPath);
+    cid->p_cPlay        = _cid_draw_shapes (&cid, SHAPE_PLAY, cid->config->iExtraSize,cid->config->iExtraSize);
+    cid->p_cPause       = _cid_draw_shapes (&cid, SHAPE_PAUSE, cid->config->iExtraSize,cid->config->iExtraSize);
+    cid->p_cNext        = _cid_draw_shapes (&cid, SHAPE_NEXT, cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    cid->p_cPrev        = _cid_draw_shapes (&cid, SHAPE_PREV, cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    cid->p_cPlay_big    = _cid_draw_shapes (&cid, SHAPE_PLAY, cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    cid->p_cPause_big   = _cid_draw_shapes (&cid, SHAPE_PAUSE, cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
     cTmpPath = g_strdup_printf("%s/%s",cid->config->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_CROSS);
     cid->p_cCross = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
     g_free (cTmpPath);
@@ -571,23 +709,64 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
         {
             cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
             cairo_save(cr);
+            
             cairo_set_source_rgba (cr, 0, 0, 0, 0);
+            
             cairo_translate (cr, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
             cairo_set_source_surface (cr, !musicData.playing ? cid->p_cPlay_big : cid->p_cPause_big, 0, 0);
+            
+    /*
+    cairo_set_line_width(cr, 1);
+    
+    cairo_move_to (cr, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
+    cairo_rel_line_to (cr, cid->config->iPlayPauseSize, cid->config->iPlayPauseSize/2);
+    cairo_rel_line_to (cr, - cid->config->iPlayPauseSize, cid->config->iPlayPauseSize/2);
+    cairo_close_path (cr);
+    */
             if (cid->runtime->iCursorX < (cid->config->iWidth + cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorX > (cid->config->iWidth - cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPlayPauseSize)/2) {
                 
                 cairo_paint_with_alpha (cr, .5);
-            
+    /*
+    cairo_set_source_rgba(cr, 0, 0, 0, .5);
+    cairo_stroke_preserve(cr);
+    
+    cairo_set_source_rgba(cr, 1, 1, 1, .5);
+    cairo_fill(cr);
+    
+    cairo_restore (cr);
+    */
             } 
             else 
             {
                 if (cid->runtime->dAnimationProgress < 1)
+                {
                     cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
+    /*
+    cairo_set_source_rgba(cr, 0, 0, 0, cid->runtime->dAnimationProgress);
+    cairo_stroke_preserve(cr);
+    
+    cairo_set_source_rgba(cr, 1, 1, 1, cid->runtime->dAnimationProgress);
+    cairo_fill(cr);
+    
+    cairo_restore (cr);
+    */
+                }
                 else
+                {
+    /*
+    cairo_set_source_rgb(cr, 0, 0, 0);
+    cairo_stroke_preserve(cr);
+    
+    cairo_set_source_rgb(cr, 1, 1, 1);
+    cairo_fill(cr);
+    
+    cairo_restore (cr);
+    */
                     cairo_paint (cr);
+                }
             }
             cairo_restore (cr); 
         }
@@ -637,16 +816,15 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
     }
     
     ///\___ On s'amuse avec des petits dessins o/
-    /*
+/*
+    cairo_surface_t *pPlay = _cid_draw_shapes (SHAPE_PREV, cid->config->iPlayPauseSize, cid->config->iPlayPauseSize);
+    
     cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
-    cairo_save(cr);
-    cairo_move_to (cr, 0, 0);
-    cairo_set_source_rgb(cr, 1, 1, 1);
-    
-    
+    cairo_set_source_surface (cr, pPlay, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
     cairo_paint (cr);
-    cairo_restore (cr);
-    */
+*/
+    cairo_destroy (cr);
+//    cairo_surface_destroy (pPlay);
 }
 
 void 

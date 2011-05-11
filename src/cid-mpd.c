@@ -14,10 +14,11 @@
 #include "cid-messages.h"
 #include "cid-utilities.h"
 #include "cid-callbacks.h"
+#include "cid-cover.h"
 
 extern CidMainContainer *cid;
 
-static gboolean cont, first;
+static gboolean cont, first, paused = FALSE;
 static mpd_Connection *conn = NULL;
 
 gboolean
@@ -84,6 +85,7 @@ cid_mpd_cover ()
     {
         if (bOldState!=musicData.playing || first)
         {
+            paused = bOldState!=musicData.playing;
             musicData.opening = FALSE;
             first = FALSE;
             mpd_freeStatus(status);
@@ -117,7 +119,7 @@ cid_mpd_cover ()
             continue;
         }
         
-        if (musicData.playing_uri != NULL && strcmp (musicData.playing_uri,song->file) == 0) 
+        if (musicData.playing_uri != NULL && strcmp (musicData.playing_uri,song->file) == 0 && !paused) 
         {
             if (bOldState!=musicData.playing)
                 cid_display_image (musicData.playing_cover);
@@ -173,30 +175,21 @@ cid_mpd_cover ()
     
     if (cSongPath != NULL)
     {
-        CidDataTable *p_tabFiles = cid_create_datatable(G_TYPE_STRING,"cover","album","albumart",
-                                                    ".folder",".cover","folder","Cover","Folder",
-                                                    G_TYPE_INVALID);
         gchar *cSongDir = g_path_get_dirname (cSongPath);
         g_free (cSongPath);
-        musicData.playing_cover = g_strdup_printf ("%s/%s - %s.jpg", cSongDir, musicData.playing_artist, musicData.playing_album);
-        cid_debug ("   test de %s\n", musicData.playing_cover);
-        BEGIN_FOREACH_DT(p_tabFiles)
-            if (g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
-                break;
-            g_free (musicData.playing_cover);
-            musicData.playing_cover = g_strdup_printf ("%s/%s.jpg", cSongDir, p_temp->content->string);
-            cid_debug ("   test de %s\n", musicData.playing_cover);
-        END_FOREACH_DT
+        g_free (musicData.playing_cover);
+        musicData.playing_cover = cid_cover_lookup (&cid, 
+                                              musicData.playing_artist, 
+                                              musicData.playing_album,
+                                              cSongDir);
         g_free (cSongDir);
-        if (! g_file_test (musicData.playing_cover, G_FILE_TEST_EXISTS))
-        {
-            cid->runtime->iCheckIter = 0;
-            if (cid->config->iPlayer != PLAYER_NONE) 
-            {
-                cid_debug ("l'image n'existe pas encore => on boucle.\n");
-                musicData.iSidCheckCover = g_timeout_add (1 SECONDES, (GSourceFunc) _check_cover_is_present, &cid);
-            }
-        }
+    } else {
+        cid_debug ("l'image n'existe pas => on va la chercher.\n");
+        g_free (musicData.playing_cover);
+        musicData.playing_cover = cid_cover_lookup (&cid, 
+                                              musicData.playing_artist, 
+                                              musicData.playing_album,
+                                              NULL);
     }
     
     cid_info ("\nartist : %s\nalbum : %s\ntitle : %s\nsong uri : %s\ncover uri : %s",

@@ -78,7 +78,7 @@ cid_intercept_signal (int number)
 {
     if (number == SIGINT || number == SIGTERM)
     {
-        cid_interrupt ();
+        cid_interrupt (&cid);
         return;
     }
     cid_warning ("Attention : cid has crashed (%d).", /*strsignal(*/number);
@@ -250,7 +250,6 @@ main ( int argc, char **argv )
 
     // La on lance la boucle GTK
     cid_display_init (&cid,&argc,&argv);
-    //cid_display_init (&cid,0,NULL);
     
     // Si on est ici, c'est qu'on a coupé la boucle GTK
     // Du coup, on en profite pour faire un peu de ménage

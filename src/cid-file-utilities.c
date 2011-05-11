@@ -198,7 +198,7 @@ cid_file_check (const gchar *f)
 CidDataTable *
 cid_images_lookup (CidMainContainer **pCid, const gchar *cDirName)
 {
-    g_return_val_if_fail (cDirName != NULL, FALSE);
+    g_return_val_if_fail (cDirName != NULL, NULL);
     
     CidMainContainer *cid = *pCid;
     CidDataTable *ret = cid_datatable_new ();
@@ -210,7 +210,7 @@ cid_images_lookup (CidMainContainer **pCid, const gchar *cDirName)
         {
             cid_warning ("%s", error->message);
             g_clear_error (&error);
-            return FALSE;
+            return NULL;
         }
         const gchar *cEntry = NULL;
         while ((cEntry = g_dir_read_name (cid->runtime->pLookupDirectory)) != NULL)

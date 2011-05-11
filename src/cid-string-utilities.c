@@ -111,10 +111,11 @@ cid_str_replace_all_seq (gchar **string, gchar *seqFrom, gchar *seqTo)
 void
 cid_parse_nl (gchar **input)
 {
-    gchar *in = g_locale_from_utf8(*input, -1, NULL, NULL, NULL);
-    gint length = strlen (in);
+    gchar *in = *input;
+    gint length = 0;
+    for (;in[length] != '\0'; length++);
     gint ind = 0, cpt = 0;
-    gchar *output = g_malloc (sizeof(gchar)*length+1);
+    gchar *output = g_malloc (length);
     while (ind<length)
     {
         if (in[ind] == '\\' && ind < length-1 && in[ind+1] == 'n')
@@ -129,9 +130,9 @@ cid_parse_nl (gchar **input)
         ind++,cpt++;
     }
     output[cpt] = '\0';
-    g_free (in);
-    in = NULL;
-    in = g_locale_to_utf8 (output, -1, NULL, NULL, NULL);
+    g_free (*input);
+    *input = NULL;
+    *input = g_strdup (output);
     g_free (output);
 }
 
