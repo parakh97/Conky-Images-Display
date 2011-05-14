@@ -1,4 +1,4 @@
-#!en;@PACKAGE_VERSION@
+#!en;@VERSION@
 ######## This is the conf file of cid, released under the GPL.##########
 # leave blank to use the cid defaults parameters
 # use the cid configuration panel to edit it (with cid -e for instance)
@@ -83,6 +83,12 @@ CONTROLS=
 #b Give the play/pause status
 STATE=
 
+#c+4[0;1] Symbols color (r,g,b,a)/
+SYMBOLS_COLOR=1;1;1;1;
+
+#c+4[0;1] Symbols color when the mouse is over (r,g,b,a)/
+SYMBOLS_COLOR_OVER=1;1;1;0.5;
+
 #U Search the following files
 #{%user% stands for the username\n%home% stands for the user's home directory\n%artist% stands for the artist's name\n%album% stands for the album name}/
 FILES_LIST=album;albumart;cover;folder;.cover;.folder;
@@ -107,10 +113,10 @@ OUTLINE_COLOR=0;0;0;0.5;
 ############## CID OPTIONS ###############
 ##########################################
 
-#[@prefix@/@DATADIRNAME@/@PACKAGE@/options.png]
+#[@CID_DATA_DIR@/options.png]
 [Options]
 
-#F+[Customisation options;@prefix@/@DATADIRNAME@/@PACKAGE@/options.png]
+#F+[Customisation options;@CID_DATA_DIR@/options.png]
 frame_3=
 
 #S+ Default image
@@ -122,7 +128,7 @@ HIDE=
 
 
 
-#F+[Animation;@prefix@/@DATADIRNAME@/@PACKAGE@/animation.png]
+#F+[Animation;@CID_DATA_DIR@/animation.png]
 frame_animation=
 
 #b Run an animation when the music changes
@@ -175,7 +181,7 @@ DL_PATH=
 ##############     MPD     ###############
 ##########################################
 
-#[@prefix@/@DATADIRNAME@/@PACKAGE@/default.svg]
+#[@CID_DATA_DIR@/default.svg]
 [MPD]
 
 #S+ Songs directory

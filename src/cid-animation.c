@@ -151,8 +151,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
             {
                 if (cid_measure_is_running(pMeasureTimerAnimation))
                     cid_stop_measure_timer(pMeasureTimerAnimation);
-                //if (cid_measure_is_active(pMeasureTimerAnimation))
-                    cid_free_measure_timer(pMeasureTimerAnimation);
+                cid_free_measure_timer(pMeasureTimerAnimation);
             }
             pMeasureTimerAnimation = cid_new_measure_timer (iDelay, 
                                                             NULL, 
@@ -167,8 +166,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
             {
                 if (cid_measure_is_running(pMeasureTimerAnimation))
                     cid_stop_measure_timer(pMeasureTimerAnimation);
-                //if (cid_measure_is_active(pMeasureTimerAnimation))
-                    cid_free_measure_timer(pMeasureTimerAnimation);
+                cid_free_measure_timer(pMeasureTimerAnimation);
             }
             pMeasureTimerAnimation = cid_new_measure_timer (iDelay, 
                                                             NULL, 
@@ -183,8 +181,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
             {
                 if (cid_measure_is_running(pMeasureTimerFocus))
                     cid_stop_measure_timer(pMeasureTimerFocus);
-                //if (cid_measure_is_active(pMeasureTimerFocus))
-                    cid_free_measure_timer(pMeasureTimerFocus);
+                cid_free_measure_timer(pMeasureTimerFocus);
             }
             pMeasureTimerFocus = cid_new_measure_timer (iDelay, 
                                                         NULL, 
@@ -199,8 +196,7 @@ cid_threaded_animation (AnimationType iAnim, gint iDelay)
             {
                 if (cid_measure_is_running(pMeasureTimerFocus))
                     cid_stop_measure_timer(pMeasureTimerFocus);
-                //if (cid_measure_is_active(pMeasureTimerFocus))
-                    cid_free_measure_timer(pMeasureTimerFocus);
+                cid_free_measure_timer(pMeasureTimerFocus);
             }
             pMeasureTimerFocus = cid_new_measure_timer (iDelay, 
                                                         NULL, 

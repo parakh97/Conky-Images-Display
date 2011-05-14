@@ -112,16 +112,17 @@ void
 cid_parse_nl (gchar **input)
 {
     gchar *in = *input;
-    gint length = 0;
-    for (;in[length] != '\0'; length++);
+    gint length = strlen (*input);
     gint ind = 0, cpt = 0;
-    gchar *output = g_malloc (length);
+    gboolean found = FALSE;
+    gchar *output = g_malloc (sizeof(gchar)*(length+1));
     while (ind<length)
     {
         if (in[ind] == '\\' && ind < length-1 && in[ind+1] == 'n')
         {
             output[cpt] = '\n';
             ind++;
+            found = TRUE;
         }
         else
         {
@@ -130,9 +131,12 @@ cid_parse_nl (gchar **input)
         ind++,cpt++;
     }
     output[cpt] = '\0';
-    g_free (*input);
-    *input = NULL;
-    *input = g_strdup (output);
+    if (found)
+    {
+        g_free (*input);
+        *input = NULL;
+        *input = g_strdup (output);
+    }
     g_free (output);
 }
 

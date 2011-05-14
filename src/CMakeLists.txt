@@ -62,14 +62,12 @@ SET(cid_SRCS
 
 include_directories(
 	${PACKAGE_INCLUDE_DIRS}
-	${XEXTEND_INCLUDE_DIRS}
 	${CMAKE_SOURCE_DIR}/src
 )
 
 # Make sure the linker can find the libraries.
 link_directories(
 	${PACKAGE_LIBRARY_DIRS}
-	${XEXTEND_LIBRARY_DIRS}
 )
 
 # Add executable that is built from the source files.
@@ -80,13 +78,12 @@ add_executable (${PROJECT_NAME}
 # Link the executable to the librairies.
 target_link_libraries (${PROJECT_NAME}
 	${PACKAGE_LIBRARIES}
-	${XEXTEND_LIBRARIES}
 	${LIBCRYPT_LIBS}
 )
 
 # install the program once it is built.
 install(
 	TARGETS ${PACKAGE}
-	DESTINATION bin)
+	DESTINATION ${bindir})
 
 

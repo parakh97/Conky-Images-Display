@@ -314,8 +314,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
 
     if (cid->config->bUnvalidKey && !bReloaded)
     {
-        cid_save_data (pCid);
-        cid_read_key_file (pCid, f);
+        cid_file_check_config_version (pCid, f);
         bReloaded = TRUE;
     }
 }
