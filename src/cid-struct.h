@@ -22,6 +22,7 @@ typedef struct _CidRuntime CidRuntime;
 typedef struct _CidDefault CidDefault;
 typedef struct _CidLabelDescription CidLabelDescription;
 typedef struct _CidControlFunctionsList CidControlFunctionsList;
+typedef struct _CidColorContainer CidColorContainer;
 
 typedef struct _CidModule CidModule;
 typedef struct _CidModuleInterface CidModuleInterface;
@@ -113,6 +114,18 @@ typedef enum {
     CID_YELLOW,
     CID_RED
 } SymbolColor;
+
+/// Structure de couleurs
+struct _CidColorContainer {
+    /// red
+    gdouble dRed;
+    /// green
+    gdouble dGreen;
+    /// blue
+    gdouble dBlue;
+    /// alpha;
+    gdouble dAlpha;
+};
 
 /// Fonctions de controle des lecteurs
 struct _CidControlFunctionsList {

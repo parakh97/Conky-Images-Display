@@ -697,7 +697,7 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
             } 
             else 
             {
-                if (cid->runtime->dAnimationProgress < 1)
+                if (cid->runtime->dAnimationProgress < 1 && cid->runtime->dAnimationProgress > 0)
                     cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
                 else
                     cairo_paint (cr);
@@ -715,56 +715,21 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
             cairo_translate (cr, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
             cairo_set_source_surface (cr, !musicData.playing ? cid->p_cPlay_big : cid->p_cPause_big, 0, 0);
             
-    /*
-    cairo_set_line_width(cr, 1);
-    
-    cairo_move_to (cr, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
-    cairo_rel_line_to (cr, cid->config->iPlayPauseSize, cid->config->iPlayPauseSize/2);
-    cairo_rel_line_to (cr, - cid->config->iPlayPauseSize, cid->config->iPlayPauseSize/2);
-    cairo_close_path (cr);
-    */
             if (cid->runtime->iCursorX < (cid->config->iWidth + cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorX > (cid->config->iWidth - cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPlayPauseSize)/2) {
                 
                 cairo_paint_with_alpha (cr, .5);
-    /*
-    cairo_set_source_rgba(cr, 0, 0, 0, .5);
-    cairo_stroke_preserve(cr);
-    
-    cairo_set_source_rgba(cr, 1, 1, 1, .5);
-    cairo_fill(cr);
-    
-    cairo_restore (cr);
-    */
             } 
             else 
             {
-                if (cid->runtime->dAnimationProgress < 1)
+                if (cid->runtime->dAnimationProgress < 1  && cid->runtime->dAnimationProgress > 0)
                 {
                     cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
-    /*
-    cairo_set_source_rgba(cr, 0, 0, 0, cid->runtime->dAnimationProgress);
-    cairo_stroke_preserve(cr);
-    
-    cairo_set_source_rgba(cr, 1, 1, 1, cid->runtime->dAnimationProgress);
-    cairo_fill(cr);
-    
-    cairo_restore (cr);
-    */
                 }
                 else
                 {
-    /*
-    cairo_set_source_rgb(cr, 0, 0, 0);
-    cairo_stroke_preserve(cr);
-    
-    cairo_set_source_rgb(cr, 1, 1, 1);
-    cairo_fill(cr);
-    
-    cairo_restore (cr);
-    */
                     cairo_paint (cr);
                 }
             }
@@ -787,7 +752,7 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
             } 
             else 
             {
-                if (cid->runtime->dAnimationProgress < 1)
+                if (cid->runtime->dAnimationProgress < 1  && cid->runtime->dAnimationProgress > 0)
                     cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
                 else
                     cairo_paint (cr);
