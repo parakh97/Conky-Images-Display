@@ -218,9 +218,29 @@ main ( int argc, char **argv )
     struct sigaction action;
     
     cid = g_malloc0 (sizeof(*cid));
+    if (!cid)
+    {
+        fprintf (stderr, "Couldn't allocate memory for the main container!\n");
+        exit (CID_EXIT_ERROR);
+    }
     cid->config = g_malloc0 (sizeof(*(cid->config)));
+    if (!cid->config)
+    {
+        fprintf (stderr, "Couldn't allocate memory for the configuration container!\n");
+        exit (CID_EXIT_ERROR);
+    }
     cid->runtime = g_malloc0 (sizeof(*(cid->runtime)));
+    if (!cid->runtime)
+    {
+        fprintf (stderr, "Couldn't allocate memory for the runtime container!\n");
+        exit (CID_EXIT_ERROR);
+    }
     cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
+    if (!cid->defaut)
+    {
+        fprintf (stderr, "Couldn't allocate memory for the default container!\n");
+        exit (CID_EXIT_ERROR);
+    }
     
     curl_global_init(CURL_GLOBAL_ALL);
     

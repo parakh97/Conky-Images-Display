@@ -49,14 +49,16 @@ cid_focus_in(void *ptr)
     
     cid->config->dAlpha += cid->runtime->dFocusVariation * FADE_VARIATION;
     cid->runtime->dAnimationProgress = cid->config->dAlpha / (cid->runtime->dFocusVariation > 0 ? 
-        cid->config->dFlyingColor[3]-cid->config->dColor[3] : cid->config->dColor[3]-cid->config->dFlyingColor[3]);
+        cid->config->pFlyingColor->dAlpha-cid->config->pColor->dAlpha : 
+        cid->config->pColor->dAlpha-cid->config->pFlyingColor->dAlpha);
     
     CID_REDRAW;
     
     cid->runtime->iCurrentlyDrawing = 0;
     
     cid->runtime->bFocusAnimation = cid->runtime->dFocusVariation>0 ? 
-        cid->config->dAlpha < cid->config->dFlyingColor[3] : cid->config->dAlpha > cid->config->dFlyingColor[3];
+        cid->config->dAlpha < cid->config->pFlyingColor->dAlpha : 
+        cid->config->dAlpha > cid->config->pFlyingColor->dAlpha;
     if (!cid->runtime->bFocusAnimation) 
         cid_stop_measure_timer(pMeasureTimerFocus);
     return cid->runtime->bFocusAnimation;
@@ -71,21 +73,26 @@ cid_focus_out(void *ptr)
     cid->runtime->bFocusAnimation = TRUE;
     
     cid->config->dAlpha -= cid->runtime->dFocusVariation * FADE_VARIATION;
-    cid->runtime->dAnimationProgress = cid->config->dAlpha / (cid->runtime->dFocusVariation > 0 ? 
-        cid->config->dFlyingColor[3]-cid->config->dColor[3] : cid->config->dColor[3]-cid->config->dFlyingColor[3]);
+    cid->runtime->dAnimationProgress = 
+        cid->config->dAlpha / (cid->runtime->dFocusVariation > 0 ? 
+        cid->config->pFlyingColor->dAlpha-cid->config->pColor->dAlpha : 
+        cid->config->pColor->dAlpha-cid->config->pFlyingColor->dAlpha);
 
-    if (cid->runtime->dFocusVariation>0 ? cid->config->dAlpha <= cid->config->dColor[3] : cid->config->dAlpha >= cid->config->dColor[3]) 
+    if (cid->runtime->dFocusVariation>0 ? 
+        cid->config->dAlpha <= cid->config->pColor->dAlpha : 
+        cid->config->dAlpha >= cid->config->pColor->dAlpha) 
     {
-        cid->config->dRed = cid->config->dColor[0];
-        cid->config->dGreen = cid->config->dColor[1];
-        cid->config->dBlue = cid->config->dColor[2];
+        cid->config->dRed = cid->config->pColor->dRed;
+        cid->config->dGreen = cid->config->pColor->dGreen;
+        cid->config->dBlue = cid->config->pColor->dBlue;
     }
     
     CID_REDRAW;
     
     cid->runtime->iCurrentlyDrawing = 0;
     cid->runtime->bCurrentlyFlying = cid->runtime->dFocusVariation>0 ? 
-        cid->config->dAlpha > cid->config->dColor[3] : cid->config->dAlpha < cid->config->dColor[3];
+        cid->config->dAlpha > cid->config->pColor->dAlpha : 
+        cid->config->dAlpha < cid->config->pColor->dAlpha;
     cid->runtime->bFocusAnimation = cid->runtime->bCurrentlyFlying;
     if (!cid->runtime->bFocusAnimation)
         cid_stop_measure_timer(pMeasureTimerFocus);
@@ -108,9 +115,9 @@ cid_focus (GtkWidget *pWidget, GdkEventExpose *event, gpointer *userdata)
     {
         cid->runtime->bCurrentlyFlying = TRUE;
         // On change la couleur du fond par celle choisie
-        cid->config->dRed = cid->config->dFlyingColor[0];
-        cid->config->dGreen = cid->config->dFlyingColor[1];
-        cid->config->dBlue = cid->config->dFlyingColor[2];
+        cid->config->dRed = cid->config->pFlyingColor->dRed;
+        cid->config->dGreen = cid->config->pFlyingColor->dGreen;
+        cid->config->dBlue = cid->config->pFlyingColor->dBlue;
         // Coloration "smoothie"
         cid_animation(CID_FOCUS_IN);
     } else 

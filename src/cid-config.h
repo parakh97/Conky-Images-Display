@@ -14,6 +14,19 @@
 G_BEGIN_DECLS
 
 /**
+ * Fonction permettant de recuperer une couleur dans un fichier de configuration.
+ * @param pCid Structure de configuration.
+ * @param pKeyFile Fichier de configuration.
+ * @param cGroup Groupe auquel appartient la cle recherchee.
+ * @param cKey Cle recherchee.
+ * @param bAlpha Si on a un canal alpha.
+ * @return La couleur correspondant aux criteres.
+ */
+CidColorContainer *cid_get_color_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bAlpha);
+#define CID_CONFIG_GET_COLOR(cGroup,cKey) cid_get_color_value_full (pCid,cid->pKeyFile,cGroup,cKey, FALSE)
+#define CID_CONFIG_GET_COLOR_WITH_ALPHA(cGroup,cKey) cid_get_color_value_full (pCid,cid->pKeyFile,cGroup,cKey,TRUE)
+
+/**
  * Fonction permettant de recuperer un boolean dans un fichier de configuration.
  * @param pCid Structure de configuration.
  * @param pKeyFile Fichier de configuration.
@@ -36,6 +49,7 @@ gboolean cid_get_boolean_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile
  * @param cDefault Valeur par defaut.
  * @param bFile Si on veut tester l'existance d'un fichier.
  * @param bDir Si on veut tester l'existance d'un dossier.
+ * @param bForce Si on souhaite forcer le resultat meme si le fichier/repertoire n'existe pas.
  * @return La chaine correspondante aux criteres.
  */
 gchar *cid_get_string_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bDefault, gchar *cDefault, gboolean bFile, gboolean bDir, gboolean bForce);

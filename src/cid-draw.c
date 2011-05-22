@@ -126,7 +126,7 @@ _cid_create_blank_surface (cairo_t *pSourceContext, int iWidth, int iHeight)
 cairo_surface_t *
 cid_get_image_from_pixbuf (GdkPixbuf **pixbuf) 
 {
-    cid_debug (" %s ();",__func__);
+    //cid_debug (" %s ();",__func__);
 
     GdkPixbuf *pPixbufWithAlpha = *pixbuf;
     if (! gdk_pixbuf_get_has_alpha (*pixbuf)) 
@@ -279,13 +279,13 @@ cid_set_colormap (GtkWidget *widget, GdkScreen *old_screen, gpointer userdata)
     colormap = gdk_screen_get_rgba_colormap (screen);
     if (colormap == NULL) 
     {
-        cid_message ("Your screen does not support alpha channels!\n");
+        cid_info ("Your screen does not support alpha channels!");
         colormap = gdk_screen_get_rgb_colormap(screen);
         supports_alpha = FALSE;
     } 
     else 
     {
-        cid_message ("Your screen supports alpha channels!\n");
+        cid_info ("Your screen supports alpha channels!");
         supports_alpha = TRUE;
     }
  
@@ -312,9 +312,9 @@ cid_draw_text (cairo_t *cr)
     cairo_move_to (cr, posX , cid->config->iHeight - extents.height);
         
     cairo_text_path (cr, musicData.playing_title);
-    cairo_set_source_rgba (cr, cid->config->dPoliceColor[0], cid->config->dPoliceColor[1], cid->config->dPoliceColor[2], cid->config->dPoliceColor[3]);
+    cairo_set_source_rgba (cr, cid->config->pPoliceColor->dRed, cid->config->pPoliceColor->dGreen, cid->config->pPoliceColor->dBlue, cid->config->pPoliceColor->dAlpha);
     cairo_fill_preserve (cr);
-    cairo_set_source_rgba (cr, cid->config->dOutlineTextColor[0], cid->config->dOutlineTextColor[1], cid->config->dOutlineTextColor[2], cid->config->dOutlineTextColor[3]);
+    cairo_set_source_rgba (cr, cid->config->pOutlineTextColor->dRed, cid->config->pOutlineTextColor->dGreen, cid->config->pOutlineTextColor->dBlue, cid->config->pOutlineTextColor->dAlpha);
     cairo_set_line_width (cr, cid->config->dPoliceSize/15.0);
 
     cairo_stroke (cr);
@@ -388,7 +388,7 @@ cid_draw_text (cairo_t *cr)
 }
 
 static cairo_surface_t *
-_cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint iHeight)
+cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint iHeight, gboolean bOver)
 {
     CidMainContainer *cid = *pCid;
     cairo_surface_t *pRet = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, iWidth, iHeight);
@@ -407,17 +407,40 @@ _cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint i
 
             cairo_set_line_width(ctx, 1);
 
-            //cairo_move_to (ctx, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
             cairo_move_to (ctx, 0, 0);
             cairo_rel_line_to (ctx, iWidth, iHeight/2);
             cairo_rel_line_to (ctx, - iWidth, iHeight/2);
             cairo_close_path (ctx);
 
-            cairo_set_source_rgb(ctx, 0, 0, 0);
-            cairo_stroke_preserve(ctx);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    1-cid->config->pSymbolColor->dRed, 
+                                    1-cid->config->pSymbolColor->dGreen, 
+                                    1-cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx, 
+                                1-cid->config->pFlyingSymbolColor->dRed,
+                                1-cid->config->pFlyingSymbolColor->dGreen,
+                                1-cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+                
+            cairo_stroke_preserve (ctx);
 
-            cairo_set_source_rgb(ctx, 1, 1, 1);
-            cairo_fill(ctx);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    cid->config->pSymbolColor->dRed, 
+                                    cid->config->pSymbolColor->dGreen, 
+                                    cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx,
+                                cid->config->pFlyingSymbolColor->dRed,
+                                cid->config->pFlyingSymbolColor->dGreen,
+                                cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+                
+            cairo_fill (ctx);
 
             cairo_restore (ctx);
             cairo_paint (ctx);
@@ -432,10 +455,34 @@ _cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint i
             cairo_rectangle (ctx, 0, 0, iWidth/2 - iWidth/10, iHeight);
             cairo_rectangle (ctx, (iWidth/2 + iWidth/10), 0, iWidth/2 - iWidth/10, iHeight);
 
-            cairo_set_source_rgb(ctx, 0, 0, 0);
-            cairo_stroke_preserve(ctx);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    1-cid->config->pSymbolColor->dRed, 
+                                    1-cid->config->pSymbolColor->dGreen, 
+                                    1-cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx, 
+                                1-cid->config->pFlyingSymbolColor->dRed,
+                                1-cid->config->pFlyingSymbolColor->dGreen,
+                                1-cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+                
+            cairo_stroke_preserve (ctx);
 
-            cairo_set_source_rgb(ctx, 1, 1, 1);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    cid->config->pSymbolColor->dRed, 
+                                    cid->config->pSymbolColor->dGreen, 
+                                    cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx,
+                                cid->config->pFlyingSymbolColor->dRed,
+                                cid->config->pFlyingSymbolColor->dGreen,
+                                cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+            
             cairo_fill(ctx);
 
             cairo_restore (ctx);
@@ -448,16 +495,39 @@ _cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint i
 
             cairo_set_line_width(ctx, 1);
 
-            //cairo_move_to (ctx, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
             cairo_move_to (ctx, 0, 0);
             cairo_rel_line_to (ctx, iWidth/2, iHeight/2);
             cairo_rel_line_to (ctx, - iWidth/2, iHeight/2);
             cairo_close_path (ctx);
 
-            cairo_set_source_rgb(ctx, 0, 0, 0);
-            cairo_stroke_preserve(ctx);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    1-cid->config->pSymbolColor->dRed, 
+                                    1-cid->config->pSymbolColor->dGreen, 
+                                    1-cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx, 
+                                1-cid->config->pFlyingSymbolColor->dRed,
+                                1-cid->config->pFlyingSymbolColor->dGreen,
+                                1-cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+                
+            cairo_stroke_preserve (ctx);
 
-            cairo_set_source_rgb(ctx, 1, 1, 1);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    cid->config->pSymbolColor->dRed, 
+                                    cid->config->pSymbolColor->dGreen, 
+                                    cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx,
+                                cid->config->pFlyingSymbolColor->dRed,
+                                cid->config->pFlyingSymbolColor->dGreen,
+                                cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+            
             cairo_fill(ctx);
 
 
@@ -466,10 +536,34 @@ _cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint i
             cairo_rel_line_to (ctx, - iWidth/2, iHeight/2);
             cairo_close_path (ctx);
 
-            cairo_set_source_rgb(ctx, 0, 0, 0);
-            cairo_stroke_preserve(ctx);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    1-cid->config->pSymbolColor->dRed, 
+                                    1-cid->config->pSymbolColor->dGreen, 
+                                    1-cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx, 
+                                1-cid->config->pFlyingSymbolColor->dRed,
+                                1-cid->config->pFlyingSymbolColor->dGreen,
+                                1-cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+                
+            cairo_stroke_preserve (ctx);
 
-            cairo_set_source_rgb(ctx, 1, 1, 1);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    cid->config->pSymbolColor->dRed, 
+                                    cid->config->pSymbolColor->dGreen, 
+                                    cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx,
+                                cid->config->pFlyingSymbolColor->dRed,
+                                cid->config->pFlyingSymbolColor->dGreen,
+                                cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+            
             cairo_fill(ctx);
 
             cairo_restore (ctx);
@@ -482,16 +576,39 @@ _cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint i
 
             cairo_set_line_width(ctx, 1);
 
-            //cairo_move_to (ctx, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
             cairo_move_to (ctx, iWidth, 0);
             cairo_rel_line_to (ctx, - iWidth/2, iHeight/2);
             cairo_rel_line_to (ctx, iWidth/2, iHeight/2);
             cairo_close_path (ctx);
 
-            cairo_set_source_rgb(ctx, 0, 0, 0);
-            cairo_stroke_preserve(ctx);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    1-cid->config->pSymbolColor->dRed, 
+                                    1-cid->config->pSymbolColor->dGreen, 
+                                    1-cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx, 
+                                1-cid->config->pFlyingSymbolColor->dRed,
+                                1-cid->config->pFlyingSymbolColor->dGreen,
+                                1-cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+                
+            cairo_stroke_preserve (ctx);
 
-            cairo_set_source_rgb(ctx, 1, 1, 1);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    cid->config->pSymbolColor->dRed, 
+                                    cid->config->pSymbolColor->dGreen, 
+                                    cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx,
+                                cid->config->pFlyingSymbolColor->dRed,
+                                cid->config->pFlyingSymbolColor->dGreen,
+                                cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+            
             cairo_fill(ctx);
 
 
@@ -500,10 +617,34 @@ _cid_draw_shapes (CidMainContainer **pCid, CidShapes iShape, gint iWidth, gint i
             cairo_rel_line_to (ctx, iWidth/2, iHeight/2);
             cairo_close_path (ctx);
 
-            cairo_set_source_rgb(ctx, 0, 0, 0);
-            cairo_stroke_preserve(ctx);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    1-cid->config->pSymbolColor->dRed, 
+                                    1-cid->config->pSymbolColor->dGreen, 
+                                    1-cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx, 
+                                1-cid->config->pFlyingSymbolColor->dRed,
+                                1-cid->config->pFlyingSymbolColor->dGreen,
+                                1-cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+                
+            cairo_stroke_preserve (ctx);
 
-            cairo_set_source_rgb(ctx, 1, 1, 1);
+            if (!bOver)
+                cairo_set_source_rgba (ctx, 
+                                    cid->config->pSymbolColor->dRed, 
+                                    cid->config->pSymbolColor->dGreen, 
+                                    cid->config->pSymbolColor->dBlue,
+                                    cid->config->pSymbolColor->dAlpha);
+            else
+                cairo_set_source_rgba (ctx,
+                                cid->config->pFlyingSymbolColor->dRed,
+                                cid->config->pFlyingSymbolColor->dGreen,
+                                cid->config->pFlyingSymbolColor->dBlue,
+                                cid->config->pFlyingSymbolColor->dAlpha);
+            
             cairo_fill(ctx);
 
             cairo_restore (ctx);
@@ -525,42 +666,29 @@ cid_load_symbols (void)
         cairo_surface_destroy (cid->p_cPlay);
     if (cid->p_cPause)
         cairo_surface_destroy (cid->p_cPause);
-    if (cid->p_cNext)
-        cairo_surface_destroy (cid->p_cNext);
-    if (cid->p_cPrev)
-        cairo_surface_destroy (cid->p_cPrev);
-    if (cid->p_cPlay_big)
-        cairo_surface_destroy (cid->p_cPlay_big);
-    if (cid->p_cPause_big)
-        cairo_surface_destroy (cid->p_cPause_big);
+//    if (cid->p_cNext)
+//        cairo_surface_destroy (cid->p_cNext);
+//    if (cid->p_cPrev)
+//        cairo_surface_destroy (cid->p_cPrev);
+//    if (cid->p_cPlay_big)
+//        cairo_surface_destroy (cid->p_cPlay_big);
+//    if (cid->p_cPause_big)
+//        cairo_surface_destroy (cid->p_cPause_big);
     if (cid->p_cCross)
         cairo_surface_destroy (cid->p_cCross);
+    if (cid->p_cConnect)
+        cairo_surface_destroy (cid->p_cConnect);
+    if (cid->p_cDisconnect)
+        cairo_surface_destroy (cid->p_cDisconnect);
     
     gchar *cTmpPath;
-    //cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
-    //cid->p_cPlay      = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
-    //g_free (cTmpPath);
-    //cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
-    //cid->p_cPause     = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
-    //g_free (cTmpPath);
-    //cTmpPath = cid_get_symbol_path(CID_NEXT,cid->config->iSymbolColor);
-    //cid->p_cNext      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
-    //g_free (cTmpPath);
-    //cTmpPath = cid_get_symbol_path(CID_PREV,cid->config->iSymbolColor);
-    //cid->p_cPrev      = cid_get_cairo_image(cTmpPath,cid->config->iPrevNextSize,cid->config->iPrevNextSize);
-    //g_free (cTmpPath);
-    //cTmpPath = cid_get_symbol_path(CID_PLAY,cid->config->iSymbolColor);
-    //cid->p_cPlay_big  = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
-    //g_free (cTmpPath);
-    //cTmpPath = cid_get_symbol_path(CID_PAUSE,cid->config->iSymbolColor);
-    //cid->p_cPause_big = cid_get_cairo_image(cTmpPath,cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
-    //g_free (cTmpPath);
-    cid->p_cPlay        = _cid_draw_shapes (&cid, SHAPE_PLAY, cid->config->iExtraSize,cid->config->iExtraSize);
-    cid->p_cPause       = _cid_draw_shapes (&cid, SHAPE_PAUSE, cid->config->iExtraSize,cid->config->iExtraSize);
-    cid->p_cNext        = _cid_draw_shapes (&cid, SHAPE_NEXT, cid->config->iPrevNextSize,cid->config->iPrevNextSize);
-    cid->p_cPrev        = _cid_draw_shapes (&cid, SHAPE_PREV, cid->config->iPrevNextSize,cid->config->iPrevNextSize);
-    cid->p_cPlay_big    = _cid_draw_shapes (&cid, SHAPE_PLAY, cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
-    cid->p_cPause_big   = _cid_draw_shapes (&cid, SHAPE_PAUSE, cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    cid->p_cPlay        = cid_draw_shapes (&cid, SHAPE_PLAY, cid->config->iExtraSize,cid->config->iExtraSize, FALSE);
+    cid->p_cPause       = cid_draw_shapes (&cid, SHAPE_PAUSE, cid->config->iExtraSize,cid->config->iExtraSize, FALSE);
+    //cid->p_cNext        = cid_draw_shapes (&cid, SHAPE_NEXT, cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    //cid->p_cPrev        = cid_draw_shapes (&cid, SHAPE_PREV, cid->config->iPrevNextSize,cid->config->iPrevNextSize);
+    //cid->p_cPlay_big    = cid_draw_shapes (&cid, SHAPE_PLAY, cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    //cid->p_cPause_big   = cid_draw_shapes (&cid, SHAPE_PAUSE, cid->config->iPlayPauseSize,cid->config->iPlayPauseSize);
+    
     cTmpPath = g_strdup_printf("%s/%s",cid->config->bDevMode ? TESTING_DIR : CID_DATA_DIR, IMAGE_CROSS);
     cid->p_cCross = cid_get_cairo_image(cTmpPath,cid->config->iExtraSize,cid->config->iExtraSize);
     g_free (cTmpPath);
@@ -579,9 +707,15 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
     cairo_t *cr = pContext;
     
     if (!cid->config->bMask)
-        cairo_set_source_rgba (cr, cid->config->dRed, cid->config->dGreen, cid->config->dBlue, cid->config->dAlpha);
+        cairo_set_source_rgba (cr, cid->config->dRed, 
+                               cid->config->dGreen, 
+                               cid->config->dBlue, 
+                               cid->config->dAlpha);
     else
-        cairo_set_source_rgba (cr, cid->config->dColor[0], cid->config->dColor[1], cid->config->dColor[2], cid->config->dColor[3]);
+        cairo_set_source_rgba (cr, cid->config->pColor->dRed, 
+                               cid->config->pColor->dGreen, 
+                               cid->config->pColor->dBlue, 
+                               cid->config->pColor->dAlpha);
         
     cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
     cairo_paint (cr);
@@ -678,8 +812,12 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
     }
     
     // Si on survolle et qu'on autorise l'affichage des controles
-    if (cid->runtime->bCurrentlyFlying && cid->config->bDisplayControl && cid->config->iPlayer != PLAYER_NONE && cid->config->bMonitorPlayer) 
+    if (cid->runtime->bCurrentlyFlying && 
+        cid->config->bDisplayControl && 
+        cid->config->iPlayer != PLAYER_NONE && 
+        cid->config->bMonitorPlayer) 
     {
+        gboolean bOver;
         // Previous button
         if (cid->runtime->pMonitorList->p_fPrevious != NULL)
         {
@@ -687,21 +825,26 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
             cairo_save(cr);
             cairo_set_source_rgba (cr, 0, 0, 0, 0);
             cairo_translate (cr, 0, (cid->config->iHeight - cid->config->iPrevNextSize)/2);
-            cairo_set_source_surface (cr, cid->p_cPrev, 0, 0);
-            if (cid->runtime->iCursorX < cid->config->iPrevNextSize &&
+            
+            if (cid->p_cPrev)
+                cairo_surface_destroy (cid->p_cPrev);
+            
+            bOver = cid->runtime->iCursorX < cid->config->iPrevNextSize &&
                 cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPrevNextSize)/2 &&
-                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPrevNextSize)/2) {
+                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPrevNextSize)/2;
                 
-                cairo_paint_with_alpha (cr, .5);
+            cid->p_cPrev = cid_draw_shapes (&cid, SHAPE_PREV, 
+                                            cid->config->iPrevNextSize, 
+                                            cid->config->iPrevNextSize,
+                                            bOver);
+
+            cairo_set_source_surface (cr, cid->p_cPrev, 0, 0);
                 
-            } 
-            else 
-            {
-                if (cid->runtime->dAnimationProgress < 1 && cid->runtime->dAnimationProgress > 0)
-                    cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
-                else
-                    cairo_paint (cr);
-            }
+            if (cid->runtime->dAnimationProgress < 1 && cid->runtime->dAnimationProgress > 0)
+                cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
+            else
+                cairo_paint (cr);
+            
             cairo_restore (cr); 
         }
         // Play/Pause button
@@ -713,26 +856,44 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
             cairo_set_source_rgba (cr, 0, 0, 0, 0);
             
             cairo_translate (cr, (cid->config->iWidth - cid->config->iPlayPauseSize)/2, (cid->config->iHeight - cid->config->iPlayPauseSize)/2);
-            cairo_set_source_surface (cr, !musicData.playing ? cid->p_cPlay_big : cid->p_cPause_big, 0, 0);
             
-            if (cid->runtime->iCursorX < (cid->config->iWidth + cid->config->iPlayPauseSize)/2 &&
+            bOver = cid->runtime->iCursorX < (cid->config->iWidth + cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorX > (cid->config->iWidth - cid->config->iPlayPauseSize)/2 &&
                 cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPlayPauseSize)/2 &&
-                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPlayPauseSize)/2) {
+                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPlayPauseSize)/2;
                 
-                cairo_paint_with_alpha (cr, .5);
-            } 
-            else 
+            if (musicData.playing)
             {
-                if (cid->runtime->dAnimationProgress < 1  && cid->runtime->dAnimationProgress > 0)
-                {
-                    cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
-                }
-                else
-                {
-                    cairo_paint (cr);
-                }
+                if (cid->p_cPause_big)
+                    cairo_surface_destroy (cid->p_cPause_big);
+                cid->p_cPause_big = cid_draw_shapes (&cid,
+                                        SHAPE_PAUSE,
+                                        cid->config->iPlayPauseSize,
+                                        cid->config->iPlayPauseSize,
+                                        bOver);
+                cairo_set_source_surface (cr, cid->p_cPause_big, 0, 0);
             }
+            else
+            {
+                if (cid->p_cPlay_big)
+                    cairo_surface_destroy (cid->p_cPlay_big);
+                cid->p_cPlay_big = cid_draw_shapes (&cid,
+                                        SHAPE_PLAY,
+                                        cid->config->iPlayPauseSize,
+                                        cid->config->iPlayPauseSize,
+                                        bOver);
+                cairo_set_source_surface (cr, cid->p_cPlay_big, 0, 0);
+            }
+            
+            if (cid->runtime->dAnimationProgress < 1  && cid->runtime->dAnimationProgress > 0)
+            {
+                cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
+            }
+            else
+            {
+                cairo_paint (cr);
+            }
+            
             cairo_restore (cr); 
         }
         // Next button
@@ -742,21 +903,25 @@ cid_set_render (cairo_t *pContext, gpointer *pData)
             cairo_save(cr);
             cairo_set_source_rgba (cr, 0, 0, 0, 0);
             cairo_translate (cr, (cid->config->iWidth - cid->config->iPrevNextSize), (cid->config->iHeight - cid->config->iPrevNextSize)/2);
-            cairo_set_source_surface (cr, cid->p_cNext, 0, 0);
-            if (cid->runtime->iCursorX > cid->config->iWidth - cid->config->iPrevNextSize &&
+            
+            bOver = cid->runtime->iCursorX > cid->config->iWidth - cid->config->iPrevNextSize &&
                 cid->runtime->iCursorY < (cid->config->iHeight + cid->config->iPrevNextSize)/2 &&
-                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPrevNextSize)/2) {
+                cid->runtime->iCursorY > (cid->config->iHeight - cid->config->iPrevNextSize)/2;
             
-                cairo_paint_with_alpha (cr, .5);
+            if (cid->p_cNext)
+                cairo_surface_destroy (cid->p_cNext);
+            cid->p_cNext = cid_draw_shapes (&cid,
+                                            SHAPE_NEXT,
+                                            cid->config->iPrevNextSize,
+                                            cid->config->iPrevNextSize,
+                                            bOver);
+            cairo_set_source_surface (cr, cid->p_cNext, 0, 0);
             
-            } 
-            else 
-            {
-                if (cid->runtime->dAnimationProgress < 1  && cid->runtime->dAnimationProgress > 0)
-                    cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
-                else
-                    cairo_paint (cr);
-            }
+            if (cid->runtime->dAnimationProgress < 1  && cid->runtime->dAnimationProgress > 0)
+                cairo_paint_with_alpha (cr, cid->runtime->dAnimationProgress);
+            else
+                cairo_paint (cr);
+            
             cairo_restore (cr); 
         }
     }

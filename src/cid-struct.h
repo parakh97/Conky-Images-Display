@@ -302,13 +302,26 @@ struct _CidConfig {
     GdkWindowTypeHint iHint;
     
     /// couleur de la fenêtre
-    gdouble *dColor;
+    CidColorContainer *pColor;
     /// couleur au survol
-    gdouble *dFlyingColor;
+    CidColorContainer *pFlyingColor;
     /// couleur de police
-    gdouble *dPoliceColor;
+    CidColorContainer *pPoliceColor;
     /// couleur de contour de police
-    gdouble *dOutlineTextColor;
+    CidColorContainer *pOutlineTextColor;
+    /// Couleur des symboles
+    CidColorContainer *pSymbolColor;
+    /// Couleur des symboles au survol
+    CidColorContainer *pFlyingSymbolColor;
+    
+    /// couleur de la fenêtre
+    //gdouble *dColor;
+    /// couleur au survol
+    //gdouble *dFlyingColor;
+    /// couleur de police
+    //gdouble *dPoliceColor;
+    /// couleur de contour de police
+    //gdouble *dOutlineTextColor;
     /// angle de cid
     gdouble dRotate;
     /// opacité de la fenêtre

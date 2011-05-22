@@ -101,10 +101,17 @@ cid_free_main_structure (CidMainContainer *pCid)
         cairo_surface_destroy(pCid->p_cPause_big);
     if (pCid->p_cNext)
         cairo_surface_destroy(pCid->p_cPrev);
-    if (pCid->config->cConfFile)
+//    if (pCid->config->cConfFile)
         g_free(pCid->config->cConfFile);
-    if (pCid->config->cVerbosity)
+//    if (pCid->config->cVerbosity)
         g_free(pCid->config->cVerbosity);
+        
+    g_free (pCid->config->pColor);
+    g_free (pCid->config->pFlyingColor);
+    g_free (pCid->config->pPoliceColor);
+    g_free (pCid->config->pOutlineTextColor);
+    g_free (pCid->config->pSymbolColor);
+    g_free (pCid->config->pFlyingSymbolColor);
         
     pCid->pWindow = NULL;
     pCid->p_cSurface = NULL;
@@ -164,41 +171,44 @@ cid_read_parameters (CidMainContainer **pCid, int *argc, char ***argv)
     {
         {"log", 'l', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_STRING,
             &cid->config->cVerbosity,
-            dgettext (CID_GETTEXT_PACKAGE, "log verbosity (debug,info,message,warning,error) default is warning."), NULL},
+            "log verbosity (debug,info,message,warning,error) default is warning.", NULL},
         {"config", 'c', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_FILENAME,
             &cConfFile,
-            dgettext (CID_GETTEXT_PACKAGE, "load CID with this config file instead of ~/.config/cid/cid.conf."), NULL},
+            "load CID with this config file instead of ~/.config/cid/cid.conf.", NULL},
         {"testing", 'T', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
             &bTestingMode,
-            dgettext (CID_GETTEXT_PACKAGE, "runs CID in testing mode. (some unstable options might be running)"), NULL},
+            "runs CID in testing mode. (some unstable options might be running)", NULL},
         {"debug", 'd', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
             &bDebugMode,
-            dgettext (CID_GETTEXT_PACKAGE, "runs CID in debug mode. (equivalent to '-l debug')"), NULL},
+            "runs CID in debug mode. (equivalent to '-l debug')", NULL},
         {"edit", 'e', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
             &bConfigPanel,
-            dgettext (CID_GETTEXT_PACKAGE, "open CID's configuration panel."), NULL},
+            "open CID's configuration panel.", NULL},
         {"safe", 's', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
             &bSafeMode,
-            dgettext (CID_GETTEXT_PACKAGE, "runs CID in safe mode."), NULL},
+            "runs CID in safe mode.", NULL},
         {"cafe", 'C', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
             &bCafe,
-            dgettext (CID_GETTEXT_PACKAGE, "do you want a cup of coffee?"), NULL},
+            "do you want a cup of coffee?", NULL},
         {"version", 'v', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_NONE,
             &bPrintVersion,
-            dgettext (CID_GETTEXT_PACKAGE, "print version and quit."), NULL},
+            "print version and quit.", NULL},
         { NULL, 0, 0, 0, NULL, NULL, NULL }
     };
 
     GOptionContext *context = g_option_context_new ("");
-    g_option_context_set_summary (context,dgettext (CID_GETTEXT_PACKAGE, "Conky Images Display is a programm written in C.\n\
+    g_option_context_set_summary (context,"Conky Images Display is a programm written in C.\n\
 Its goal is to display the cover of the song which \
 is currently playing in the player you chooseon the \
 desktop like conky does with other informations.\n\
-You can use it with the following options:\n"));
+You can use it with the following options:\n");
     g_option_context_add_main_entries (context, entries, CID_GETTEXT_PACKAGE);
+    erreur = NULL;
     if (!g_option_context_parse (context, argc, argv, &erreur))
     {
-        cid_exit (&cid, CID_ERROR_READING_ARGS, "ERROR : %s\n", erreur->message);
+        fprintf (stderr, "ERROR: %s\n", erreur->message);
+        g_error_free (erreur);
+        exit (CID_ERROR_READING_ARGS);
     }
     
     if (bSafeMode) 
@@ -256,6 +266,8 @@ You can use it with the following options:\n"));
         cid->config->cConfFile = g_strdup (cConfFile);
         g_free (cConfFile);
     }
+    
+    g_option_context_free (context);
 }
     
 void 

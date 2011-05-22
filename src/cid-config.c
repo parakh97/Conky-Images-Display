@@ -123,12 +123,12 @@ cid_get_boolean_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *
     if (error != NULL) 
     {
         (*pCid)->config->bUnvalidKey = TRUE;
-        cid_warning("key '%s' in group '%s'\n=> %s",cKey,cGroup,error->message);
+        cid_warning("key '%s' in group '%s' => %s",cKey,cGroup,error->message);
         g_error_free(error);
         error = NULL;
         bGet = bDefault;
     }
-    cid_debug ("%s:%s=%s",cGroup,cKey,bGet?"TRUE":"FALSE");
+    cid_info ("%s:%s=%s",cGroup,cKey,bGet?"TRUE":"FALSE");
     return bGet;
 }
 
@@ -137,30 +137,31 @@ cid_get_string_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *c
 {
     GError *error = NULL;
     gchar *cGet = g_key_file_get_string (pKeyFile, cGroup, cKey, &error);
-    if (error != NULL && bDefault) 
+    if (error != NULL) 
     {
         (*pCid)->config->bUnvalidKey = TRUE;
-        cid_warning("key '%s' in group '%s'\n=> %s",cKey,cGroup,error->message);
+        cid_warning("key '%s' in group '%s' => %s",cKey,cGroup,error->message);
         g_error_free(error);
         error = NULL;
         g_free (cGet);
-        cGet = g_strdup(cDefault);
+        if (bDefault)
+            cGet = g_strdup(cDefault);
     }
     if ((bFile || bDir) && cDefault != NULL && !g_file_test (cGet, bDir ? G_FILE_TEST_IS_DIR : G_FILE_TEST_EXISTS)) 
     {
         g_free (cGet);
         if (g_file_test (cDefault, bDir ? G_FILE_TEST_IS_DIR : G_FILE_TEST_EXISTS) || bForce)
         {
-            cid_debug ("%s:%s=%s",cGroup,cKey,cDefault);
+            cid_info ("%s:%s=%s",cGroup,cKey,cDefault);
             return cDefault;
         }
         else 
         {
-            cid_debug ("%s:%s=(NULL)",cGroup,cKey);
+            cid_info ("%s:%s=(NULL)",cGroup,cKey);
             return NULL;
         }
     }
-    cid_debug ("%s:%s=%s",cGroup,cKey,cGet);
+    cid_info ("%s:%s=%s",cGroup,cKey,cGet);
     return cGet;
 }
 
@@ -169,18 +170,54 @@ cid_get_int_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGro
 {
     GError *error = NULL;
     gint iGet = g_key_file_get_integer (pKeyFile, cGroup, cKey, &error);
-    if (error != NULL && bDefault) 
+    if (error != NULL) 
     {
         (*pCid)->config->bUnvalidKey = TRUE;
-        cid_warning("key '%s' in group '%s'\n=> %s",cKey,cGroup,error->message);
+        cid_warning("key '%s' in group '%s' => %s",cKey,cGroup,error->message);
         g_error_free(error);
         error = NULL;
-        iGet = iDefault;
+        if (bDefault)
+            iGet = iDefault;
     }
-    cid_debug ("%s:%s=%d",cGroup,cKey,(bMax && iGet > iMax)?iMax:iGet);
+    cid_info ("%s:%s=%d",cGroup,cKey,(bMax && iGet > iMax)?iMax:iGet);
     if (bMax && iGet > iMax)
         return iMax;
     return iGet;
+}
+
+CidColorContainer *cid_get_color_value_full (CidMainContainer **pCid, GKeyFile *pKeyFile, gchar *cGroup, gchar *cKey, gboolean bAlpha)
+{
+    CidColorContainer *ret = g_malloc0 (sizeof (*ret));
+    GError *error = NULL;
+    gsize iSize;
+    gdouble *dList;
+    if (ret != NULL)
+    {
+        dList = g_key_file_get_double_list (pKeyFile, cGroup, cKey, &iSize, &error);
+        if (error != NULL)
+        {
+            //(*pCid)->config->bUnvalidKey = TRUE;
+            cid_warning("key '%s' in group '%s' => %s",cKey,cGroup,error->message);
+            g_error_free(error);
+            error = NULL;
+            iSize = -1;
+        }
+        if (bAlpha ? iSize == 4 : iSize == 3)
+        {
+            ret->dRed = dList[0];
+            ret->dGreen = dList[1];
+            ret->dBlue = dList[2];
+            ret->dAlpha = bAlpha ? dList[3] : 1;
+            cid_info ("%s:%s=rgba(%f,%f,%f,%f)",cGroup,cKey,ret->dRed,ret->dGreen,ret->dBlue,ret->dAlpha);
+            return ret;
+        }
+        ret->dRed = 1;
+        ret->dGreen = 1;
+        ret->dBlue = 1;
+        ret->dAlpha = 1;
+        cid_info ("%s:%s=rgba(%f,%f,%f,%f)",cGroup,cKey,ret->dRed,ret->dGreen,ret->dBlue,ret->dAlpha);
+    }
+    return ret;
 }
 
 static gboolean 
@@ -189,7 +226,7 @@ cid_free_and_debug_error (CidMainContainer **pCid, GError **error)
     if (*error != NULL) 
     {
         (*pCid)->config->bUnvalidKey = TRUE;
-        cid_warning("\n=> %s",(*error)->message);
+        cid_warning("%s",(*error)->message);
         g_error_free(*error);
         *error = NULL;
         return TRUE;
@@ -202,7 +239,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
 {   
     CidMainContainer *cid = *pCid;
     if (!cid_load_key_file(pCid, &(cid->pKeyFile), f))
-        cid_exit(pCid, CID_ERROR_READING_FILE,"Key File error");
+        cid_exit(pCid, CID_ERROR_READING_FILE, "Key File error");
 
     bChangedDesktop = cid->config->bAllDesktop;
     iPlayerChanged  = cid->config->iPlayer;
@@ -217,19 +254,18 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     cid->config->bUnvalidKey = FALSE;
     
     // [System] configuration
-    cid->config->iPlayer         = CID_CONFIG_GET_INTEGER ("System", "PLAYER");
-    cid->config->iInter          = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("System", "INTER", DEFAULT_TIMERS) SECONDES;
-    cid->config->bMonitorPlayer  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "MONITOR", TRUE);
-    cid->config->bPlayerState    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "STATE", TRUE);
-    cid->config->bDisplayTitle   = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "TITLE", TRUE);
-    //cid->config->iSymbolColor    = CID_CONFIG_GET_INTEGER ("System", "SYMBOL_COLOR");
-    cid->config->bDisplayControl = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "CONTROLS", TRUE);
-    cid->config->dPoliceSize     = g_key_file_get_double  (cid->pKeyFile, "System", "POLICE_SIZE", &error);
+    cid->config->iPlayer             = CID_CONFIG_GET_INTEGER ("System", "PLAYER");
+    cid->config->iInter              = CID_CONFIG_GET_INTEGER_WITH_DEFAULT ("System", "INTER", DEFAULT_TIMERS) SECONDES;
+    cid->config->bMonitorPlayer      = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "MONITOR", TRUE);
+    cid->config->bPlayerState        = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "STATE", TRUE);
+    cid->config->bDisplayTitle       = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "TITLE", TRUE);
+    cid->config->bDisplayControl     = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("System", "CONTROLS", TRUE);
+    cid->config->dPoliceSize         = g_key_file_get_double  (cid->pKeyFile, "System", "POLICE_SIZE", &error);
     cid_free_and_debug_error(pCid, &error);
-    cid->config->dPoliceColor    = g_key_file_get_double_list (cid->pKeyFile, "System", "POLICE_COLOR", &cid->config->iPlainTextSize, &error);
-    cid_free_and_debug_error(pCid, &error);
-    cid->config->dOutlineTextColor = g_key_file_get_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", &cid->config->iOutlineTextSize, &error);
-    cid_free_and_debug_error(pCid, &error);
+    cid->config->pPoliceColor        = CID_CONFIG_GET_COLOR_WITH_ALPHA ("System", "POLICE_COLOR");
+    cid->config->pOutlineTextColor   = CID_CONFIG_GET_COLOR_WITH_ALPHA ("System", "OUTLINE_COLOR");
+    cid->config->pSymbolColor        = CID_CONFIG_GET_COLOR_WITH_ALPHA ("System", "SYMBOLS_COLOR");
+    cid->config->pFlyingSymbolColor  = CID_CONFIG_GET_COLOR_WITH_ALPHA ("System", "SYMBOLS_COLOR_OVER");
     cid->config->t_cCoverPatternList = g_key_file_get_string_list (cid->pKeyFile, "System", "FILES_LIST", &cid->config->iNbPatterns, &error);
     cid_free_and_debug_error(pCid, &error);
     cid->runtime->pCoversList = cid_char_table_to_datatable (cid->config->t_cCoverPatternList, cid->config->iNbPatterns);
@@ -270,10 +306,8 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     }
     cid->config->dRotate        = g_key_file_get_double  (cid->pKeyFile, "Behaviour", "ROTATION", &error);
     cid_free_and_debug_error(pCid, &error);
-    cid->config->dColor         = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "COLOR", &cid->config->iColorSize, &error);
-    cid_free_and_debug_error(pCid, &error);
-    cid->config->dFlyingColor   = g_key_file_get_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", &cid->config->iFlyiniColorSize, &error);
-    cid_free_and_debug_error(pCid, &error);
+    cid->config->pColor         = CID_CONFIG_GET_COLOR_WITH_ALPHA ("Behaviour", "COLOR");
+    cid->config->pFlyingColor   = CID_CONFIG_GET_COLOR_WITH_ALPHA ("Behaviour", "FLYING_COLOR");
     cid->config->bKeepCorners   = CID_CONFIG_GET_BOOLEAN ("Behaviour", "KEEP_CORNERS");
     cid->config->bAllDesktop    = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "ALL_DESKTOP", TRUE);
     cid->config->bLockPosition  = CID_CONFIG_GET_BOOLEAN_WITH_DEFAULT ("Behaviour", "LOCK", TRUE);
@@ -300,11 +334,11 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     
     if (!cid->config->bUnvalidKey) 
     {
-        cid->config->dRed            = cid->config->dColor[0];
-        cid->config->dGreen          = cid->config->dColor[1];
-        cid->config->dBlue           = cid->config->dColor[2];
-        cid->config->dAlpha          = cid->config->dColor[3];
-        cid->runtime->dFocusVariation = cid->config->dFlyingColor[3]>cid->config->dAlpha ? +1 : -1;
+        cid->config->dRed            = cid->config->pColor->dRed;
+        cid->config->dGreen          = cid->config->pColor->dGreen;
+        cid->config->dBlue           = cid->config->pColor->dBlue;
+        cid->config->dAlpha          = cid->config->pColor->dAlpha;
+        cid->runtime->dFocusVariation = cid->config->pFlyingColor->dAlpha>cid->config->dAlpha ? +1 : -1;
         cid->config->iExtraSize      = (cid->config->iHeight + cid->config->iWidth)/20;
         cid->config->iPrevNextSize   = cid->config->iExtraSize * 2;
         cid->config->iPlayPauseSize  = cid->config->iExtraSize * 3;
@@ -375,8 +409,8 @@ cid_save_data (CidMainContainer **pCid)
     g_key_file_set_boolean (cid->pKeyFile, "System", "TITLE", cid->config->bDisplayTitle);
     g_key_file_set_boolean (cid->pKeyFile, "System", "CONTROLS", cid->config->bDisplayControl);
     g_key_file_set_double (cid->pKeyFile, "System", "POLICE_SIZE",(cid->config->dPoliceSize));
-    g_key_file_set_double_list (cid->pKeyFile, "System", "POLICE_COLOR", (cid->config->dPoliceColor), cid->config->iPlainTextSize);
-    g_key_file_set_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", (cid->config->dOutlineTextColor), cid->config->iOutlineTextSize);
+    //g_key_file_set_double_list (cid->pKeyFile, "System", "POLICE_COLOR", (cid->config->dPoliceColor), cid->config->iPlainTextSize);
+    //g_key_file_set_double_list (cid->pKeyFile, "System", "OUTLINE_COLOR", (cid->config->dOutlineTextColor), cid->config->iOutlineTextSize);
 
     // [Options] configuration
     g_key_file_set_boolean (cid->pKeyFile, "Options", "ANIMATION", cid->config->bRunAnimation);
@@ -407,8 +441,8 @@ cid_save_data (CidMainContainer **pCid)
     g_key_file_set_integer (cid->pKeyFile, "Behaviour", "GAP_Y",cid->config->iPosY);
     
     g_key_file_set_double (cid->pKeyFile, "Behaviour", "ROTATION",(cid->config->dRotate));
-    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "COLOR", (cid->config->dColor), cid->config->iColorSize);
-    g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", (cid->config->dFlyingColor), cid->config->iFlyiniColorSize);
+    //g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "COLOR", (cid->config->dColor), cid->config->iColorSize);
+    //g_key_file_set_double_list (cid->pKeyFile, "Behaviour", "FLYING_COLOR", (cid->config->dFlyingColor), cid->config->iFlyiniColorSize);
     g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "KEEP_CORNERS", cid->config->bKeepCorners);
     g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "ALL_DESKTOP", cid->config->bAllDesktop);
     g_key_file_set_boolean (cid->pKeyFile, "Behaviour", "LOCK", cid->config->bLockPosition);
