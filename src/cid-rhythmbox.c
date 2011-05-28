@@ -167,7 +167,8 @@ getSongInfos(void)
                             G_TYPE_INVALID,
                             dbus_g_type_get_map("GHashTable",G_TYPE_STRING, G_TYPE_VALUE),
                             &data_list,
-                            G_TYPE_INVALID)) {
+                            G_TYPE_INVALID)) 
+    {
         g_free (musicData.playing_artist);
         value = (GValue *) g_hash_table_lookup(data_list, "artist");
         if (value != NULL && G_VALUE_HOLDS_STRING(value)) 
@@ -208,6 +209,7 @@ getSongInfos(void)
         
         value = (GValue *) g_hash_table_lookup(data_list, "rb:coverArt-uri");
         g_free (musicData.playing_cover);
+        musicData.playing_cover = NULL;
         if (value != NULL && G_VALUE_HOLDS_STRING(value)) 
         {
             GError *erreur = NULL;

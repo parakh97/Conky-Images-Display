@@ -356,6 +356,7 @@ cid_cover_lookup (CidMainContainer **pCid,
         return cRes;
     
     g_free (cRes);
+    cRes = NULL;
     
     cid->runtime->pImagesList = cid_images_lookup (pCid, cDir);
     

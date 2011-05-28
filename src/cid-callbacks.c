@@ -20,6 +20,7 @@
 #include "cid-constantes.h"
 #include "cid-draw.h"
 #include "cid-menu-factory.h"
+#include "cid-string-utilities.h"
 
 extern CidMainContainer *cid;
 //extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML, bCurrentlyFocused;
@@ -160,86 +161,77 @@ on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int 
                         GtkSelectionData *seldata, guint info, guint time,
                         gpointer userdata) 
 {
-    gchar *cReceivedData = (gchar *) seldata->data;
-    g_return_if_fail (cReceivedData != NULL);
-    int length = strlen (cReceivedData);
-    if (cReceivedData[length-1] == '\n')
-        cReceivedData[--length] = '\0';  // on vire le retour chariot final.
-    if (cReceivedData[length-1] == '\r')
-        cReceivedData[--length] = '\0';
-        
-    fprintf (stdout, "before: %s\n", cReceivedData);
-        
-    gchar **cReceivedDataList = g_strsplit(cReceivedData,"\n",0);
-    //g_free (cReceivedData);
-    
-    
-    while (*cReceivedDataList != NULL) 
+    if ((seldata->length >= 0) && (seldata->format == 8))
     {
-        gboolean isImage = g_str_has_suffix(*cReceivedDataList,"JPG")
-                        || g_str_has_suffix(*cReceivedDataList,"jpg")
-                        || g_str_has_suffix(*cReceivedDataList,"JPEG")
-                        || g_str_has_suffix(*cReceivedDataList,"jpeg")
-                        || g_str_has_suffix(*cReceivedDataList,"PNG")
-                        || g_str_has_suffix(*cReceivedDataList,"png")
-                        || g_str_has_suffix(*cReceivedDataList,"SVG")
-                        || g_str_has_suffix(*cReceivedDataList,"svg");
+        gchar *cReceivedData = (gchar *) seldata->data;
+        g_return_if_fail (cReceivedData != NULL);
+        int length = strlen (cReceivedData);
         
-        fprintf (stdout, "POUET: '%s' (%s)\n", *cReceivedDataList, isImage ? "TRUE" : "FALSE");
-        if(isImage) 
-        {
-            if(musicData.playing_artist != NULL && musicData.playing_album != NULL) 
+        CidDataTable *pTab = cid_str_split (cReceivedData, '\n');
+        
+        BEGIN_FOREACH_DT (pTab)
+            gchar *cTmp = p_temp->content->string;
+        
+            gboolean isImage = cid_str_match (cTmp, "^.+\\.(jpe?g|png|svg)$");
+            
+            if(isImage) 
             {
-                cid_debug("Le fichier est une image");
-                GString *command = g_string_new ("");
-                if(strncmp(*cReceivedDataList, "http://", 7) == 0) 
+                if(musicData.playing_artist != NULL && musicData.playing_album != NULL) 
                 {
-                    cid_debug("Le fichier est distant");
-                    g_string_printf (command, "wget -O /tmp/\"%s - %s.jpg\" %s",
-                        musicData.playing_artist,
-                        musicData.playing_album,
-                        *cReceivedDataList);
+                    cid_debug("Le fichier est une image");
+                    GString *command = g_string_new ("");
+                    if(strncmp(cTmp, "http://", 7) == 0) 
+                    {
+                        cid_debug("Le fichier est distant");
+                        g_string_printf (command, "wget -O /tmp/\"%s - %s.jpg\" %s",
+                            musicData.playing_artist,
+                            musicData.playing_album,
+                            cTmp);
+                        cid_launch_command (command->str);                
+                        g_string_free (command, TRUE);
+                    } 
+                    else 
+                    {
+                        cid_debug("Le fichier est local");
+                        gchar *cFileSrc = (*cTmp == '/' ? g_strdup(cTmp) : g_filename_from_uri (cTmp, NULL, NULL));
+                        gchar *cFileDst = g_strdup_printf ("/tmp/\"%s - %s.jpg\"",musicData.playing_artist,musicData.
+                           playing_album);
+                        cid_file_copy (cFileSrc,cFileDst);
+                        g_free (cFileSrc);
+                        g_free (cFileDst);
+                    }
+                    gchar *cTmpImagePath = g_strdup_printf("/tmp/%s - %s.jpg",musicData.playing_artist,musicData.
+                           playing_album);
+                    cid_display_image(cTmpImagePath);
+                    cid_animation(cid->config->iAnimationType);
+                    cid_datatable_append (&cid->runtime->pImagesList, cid_datacontent_new_string (cTmpImagePath));
+                    g_free (cTmpImagePath);
                 } 
                 else 
                 {
-                    cid_debug("Le fichier est local");
-                    gchar *cFileSrc = (**cReceivedDataList == '/' ? g_strdup(*cReceivedDataList) : g_filename_from_uri (*cReceivedDataList, NULL, NULL));
-                    gchar *cFileDst = g_strdup_printf ("/tmp/\"%s - %s.jpg\"",musicData.playing_artist,musicData.playing_album);
-                    cid_file_copy (cFileSrc,cFileDst);
-                    g_free (cFileSrc);
-                    g_free (cFileDst);
+                    gchar *cTmpImagePath = (*cTmp == '/' ? g_strdup(cTmp) : g_filename_from_uri (cTmp, NULL, NULL));
+                    cid_display_image(cTmpImagePath);
+                    cid_animation(cid->config->iAnimationType);
+                    cid_datatable_append (&cid->runtime->pImagesList, cid_datacontent_new_string (cTmpImagePath));
+                    g_free (cTmpImagePath);
                 }
-                cid_launch_command (command->str);                
-                g_string_free (command, TRUE);
-                gchar *cTmpImagePath = g_strdup_printf("/tmp/%s - %s.jpg",musicData.playing_artist,musicData.playing_album);
-                cid_display_image(cTmpImagePath);
-                cid_animation(cid->config->iAnimationType);
-                g_free (cTmpImagePath);
             } 
             else 
             {
-                gchar *cTmpImagePath = (**cReceivedDataList == '/' ? g_strdup(*cReceivedDataList) : g_filename_from_uri (*cReceivedDataList, NULL, NULL));
-                cid_display_image(cTmpImagePath);
-                cid_animation(cid->config->iAnimationType);
-                g_free (cTmpImagePath);
+                cid_debug("On ajoute à la playlist");
+                if (cid->runtime->pMonitorList->p_fAddToQueue!=NULL)
+                    cid->runtime->pMonitorList->p_fAddToQueue(cTmp);
             }
-            gtk_main_quit ();
-            gtk_main ();
-        } 
-        else 
-        {
-            cid_debug("On ajoute à la playlist");
-            if (cid->runtime->pMonitorList->p_fAddToQueue!=NULL)
-                cid->runtime->pMonitorList->p_fAddToQueue(*cReceivedDataList);
-        }
-        g_free (*cReceivedDataList);
-        cReceivedDataList++;
-    }
+                
+        END_FOREACH_DT_NF
         
-    //g_print("d&d >>> %s\n",cReceivedData);
-    //system (g_strdup_printf("nautilus %s &",cReceivedData));
-    //g_strfreev (cReceivedDataList);
-    g_free (cReceivedData);
+        
+        context->action = GDK_ACTION_COPY;
+        gtk_drag_finish (context, TRUE, FALSE, time);
+        return;
+    }
+      
+    gtk_drag_finish (context, FALSE, FALSE, time);
 }
 
 

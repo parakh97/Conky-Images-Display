@@ -250,3 +250,63 @@ cid_str_match (const gchar *cString, const gchar *cRegex)
 {
     return g_regex_match_simple (cRegex, cString, G_REGEX_CASELESS, 0);
 }
+
+CidDataTable *
+cid_str_split (const gchar *cString, const gchar cTokken)
+{
+    CidDataTable *ret = cid_datatable_new ();
+    gchar *cTmp = g_malloc (256 * sizeof(gchar));
+    gint cpt = 0, i = 0, nb = 2;
+    for (; *cString != 0; cString++,cpt++,i++)
+    {
+        if (cpt > 10)
+        {
+            cTmp = g_realloc (cTmp, nb * 256 * sizeof(gchar));
+            if (cTmp == NULL)
+            {
+                g_free (cTmp);
+                cid_clear_datatable (&ret);
+                return NULL;
+            }
+            nb++;
+            cpt = 0;
+        }
+        if (*cString == cTokken)
+        {
+            if (i > 0)
+            {
+                cTmp[i] = '\0';
+                gchar *cAdd = g_strndup (cTmp, i - 1);
+                cid_datatable_append (&ret, cid_datacontent_new_string (cAdd));
+                g_free (cTmp);
+                g_free (cAdd);
+                cTmp = g_malloc (256 * sizeof(gchar));
+                i = -1;
+                nb = 2;
+                cpt = -1;
+            }
+            continue;
+        }
+        cTmp[i] = *cString;
+    }
+    if (i > 0)
+    {
+        if (cpt > 10)
+        {
+            cTmp = g_realloc (cTmp, nb * 256 * sizeof(gchar));
+            if (cTmp == NULL)
+            {
+                g_free (cTmp);
+                cid_clear_datatable (&ret);
+                return NULL;
+            }
+        }
+        cTmp[i] = '\0';
+        gchar *cAdd = g_strndup (cTmp, i - 1);
+        cid_datatable_append (&ret, cid_datacontent_new_string (cAdd));
+        g_free (cTmp);
+        g_free (cAdd);
+    }
+    
+    return ret;
+}

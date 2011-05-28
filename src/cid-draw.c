@@ -229,29 +229,25 @@ cid_create_main_window()
     g_signal_connect (G_OBJECT(cid->pWindow), "enter-notify-event", G_CALLBACK(cid_focus), GINT_TO_POINTER(TRUE)); // On passe le curseur sur la fenêtre
     g_signal_connect (G_OBJECT(cid->pWindow), "leave-notify-event", G_CALLBACK(cid_focus), GINT_TO_POINTER(FALSE)); // Le curseur quitte la fenêtre
     
-    ///\_______ TESTING OPTION
-    if (cid->config->bUnstable) 
-    {
-        /* On prépare le traitement du d'n'd */
-        GtkTargetEntry *pTargetEntry = g_new0 (GtkTargetEntry, 6);
-        pTargetEntry[0].target = "text/*";
-        pTargetEntry[0].flags = (GtkTargetFlags) 0;
-        pTargetEntry[0].info = 0;
-        pTargetEntry[1].target = "text/uri-list";
-        pTargetEntry[2].target = "text/plain";
-        pTargetEntry[3].target = "text/plain;charset=UTF-8";
-        pTargetEntry[4].target = "text/directory";
-        pTargetEntry[5].target = "text/html";
-        gtk_drag_dest_set (cid->pWindow,
-            GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,  // GTK_DEST_DEFAULT_HIGHLIGHT ne rend pas joli je trouve.
-            pTargetEntry,
-            6,
-            GDK_ACTION_COPY | GDK_ACTION_MOVE);  // le 'GDK_ACTION_MOVE' c'est pour KDE.
-        g_free (pTargetEntry);
+    /* On prépare le traitement du d'n'd */
+    GtkTargetEntry *pTargetEntry = g_new0 (GtkTargetEntry, 6);
+    pTargetEntry[0].target = "text/*";
+    pTargetEntry[0].flags = (GtkTargetFlags) 0;
+    pTargetEntry[0].info = 0;
+    pTargetEntry[1].target = "text/uri-list";
+    pTargetEntry[2].target = "text/plain";
+    pTargetEntry[3].target = "text/plain;charset=UTF-8";
+    pTargetEntry[4].target = "text/directory";
+    pTargetEntry[5].target = "text/html";
+    gtk_drag_dest_set (cid->pWindow,
+        GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,  // GTK_DEST_DEFAULT_HIGHLIGHT ne rend pas joli je trouve.
+        pTargetEntry,
+        6,
+        GDK_ACTION_COPY | GDK_ACTION_MOVE);  // le 'GDK_ACTION_MOVE' c'est pour KDE.
+    g_free (pTargetEntry);
     
-        /* traitement du d'n'd */
-        g_signal_connect (G_OBJECT(cid->pWindow), "drag-data-received", G_CALLBACK(on_dragNdrop_data_received), NULL);
-    }
+    /* traitement du d'n'd */
+    g_signal_connect (G_OBJECT(cid->pWindow), "drag-data-received", G_CALLBACK(on_dragNdrop_data_received), NULL);
     
     /* traitement des clics */
     g_signal_connect (G_OBJECT(cid->pWindow), "button-press-event", G_CALLBACK(on_clic), NULL); // Clic de souris

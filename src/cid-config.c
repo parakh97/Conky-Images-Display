@@ -338,7 +338,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
         cid->config->dGreen          = cid->config->pColor->dGreen;
         cid->config->dBlue           = cid->config->pColor->dBlue;
         cid->config->dAlpha          = cid->config->pColor->dAlpha;
-        cid->runtime->dFocusVariation = cid->config->pFlyingColor->dAlpha>cid->config->dAlpha ? +1 : -1;
+        cid->runtime->dFocusVariation = cid->config->pFlyingColor->dAlpha > cid->config->dAlpha ? +1 : -1;
         cid->config->iExtraSize      = (cid->config->iHeight + cid->config->iWidth)/20;
         cid->config->iPrevNextSize   = cid->config->iExtraSize * 2;
         cid->config->iPlayPauseSize  = cid->config->iExtraSize * 3;

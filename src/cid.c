@@ -385,6 +385,11 @@ main ( int argc, char **argv )
     
     cid_clear_datatable (&table);
 */
+/*
+    gchar *cString = "bonjour\ncomment ça va ?";
+    gchar **cTab = cid_str_split (cString, '\n');
+*/
+
     fprintf (stdout,"Bye !\n");    
 
     return ret;

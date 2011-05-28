@@ -65,5 +65,13 @@ void cid_str_prepare (gchar **cString);
  */
 gboolean cid_str_match (const gchar *cString, const gchar *cRegex);
 
+/**
+ * Permet de splitter une chaine de caractères.
+ * @param cString la chaîne à splitter.
+ * @param cTokken le caractère à utiliser pour découper la chaine.
+ * @return un tableau de chaines de caractères.
+ */
+CidDataTable *cid_str_split (const gchar *cString, const gchar cTokken);
+
 G_END_DECLS
 #endif
