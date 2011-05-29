@@ -72,8 +72,7 @@ link_directories(
 
 # Add executable that is built from the source files.
 add_executable (${PROJECT_NAME}
-	${cid_SRCS}
-	cid.c)
+	${cid_SRCS})
 
 # Link the executable to the librairies.
 target_link_libraries (${PROJECT_NAME}
