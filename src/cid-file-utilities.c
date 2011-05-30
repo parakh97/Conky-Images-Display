@@ -104,15 +104,19 @@ cid_file_check_config_version (CidMainContainer **pCid, const gchar *f)
         
     if (strcmp(line_f1,line_f2)!=0 || (*pCid)->config->bUnvalidKey) 
     {
+        gboolean ret = FALSE;
         cid_warning ("bad file version, building a new one\n");
         cid_file_remove (f);
         gchar *cTmpPath = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
-        cid_file_copy(cTmpPath,f);
+        ret = cid_file_copy(cTmpPath,f);
         g_free (cTmpPath);
         
-        cid_save_data (pCid);
-        cid_read_key_file (pCid, f);
-        return FALSE;
+        if (ret)
+        {
+            cid_save_data (pCid);
+            cid_read_key_file (pCid, f);
+        }
+        return ret;
     }
     return TRUE;
 }
