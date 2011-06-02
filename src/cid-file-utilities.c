@@ -1,3 +1,18 @@
+/***********************************************************************
+*
+* Program:
+*   Conky Images Display
+*
+* License :
+*  This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License, version 2.
+*   If you don't know what that means take a look at:
+*      http://www.gnu.org/licenses/licenses.html#GPL
+*
+* Original idea :
+*   Charlie MERLAND, July 2008.
+*
+***********************************************************************/
 /*
    *
    *                cid-file-utilities.c
@@ -104,19 +119,15 @@ cid_file_check_config_version (CidMainContainer **pCid, const gchar *f)
         
     if (strcmp(line_f1,line_f2)!=0 || (*pCid)->config->bUnvalidKey) 
     {
-        gboolean ret = FALSE;
         cid_warning ("bad file version, building a new one\n");
         cid_file_remove (f);
         gchar *cTmpPath = g_strdup_printf("%s/%s",CID_DATA_DIR,CID_CONFIG_FILE);
-        ret = cid_file_copy(cTmpPath,f);
+        cid_file_copy(cTmpPath,f);
         g_free (cTmpPath);
         
-        if (ret)
-        {
-            cid_save_data (pCid);
-            cid_read_key_file (pCid, f);
-        }
-        return ret;
+        cid_save_data (pCid);
+        cid_read_key_file (pCid, f);
+        return FALSE;
     }
     return TRUE;
 }

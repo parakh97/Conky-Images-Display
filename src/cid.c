@@ -1,36 +1,36 @@
-/*****************************************************************************************************
-**
-** Program:
-**    Conky Images Display
-**
-** License :
-**    This program is free software; you can redistribute it and/or modify
-**    it under the terms of the GNU General Public License, version 2.
-**    If you don't know what that means take a look at:
-**       http://www.gnu.org/licenses/licenses.html#GPL
-**
-** Original idea :
-**    Charlie MERLAND, July 2008.
-**
-*************************************************************
-** Authors:
-**    Charlie MERLAND
-**    Benjamin SANS <sans_ben@yahoo.fr>
-**
-** Notes :
-**    Initially developed to use it with conky to display amarok's cover 
-**    on desktop.
-**    The project was re-written for rhythmbox.
-**    In the end, we deceided to merge our two programs with a DBus
-**    support to add amarok2 and other players in the future...
-**
-**
-**    This program is distributed in the hope that it will be useful,
-**    but WITHOUT ANY WARRANTY; without even the implied warranty of
-**    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**    GNU General Public License for more details. 
-**
-*******************************************************************************/
+/***********************************************************************
+*
+* Program:
+*   Conky Images Display
+*
+* License :
+*  This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License, version 2.
+*   If you don't know what that means take a look at:
+*      http://www.gnu.org/licenses/licenses.html#GPL
+*
+* Original idea :
+*   Charlie MERLAND, July 2008.
+*
+************************************************************************
+* Authors:
+*   Charlie MERLAND
+*   Benjamin SANS <sans_ben@yahoo.fr>
+*
+* Notes :
+*   Initially developed to use it with conky to display amarok's cover 
+*   on desktop.
+*   The project was re-written for rhythmbox.
+*   In the end, we deceided to merge our two programs with a DBus
+*   support to add amarok2 and other players in the future...
+*
+*
+*   This program is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details. 
+*
+***********************************************************************/
 /*
    *
    *                                 cid.c

@@ -1,3 +1,18 @@
+/***********************************************************************
+*
+* Program:
+*   Conky Images Display
+*
+* License :
+*  This program is free software; you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License, version 2.
+*   If you don't know what that means take a look at:
+*      http://www.gnu.org/licenses/licenses.html#GPL
+*
+* Original idea :
+*   Charlie MERLAND, July 2008.
+*
+***********************************************************************/
 /*
    *
    *                  cid-utilities.c
