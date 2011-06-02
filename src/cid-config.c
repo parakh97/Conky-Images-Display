@@ -522,7 +522,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     }
 }
 
-int 
+void 
 cid_read_config (CidMainContainer **pCid, const char *f) 
 {
     CidMainContainer *cid = *pCid;
@@ -548,8 +548,6 @@ cid_read_config (CidMainContainer **pCid, const char *f)
     }
     
     iNbRead++;
-
-    return 0;
 }
 
 void 

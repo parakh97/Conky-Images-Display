@@ -45,7 +45,7 @@ set (bindir ${prefix}/bin)
 project ("cid")
 set (VERSION "1.1.6")
 
-add_definitions (-W -Werror -fno-builtin -g) #-Wunreachable-code -Wno-unused-parameter -Wall 
+add_definitions (-W -Werror -fno-builtin) #-Wunreachable-code -Wno-unused-parameter -Wall 
 if (NOT ${CMAKE_BUILD_TYPE})
 	add_definitions (-O3)
 endif()

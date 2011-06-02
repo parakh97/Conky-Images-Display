@@ -32,6 +32,10 @@
 #include "cid-constantes.h"
 #include "cid-asynchrone.h"
 #include "cid-cover.h"
+#include "cid-draw.h"
+#include "cid-animation.h"
+
+#include <string.h>
 
 //extern CidMainContainer *cid;
 

@@ -28,6 +28,11 @@
 #include "cid-messages.h"
 #include "cid-utilities.h"
 #include "cid-constantes.h"
+#include "cid-draw.h"
+#include "cid-dbus.h"
+#include "cid-animation.h"
+
+#include <string.h>
 
 extern CidMainContainer *cid;
 
@@ -343,18 +348,21 @@ void
 _playPause_amarok_2 (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,musicData.playing ? "Pause" : "Play");
+    (void) pCid;
 }
 
 void 
 _next_amarok_2 (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"Next");
+    (void) pCid;
 }
 
 void 
 _previous_amarok_2 (CidMainContainer **pCid) 
 {
     dbus_call (dbus_proxy_player,"Prev");
+    (void) pCid;
 }
 
 void 

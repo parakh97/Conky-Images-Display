@@ -258,9 +258,9 @@ main ( int argc, char **argv )
         exit (CID_EXIT_ERROR);
     }
     
-    curl_global_init(CURL_GLOBAL_ALL);
+    curl_global_init (CURL_GLOBAL_ALL);
     
-    cid_log_set_level(0);
+    cid_log_set_level (G_LOG_LEVEL_WARNING);
     
     cid_init(cid);
     
@@ -294,129 +294,6 @@ main ( int argc, char **argv )
     cid_key_file_free(&cid);
     cid_free_musicData();
     cid_free_main_structure (cid);
-
-/*
-    GError *error = NULL;
-    GMatchInfo *match_info;
-    GRegex *reg = g_regex_new ("(\\(|\\[).*(\\)|\\])",0,0,&error);
-    gchar *init = "blah (%al) bloh";
-    gchar *replacement = "";
-    if (error != NULL)
-    {
-        fprintf (stderr,"g_regex_new error: %s\n",error->message);
-        g_error_free (error);
-        error = NULL;
-    }
-    g_regex_match (reg, init, 0, &match_info);
-    while (g_match_info_matches (match_info))
-    {
-        gchar *word = g_match_info_fetch (match_info, 0);
-        g_print ("Found: %s\n", word);
-        g_free (word);
-        g_match_info_next (match_info, NULL);
-    }
-    g_match_info_free (match_info);
-    gchar *res = g_regex_replace (reg, 
-                                  init, 
-                                  -1, 
-                                  0, 
-                                  replacement, 
-                                  0, 
-                                  &error);
-    if (error != NULL)
-    {
-        fprintf (stderr,"g_regex_replace error: %s\n",error->message);
-        g_error_free (error);
-        error = NULL;
-    }
-    g_print ("before: %s\nafter: %s\n",init,res);
-    g_free (res);
-    g_regex_unref (reg);
-*/
-/*
-    gchar *test = g_strdup ("1 => 2");
-    g_print ("(%d)> %s\n", strlen(test),test);
-    cid_substitute_user_params (&test);
-    g_print ("(%d)> %s\n", strlen(test),test);
-*/
-/*
-    //g_type_init ();
-    
-    gchar *test = 
-        g_strdup("bonjour %user%, 
-                 comment vas-tu ?\n%home%\nartist:%artist%");
-    g_print ("avant: %s (%d)\n",test,strlen(test));
-    //cid_str_replace_all (&test,"%user%",g_getenv("USER"));
-    cid_substitute_user_params (&test);
-    fprintf (stdout,"après: %s (%d)\n",test,strlen(test));
-    
-    g_free (test);
-*/    
-/*
-    int i = 1;
-    for (;i<argc;i++)
-    {
-        gchar *tmp = g_strdup (argv[i]);
-        fprintf (stdout,"avant: %s\n",tmp);
-        cid_parse_nl (&tmp);
-        fprintf (stdout,"après: %s\n",tmp);
-        g_free (tmp);
-    }
-*/
-/*
-    gchar *init = g_strdup("blah     %home% (toto) [tata] ");
-    
-    fprintf (stdout,"before: '%s'\n",init);
-    cid_str_prepare (&init);
-    fprintf (stdout,"after: '%s'\n",init);
-    
-    g_free (init);
-*/
-/*
-    gint size, i = 0;
-    gchar **test;
-    CidDataTable *table = cid_char_table_to_datatable (argv, -1);
-    
-    cid_datatable_foreach (table, cid_datacase_print, NULL);
-    
-    test = cid_datatable_to_char_table (table, &size);
-    
-    //g_print ("size: %d | argc: %d\n", size, argc);
-    
-    for (;i < size; i++)
-    {
-        //g_print ("test[%d]: %s\n",i,test[i]);
-        g_free (test[i]);
-    }
-    g_free (test);
-    
-    cid_clear_datatable (&table);
-*/
-/*
-    CidDataTable *table = cid_create_datatable (G_TYPE_INT,  
-                                                1, 
-                                                2,
-                                                3,
-                                                4,
-                                                5,
-                                                6,
-                                                7,
-                                                8,
-                                                9,
-                                                G_TYPE_INVALID);
-    
-    gint ind = 0;
-    fprintf (stdout, 
-             "table[%d] = %d\n", 
-             ind, 
-             cid_datatable_get_id (table, ind)->content->iNumber);
-    
-    cid_clear_datatable (&table);
-*/
-/*
-    gchar *cString = "bonjour\ncomment ça va ?";
-    gchar **cTab = cid_str_split (cString, '\n');
-*/
 
     fprintf (stdout,"Bye !\n");    
 
