@@ -1,3 +1,4 @@
+SET (BIN_NAME cid)
 
 SET(cid_SRCS
     cid-amarok2.c
@@ -82,7 +83,7 @@ target_link_libraries (${PROJECT_NAME}
 
 # install the program once it is built.
 install(
-	TARGETS ${PACKAGE}
-	DESTINATION ${bindir})
+	TARGETS ${BIN_NAME}
+	DESTINATION bin)
 
 
