@@ -32,10 +32,14 @@
 G_BEGIN_DECLS
 
 /**
-*@file cid-applet-canvas.h This file defines numerous macros, that form a canvas for all the applets.
-* You probably won't need to dig into this file, since you can generate an applet with the 'generate-new-applet.sh' script, that will build the whole canvas for you.
-* Moreover, you can have a look at an applet that has a similar functioning to yours.
-*/
+ * @file cid-applet-canvas.h This file defines numerous macros, 
+ * that form a canvas for all the applets.
+ * You probably won't need to dig into this file, since you can 
+ * generate an applet with the 'generate-new-applet.sh' script, 
+ * that will build the whole canvas for you.
+ * Moreover, you can have a look at an applet that has a similar 
+ * functioning to yours.
+ */
 
 //\_________________________________ STRUCT
 typedef struct _AppletConfig AppletConfig;
@@ -61,16 +65,20 @@ typedef struct _AppletData AppletData;
 
 //\_________________________________ PROTO
 #define CID_APPLET_DEFINE_PROTO \
-gboolean CID_APPLET_DEFINE_FUNC (CidVisitCard *pVisitCard, CidModuleInterface *pInterface)
+gboolean CID_APPLET_DEFINE_FUNC (CidVisitCard *pVisitCard, \
+                                 CidModuleInterface *pInterface)
 #define CID_APPLET_INIT_PROTO(pApplet) \
-void CID_APPLET_INIT_FUNC (CidModuleInstance *pApplet, GKeyFile *pKeyFile)
+void CID_APPLET_INIT_FUNC (CidModuleInstance *pApplet, \
+                           GKeyFile *pKeyFile)
 #define CID_APPLET_STOP_PROTO \
 void CID_APPLET_STOP_FUNC (CidModuleInstance *myApplet)
 #define CID_APPLET_RELOAD_PROTO \
-gboolean CID_APPLET_RELOAD_FUNC (CidModuleInstance *myApplet, GKeyFile *pKeyFile)
+gboolean CID_APPLET_RELOAD_FUNC (CidModuleInstance *myApplet, \
+                                 GKeyFile *pKeyFile)
 
 #define CID_APPLET_READ_CONFIG_PROTO \
-gboolean CID_APPLET_READ_CONFIG_FUNC (CidModuleInstance *myApplet, GKeyFile *pKeyFile)
+gboolean CID_APPLET_READ_CONFIG_FUNC (CidModuleInstance *myApplet, \
+                                      GKeyFile *pKeyFile)
 #define CID_APPLET_RESET_CONFIG_PROTO \
 void CID_APPLET_RESET_CONFIG_FUNC (CidModuleInstance *myApplet)
 #define CID_APPLET_RESET_DATA_PROTO \
@@ -90,16 +98,26 @@ CID_APPLET_RESET_DATA_PROTO;
 
 //\_________________________________ BODY
 //\______________________ pre_init.
-/** Debut de la fonction de pre-initialisation de l'applet (celle qui est appele a l'enregistrement de tous les plug-ins).
-*Definit egalement les variables globales suivantes : myIcon, myDock, myDesklet, myContainer, et myDrawContext.
-*@param _cName nom de sous lequel l'applet sera enregistree par Cairo-Dock.
-*@param _iMajorVersion version majeure du dock necessaire au bon fonctionnement de l'applet.
-*@param _iMinorVersion version mineure du dock necessaire au bon fonctionnement de l'applet.
-*@param _iMicroVersion version micro du dock necessaire au bon fonctionnement de l'applet.
-*@param _iAppletCategory Categorie de l'applet (CAIRO_DOCK_CATEGORY_ACCESSORY, CAIRO_DOCK_CATEGORY_DESKTOP, CAIRO_DOCK_CATEGORY_CONTROLER)
-*@param _cDescription description et mode d'emploi succint de l'applet.
-*@param _cAuthor nom de l'auteur et eventuellement adresse mail.
-*/
+/** 
+ * Debut de la fonction de pre-initialisation de l'applet (celle qui 
+ * est appele a l'enregistrement de tous les plug-ins).
+ * Definit egalement les variables globales suivantes : myIcon, 
+ * myDock, myDesklet, myContainer, et myDrawContext.
+ * @param _cName nom de sous lequel l'applet sera enregistree 
+ * par Cairo-Dock.
+ * @param _iMajorVersion version majeure du dock necessaire au 
+ * bon fonctionnement de l'applet.
+ * @param _iMinorVersion version mineure du dock necessaire au bon 
+ * fonctionnement de l'applet.
+ * @param _iMicroVersion version micro du dock necessaire au bon 
+ * fonctionnement de l'applet.
+ * @param _iAppletCategory Categorie de l'applet (
+ * CAIRO_DOCK_CATEGORY_ACCESSORY, CAIRO_DOCK_CATEGORY_DESKTOP, 
+ * CAIRO_DOCK_CATEGORY_CONTROLER)
+ * @param _cDescription description et mode d'emploi succint de 
+ * l'applet.
+ * @param _cAuthor nom de l'auteur et eventuellement adresse mail.
+ */
 #define CID_APPLET_DEFINE_ALL_BEGIN(_cName, _cDescription, _cAuthor) \
 CID_APPLET_DEFINE_PROTO \
 { \
@@ -125,66 +143,81 @@ CID_APPLET_DEFINE_PROTO \
     pInterface->read_conf_file = CID_APPLET_READ_CONFIG_FUNC;
 */
 
-/** Fin de la fonction de pre-initialisation de l'applet.
-*/
+/** 
+ * Fin de la fonction de pre-initialisation de l'applet.
+ */
 #define CID_APPLET_DEFINE_END \
     return TRUE ;\
 }
-/** Fonction de pre-initialisation generique. Ne fais que definir l'applet (en appelant les 2 macros precedentes), la plupart du temps cela est suffisant.
-*/
+/** 
+ * Fonction de pre-initialisation generique. Ne fais que definir 
+ * l'applet (en appelant les 2 macros precedentes), la plupart du 
+ * temps cela est suffisant.
+ */
 #define CID_APPLET_DEFINITION(cName, cDescription, cAuthor) \
 CID_APPLET_DEFINE_BEGIN (cName, cDescription, cAuthor) \
 CID_APPLET_DEFINE_COMMON_APPLET_INTERFACE \
 CID_APPLET_DEFINE_END
 
-#define CID_APPLET_ATTACH_TO_INTERNAL_MODULE(cInternalModuleName) cid_attach_to_another_module (pVisitCard, cInternalModuleName)
+#define CID_APPLET_ATTACH_TO_INTERNAL_MODULE(cInternalModuleName) \
+cid_attach_to_another_module (pVisitCard, cInternalModuleName)
 
 //\______________________ init.
-/** Debut de la fonction d'initialisation de l'applet (celle qui est appelee a chaque chargement de l'applet).
-*Lis le fichier de conf de l'applet, et cree son icone ainsi que son contexte de dessin.
-*@param pApplet une instance du module.
-*/
+/** 
+ * Debut de la fonction d'initialisation de l'applet (celle qui est 
+ * appelee a chaque chargement de l'applet).
+ * Lis le fichier de conf de l'applet, et cree son icone ainsi que 
+ * son contexte de dessin.
+ * @param pApplet une instance du module.
+ */
 #define CID_APPLET_INIT_ALL_BEGIN(pApplet) \
 CID_APPLET_INIT_PROTO (pApplet)\
 { \
     cid_message ("%s (%s)", __func__, pApplet->cConfFilePath);
 
-/** Fin de la fonction d'initialisation de l'applet.
-*/
+/** 
+ * Fin de la fonction d'initialisation de l'applet.
+ */
 #define CID_APPLET_INIT_END \
 }
 
 //\______________________ stop.
-/** Debut de la fonction d'arret de l'applet.
-*/
+/** 
+ * Debut de la fonction d'arret de l'applet.
+ */
 #define CID_APPLET_STOP_BEGIN \
 CID_APPLET_STOP_PROTO \
 {
 
-/** Fin de la fonction d'arret de l'applet.
-*/
+/** 
+ * Fin de la fonction d'arret de l'applet.
+ */
 #define CID_APPLET_STOP_END \
     cid_release_data_slot (myApplet); \
 }
 
 //\______________________ reload.
-/** Debut de la fonction de rechargement de l'applet.
-*/
+/** 
+ * Debut de la fonction de rechargement de l'applet.
+ */
 #define CID_APPLET_RELOAD_ALL_BEGIN \
 CID_APPLET_RELOAD_PROTO \
 { \
     cid_message ("%s (%s)\n", __func__, myApplet->cConfFilePath);
 
-/** Fin de la fonction de rechargement de l'applet.
-*/
+/** 
+ * Fin de la fonction de rechargement de l'applet.
+ */
 #define CID_APPLET_RELOAD_END \
     return TRUE; \
 }
 
 
 //\______________________ read_conf_file.
-/** Debut de la fonction de configuration de l'applet (celle qui est appelee au debut de l'init).
-*/
+/** 
+ * Debut de la fonction de configuration de l'applet (celle qui est 
+ * appelee au debut de l'init).
+ */
 #define CID_APPLET_GET_CONFIG_ALL_BEGIN \
 CID_APPLET_READ_CONFIG_PROTO \
 { \

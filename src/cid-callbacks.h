@@ -54,9 +54,14 @@ void on_clic (GtkWidget *p_widget, GdkEventButton* pButton);
  * @param wgt widget that received datas
  * @param seldata dropped data
  */
-void on_dragNdrop_data_received (GtkWidget *wgt, GdkDragContext *context, int x, int y,
-                        GtkSelectionData *seldata, guint info, guint time,
-                        gpointer userdata);
+void on_dragNdrop_data_received (GtkWidget *wgt, 
+                                 GdkDragContext *context, 
+                                 int x, 
+                                 int y,
+                                 GtkSelectionData *seldata, 
+                                 guint info, 
+                                 guint time,
+                                 gpointer userdata);
 
 /**
  * Fonction executée lors du survol
@@ -78,7 +83,9 @@ void _cid_about (GtkMenuItem *pMenuItem, gpointer *data);
  * @param cPageLabel label
  * @param cAboutText contenu
  */
-static void _cid_add_about_page (GtkWidget *pNoteBook, const gchar *cPageLabel, const gchar *cAboutText);
+static void _cid_add_about_page (GtkWidget *pNoteBook, 
+                                 const gchar *cPageLabel, 
+                                 const gchar *cAboutText);
 
 /**
  * Fonction executée pour générer l'interface de configuration

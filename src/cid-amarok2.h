@@ -35,14 +35,14 @@ G_BEGIN_DECLS
  * recherche d'image 
  * @return URI de l'image à afficher
  */
-gchar *cid_amarok_2_cover(void);
+gchar *cid_amarok_2_cover (void);
 
 /**
  * Fonction permettant de se connecter 
  * au bus de amarok2 
  * @return VRAI ou FAUX
  */
-gboolean amarok_2_dbus_connect_to_bus(void);
+gboolean amarok_2_dbus_connect_to_bus (void);
 
 /** 
  * Fonction permettant de se déconnecter 
@@ -55,25 +55,25 @@ void amarok_2_dbus_disconnect_from_bus (void);
  * est lancé ou non 
  * @return VRAI ou FAUX en fonction
  */
-gboolean dbus_detect_amarok_2(void);
+gboolean dbus_detect_amarok_2 (void);
 
 /**
  * Test si amarok2 joue de la musique ou non 
  * @return VRAI ou FAUX
  */
-gboolean amarok_2_getPlaying(void);
+gboolean amarok_2_getPlaying (void);
 
 /**
  * renvoie l'URI du fichier en cours de lecture 
  * @return URI du fichier joué
  */
-gchar *amarok_2_getPlayingUri(void);
+gchar *amarok_2_getPlayingUri (void);
 
 /** 
  * récupère l'ensemble des informations disponibles 
  * sur le fichier joué 
  */
-void am_getSongInfos(void);
+void am_getSongInfos (void);
 
 /**
  * Fonction exécutée (automatiquement) au changement 
@@ -82,7 +82,9 @@ void am_getSongInfos(void);
  * @param URI du fichier joué
  * @param pointeur de données (non utilisé)
  */
-void am_onChangeSong(DBusGProxy *player_proxy, GHashTable *data_list, gpointer data);
+void am_onChangeSong (DBusGProxy *player_proxy, 
+                      GHashTable *data_list, 
+                      gpointer data);
 
 /**
  * Fonction exécutée (automatiquement) au changement d'état Play/Pause 
@@ -90,7 +92,9 @@ void am_onChangeSong(DBusGProxy *player_proxy, GHashTable *data_list, gpointer d
  * @param flag on joue ou non
  * @param pointeur de données (non utilisé)
  */
-void am_onChangeState(DBusGProxy *player_proxy,GValueArray *status, gpointer data);
+void am_onChangeState (DBusGProxy *player_proxy,
+                       GValueArray *status, 
+                       gpointer data);
 
 /**
  * Fonction exécutée (automatiquement) à chaque changement d'URI 
@@ -99,7 +103,9 @@ void am_onChangeState(DBusGProxy *player_proxy,GValueArray *status, gpointer dat
  * @param URI de la nouvelle image
  * @param pointeur de données (non utilisé)
  */
-void am_onCovertArtChanged(DBusGProxy *player_proxy,const gchar *cImageURI, gpointer data);
+void am_onCovertArtChanged (DBusGProxy *player_proxy,
+                            const gchar *cImageURI, 
+                            gpointer data);
 
 
 /**

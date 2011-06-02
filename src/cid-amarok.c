@@ -40,14 +40,16 @@ gboolean run = FALSE;
 //static CidMeasure *pMeasureTimer = NULL;
 //extern gboolean bCurrentlyDownloading, bCurrentlyDownloadingXML;
 
-///dcop amarok playlist addMediaList [ "file:///home/benjamin/Music/aboutagirl.mp3" ]
+///dcop amarok playlist addMediaList 
+///[ "file:///home/benjamin/Music/aboutagirl.mp3" ]
 
 gboolean 
 get_amarock_musicData (CidMainContainer **pCid) 
 {
     CidMainContainer *cid = *pCid;
     CIDError *error = NULL;
-    gint state = cid_console_get_int_with_error_full("dcop amarok player status",-1,&error);
+    gint state = cid_console_get_int_with_error_full(
+                                "dcop amarok player status",-1,&error);
     
     musicData.opening = TRUE;
     
@@ -86,8 +88,10 @@ get_amarock_musicData (CidMainContainer **pCid)
     gArtist = cid_console_get_string ("dcop amarok player artist");
     gAlbum = cid_console_get_string ("dcop amarok player album");
     gTitle = cid_console_get_string ("dcop amarok player title");
-    gPlayingURI = cid_console_get_string ("dcop amarok player encodedURL");
-    gCoverURI = cid_console_get_string ("dcop amarok player coverImage");
+    gPlayingURI = cid_console_get_string (
+                                    "dcop amarok player encodedURL");
+    gCoverURI = cid_console_get_string (
+                                    "dcop amarok player coverImage");
     
     g_free (musicData.playing_cover);
     if (gCoverURI == NULL)
@@ -95,7 +99,8 @@ get_amarock_musicData (CidMainContainer **pCid)
     else 
         musicData.playing_cover = g_strdup (gCoverURI);
     
-    if (musicData.playing_uri != NULL && strcmp (musicData.playing_uri,gPlayingURI)==0)
+    if (musicData.playing_uri != NULL && 
+        strcmp (musicData.playing_uri,gPlayingURI)==0)
     {
         g_free (gArtist);
         g_free (gAlbum);
@@ -116,7 +121,12 @@ get_amarock_musicData (CidMainContainer **pCid)
     
     
     run = TRUE;
-    cid_info ("\nartist : %s\nalbum : %s\ntitle : %s\nsong uri : %s\ncover uri : %s",gArtist,gAlbum,gTitle,gPlayingURI,gCoverURI);
+    cid_info ("\nartist : %s\n\
+album : %s\n\
+title : %s\n\
+song uri : %s\n\
+cover uri : %s",
+gArtist,gAlbum,gTitle,gPlayingURI,gCoverURI);
     g_free (gArtist);
     g_free (gAlbum);
     g_free (gTitle);
@@ -124,29 +134,6 @@ get_amarock_musicData (CidMainContainer **pCid)
     g_free (gCoverURI);
     return TRUE;
 }
-
-/*
-gboolean 
-cid_download_amarok_cover (gpointer data) 
-{
-    cid->runtime->iCheckIter++;
-    if (cid->runtime->iCheckIter > cid->config->iTimeToWait) 
-    {
-        if (pMeasureTimer) 
-        {
-            if (cid_measure_is_running(pMeasureTimer))
-                cid_stop_measure_timer(pMeasureTimer);
-            if (cid_measure_is_active(pMeasureTimer))
-                cid_free_measure_timer(pMeasureTimer);
-        }
-        pMeasureTimer = cid_new_measure_timer (2 SECONDES, NULL, NULL, (CidUpdateTimerFunc) _cid_proceed_download_cover, NULL);
-        
-        cid_launch_measure (pMeasureTimer);
-        return FALSE;
-    }
-    return TRUE;
-}
-*/
 
 gchar *
 cid_check_amarok_cover_exists (CidMainContainer **pCid, gchar *cURI) 
@@ -158,11 +145,15 @@ cid_check_amarok_cover_exists (CidMainContainer **pCid, gchar *cURI)
     if (g_strcasecmp(cSplitedURI[0],"nocover")==0) 
     {
         g_free (cRet);
-        cRet = cid_db_search_cover (pCid, musicData.playing_artist, musicData.playing_album);
+        cRet = cid_db_search_cover (pCid, 
+                                    musicData.playing_artist, 
+                                    musicData.playing_album);
         if (cRet == NULL)
         {
             cid->runtime->iCheckIter = 0;
-            g_timeout_add (1000, (GSourceFunc) _check_cover_is_present, pCid);
+            g_timeout_add (1000, 
+                           (GSourceFunc) _check_cover_is_present, 
+                           pCid);
             cRet = g_strdup(cid->config->cDefaultImage);
         }
     }
@@ -188,7 +179,9 @@ cid_amarok_cover(CidMainContainer **pCid)
         {
             if (musicData.playing && musicData.playing_cover != NULL)
             {
-                gchar *cCover = cid_check_amarok_cover_exists(pCid, musicData.playing_cover);
+                gchar *cCover = cid_check_amarok_cover_exists(
+                                            pCid, 
+                                            musicData.playing_cover);
                 cid_display_image (cCover);
                 g_free (cCover);
             }
@@ -205,7 +198,11 @@ void
 cid_amarok_pipe (CidMainContainer **pCid, gint iInter) 
 {
     CidMainContainer *cid = *pCid;
-    cid->runtime->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, iInter,(gpointer) cid_amarok_cover, pCid, NULL);
+    cid->runtime->iPipe = g_timeout_add_full (G_PRIORITY_HIGH, 
+                                            iInter,
+                                            (gpointer) cid_amarok_cover, 
+                                            pCid, 
+                                            NULL);
 }
 
 void 

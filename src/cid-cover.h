@@ -34,8 +34,12 @@
 G_BEGIN_DECLS
 
 #define LICENCE_KEY "0C3430YZ2MVJKQ4JEKG2"
-#define AMAZON_API_URL_1 "http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&AWSAccessKeyId="
-#define AMAZON_API_URL_2 "&AssociateTag=webservices-20&ResponseGroup=Images,ItemAttributes&Operation=ItemSearch&ItemSearch.Shared.SearchIndex=Music"
+#define AMAZON_API_URL_1 \
+"http://ecs.amazonaws.com/onca/xml?Service=AWSECommerceService&\
+AWSAccessKeyId="
+#define AMAZON_API_URL_2 \
+"&AssociateTag=webservices-20&ResponseGroup=Images,ItemAttributes&\
+Operation=ItemSearch&ItemSearch.Shared.SearchIndex=Music"
 #define DEFAULT_XML_LOCATION "/tmp/cid_amazon.xml"
 #define DEFAULT_DOWNLOADED_IMAGE_LOCATION "/tmp/default.jpg"
 
@@ -61,9 +65,16 @@ G_BEGIN_DECLS
  * @param cValue buffer dans lequel placer l'URL
  * @param xpath expression a rechercher
  */
-void cid_search_xml_xpath (const char *filename, gchar **cValue, const gchar *xpath, ...);
+void cid_search_xml_xpath (const char *filename, 
+                           gchar **cValue, 
+                           const gchar *xpath, ...);
 
-#define cid_get_cover_url(filename,cValue) cid_search_xml_xpath(filename,cValue,LAST_XPATH,cid->config->iImageSize==MEDIUM_IMAGE?"large":"extralarge")
+#define cid_get_cover_url(filename,cValue) \
+cid_search_xml_xpath (filename, \
+                      cValue, \
+                      LAST_XPATH, \
+                      cid->config->iImageSize == MEDIUM_IMAGE ? \
+                        "large":"extralarge")
 
 /**
  * Recupere le fichier xml sur amazon.

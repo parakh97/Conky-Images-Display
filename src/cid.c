@@ -57,7 +57,9 @@ cid_init (CidMainContainer *pCid)
     
     pCid->runtime->iCurrentlyDrawing = 0;
     
-    pCid->config->cConfFile = g_strdup_printf(CID_CONFIG_DIR,g_getenv("HOME"),CID_CONFIG_FILE);
+    pCid->config->cConfFile = g_strdup_printf(CID_CONFIG_DIR,
+                                              g_getenv("HOME"),
+                                              CID_CONFIG_FILE);
 
 #ifdef HAVE_E17    
     pCid->config->iHint = GDK_WINDOW_TYPE_HINT_DESKTOP; 
@@ -67,7 +69,8 @@ cid_init (CidMainContainer *pCid)
     pCid->config->iHint = GDK_WINDOW_TYPE_HINT_TOOLTIP;
 #endif
     
-    pCid->defaut->cDLPath = g_strdup_printf(CID_COVER_DIR,g_getenv("HOME"));
+    pCid->defaut->cDLPath = g_strdup_printf(CID_COVER_DIR,
+                                            g_getenv("HOME"));
     
     pCid->pKeyFile = NULL;
 }
@@ -81,7 +84,7 @@ cid_intercept_signal (int number)
         cid_interrupt (&cid);
         return;
     }
-    cid_warning ("Attention : cid has crashed (%d).", /*strsignal(*/number);
+    cid_warning ("Attention : cid has crashed (%d).", number);
     fflush (stdout);
     signal (number, SIG_DFL);
     raise (number);
@@ -107,13 +110,16 @@ cid_run_with_player (CidMainContainer **pCid)
             if (amarok_2_dbus_connect_to_bus()) 
             {
                 cid_debug ("dbus connected");
-                // On peut afficher directement le retour de cid_amarok_2_cover puisque
-                // la chaine retournee sera liberee au prochain appel.
+                // On peut afficher directement le retour de 
+                // cid_amarok_2_cover puisque la chaine retournee sera 
+                // liberee au prochain appel.
                 cid_display_image((gchar *)cid_amarok_2_cover());
             } 
             else 
             {
-                cid_exit (pCid, CID_EXIT_ERROR,"\nFailed to connect dbus...\n");
+                cid_exit (pCid, 
+                          CID_EXIT_ERROR,
+                          "\nFailed to connect dbus...\n");
             }
             break;
         /* Rhythmbox */
@@ -123,13 +129,16 @@ cid_run_with_player (CidMainContainer **pCid)
             if (rhythmbox_dbus_connect_to_bus()) 
             {
                 cid_debug ("dbus connected");
-                // On peut afficher directement le retour de cid_rhythmbox_cover puisque
-                // la chaine retournee sera liberee au prochain appel.
+                // On peut afficher directement le retour de 
+                // cid_rhythmbox_cover puisque la chaine retournee sera 
+                // liberee au prochain appel.
                 cid_display_image((gchar *)cid_rhythmbox_cover());
             } 
             else 
             {
-                cid_exit (pCid, CID_EXIT_ERROR,"\nFailed to connect dbus...\n");
+                cid_exit (pCid, 
+                          CID_EXIT_ERROR,
+                          "\nFailed to connect dbus...\n");
             }
             break;
         /* Exaile */
@@ -148,7 +157,10 @@ cid_run_with_player (CidMainContainer **pCid)
             break;
         /* Sinon, on a un lecteur inconnu */
         default:
-            cid_exit (pCid, CID_PLAYER_ERROR,"ERROR: \"%d\" is not recognized as a supported player",cid->config->iPlayer);
+            cid_exit (pCid, 
+                CID_PLAYER_ERROR,
+                "ERROR: \"%d\" is not recognized as a supported player",
+                cid->config->iPlayer);
     }
 }
 
@@ -220,25 +232,29 @@ main ( int argc, char **argv )
     cid = g_malloc0 (sizeof(*cid));
     if (!cid)
     {
-        fprintf (stderr, "Couldn't allocate memory for the main container!\n");
+        fprintf (stderr, 
+            "Couldn't allocate memory for the main container!\n");
         exit (CID_EXIT_ERROR);
     }
     cid->config = g_malloc0 (sizeof(*(cid->config)));
     if (!cid->config)
     {
-        fprintf (stderr, "Couldn't allocate memory for the configuration container!\n");
+        fprintf (stderr, 
+        "Couldn't allocate memory for the configuration container!\n");
         exit (CID_EXIT_ERROR);
     }
     cid->runtime = g_malloc0 (sizeof(*(cid->runtime)));
     if (!cid->runtime)
     {
-        fprintf (stderr, "Couldn't allocate memory for the runtime container!\n");
+        fprintf (stderr, 
+            "Couldn't allocate memory for the runtime container!\n");
         exit (CID_EXIT_ERROR);
     }
     cid->defaut = g_malloc0 (sizeof(*(cid->defaut)));
     if (!cid->defaut)
     {
-        fprintf (stderr, "Couldn't allocate memory for the default container!\n");
+        fprintf (stderr, 
+            "Couldn't allocate memory for the default container!\n");
         exit (CID_EXIT_ERROR);
     }
     
@@ -258,7 +274,8 @@ main ( int argc, char **argv )
     cid_set_verbosity (cid->config->cVerbosity);
     
     cid_read_config (&cid, cid->config->cConfFile);
-    cid->config->bChangedTestingConf = cid->config->bTesting && cid->config->bUnstable;
+    cid->config->bChangedTestingConf = 
+            cid->config->bTesting && cid->config->bUnstable;
     
     cid_set_signal_interception (&action);
     
@@ -299,7 +316,13 @@ main ( int argc, char **argv )
         g_match_info_next (match_info, NULL);
     }
     g_match_info_free (match_info);
-    gchar *res = g_regex_replace (reg, init, -1, 0, replacement, 0, &error);
+    gchar *res = g_regex_replace (reg, 
+                                  init, 
+                                  -1, 
+                                  0, 
+                                  replacement, 
+                                  0, 
+                                  &error);
     if (error != NULL)
     {
         fprintf (stderr,"g_regex_replace error: %s\n",error->message);
@@ -319,7 +342,9 @@ main ( int argc, char **argv )
 /*
     //g_type_init ();
     
-    gchar *test = g_strdup("bonjour %user%, comment vas-tu ?\n%home%\nartist:%artist%");
+    gchar *test = 
+        g_strdup("bonjour %user%, 
+                 comment vas-tu ?\n%home%\nartist:%artist%");
     g_print ("avant: %s (%d)\n",test,strlen(test));
     //cid_str_replace_all (&test,"%user%",g_getenv("USER"));
     cid_substitute_user_params (&test);
@@ -381,7 +406,10 @@ main ( int argc, char **argv )
                                                 G_TYPE_INVALID);
     
     gint ind = 0;
-    fprintf (stdout, "table[%d] = %d\n", ind, cid_datatable_get_id (table, ind)->content->iNumber);
+    fprintf (stdout, 
+             "table[%d] = %d\n", 
+             ind, 
+             cid_datatable_get_id (table, ind)->content->iNumber);
     
     cid_clear_datatable (&table);
 */

@@ -40,7 +40,9 @@ typedef enum {
 
 /// Definition de la fonction asynchrone.
 typedef void (* CidGetDataAsyncFunc ) (gpointer pSharedMemory);
-/// Definition de la fonction synchrone qui met à jour CID une fois la fonction asynchrone terminee. Retourne FALSE pour terminer, et TRUE pour continuer.
+/// Definition de la fonction synchrone qui met à jour CID une fois 
+/// la fonction asynchrone terminee. Retourne FALSE pour terminer, 
+/// et TRUE pour continuer.
 typedef gboolean (* CidUpdateSyncFunc ) (gpointer pSharedMemory);
 
 /// Definition d'une tache periodique et asynchrone.
@@ -55,17 +57,21 @@ struct _CidTask {
     CidGetDataAsyncFunc get_data;
     /// function synchrone appelee lorsque get_data a termine.
     CidUpdateSyncFunc update;
-    /// interval de temps en secondes, 0 pour lancer la tache une seule fois.
+    /// interval de temps en secondes, 0 pour lancer la tache une 
+    /// seule fois.
     gint iPeriod;
     /// etat de la frequence de la tache.
     CidFrequencyState iFrequencyState;
-    /// structure passee en parametre a 'get_data' et 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
+    /// structure passee en parametre a 'get_data' et 'update'. 
+    /// Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
     gpointer pSharedMemory;
-    /// timer pour connaitre le temps ecoule depuis la derniere iteration.
+    /// timer pour connaitre le temps ecoule depuis la derniere 
+    /// iteration.
     GTimer *pClock;
     /// temps ecoule depuis le dernier update.
     double fElapsedTime;
-    /// fonction appelee lorsque la tache est liberee pour liberer la memoire partagee (optionnel).
+    /// fonction appelee lorsque la tache est liberee pour liberer 
+    /// la memoire partagee (optionnel).
     GFreeFunc free_data;
     /// TRUE quand la tache a ete abandonnee.
     gboolean bDiscard;
@@ -73,15 +79,15 @@ struct _CidTask {
 
 
 /** 
- * Lance une tache periodique prealablement declaree aavec #cid_task_new.
+ * Lance une tache periodique prealablement declaree avec #cid_task_new.
  * La premiere iteration est lancee immediatement.
  * @param pTask la tache periodique.
  */
 void cid_launch_task (CidTask *pTask);
 
 /** 
- * Pareil que #cid_launch_task a part que la premiere iteration a lieu apres 
- * le delai fourni en parametre.
+ * Pareil que #cid_launch_task a part que la premiere iteration a 
+ * lieu apres le delai fourni en parametre.
  * @param pTask la tache periodique.
  * @param fDelay delai en ms.
  */
@@ -89,44 +95,64 @@ void cid_launch_task_delayed (CidTask *pTask, double fDelay);
 
 /** 
  * Cree une tache periodique
- * @param iPeriod temps entre 2 iteration. Si 0, la tache n'est executee qu'une seule fois.
- * @param get_data fonction asynchrone executee dans un thread parallele.
- * @param update fonction synchrone executee a la fin de la fonction get_data. Retourne TRUE pour continuer, FALSE pour arreter.
- * @param free_data fonction appelee lorsque la tache est liberee pour liberer la memoire partagee (optionnel).
- * @param pSharedMemory structure passee en parametre a 'get_data' et 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
- * @return la nouvelle tache alouee a lancer avec #cid_launch_task. A liberer avec #cid_free_task.
+ * @param iPeriod temps entre 2 iteration. Si 0, la tache n'est executee
+ * qu'une seule fois.
+ * @param get_data fonction asynchrone executee dans un thread 
+ * parallele.
+ * @param update fonction synchrone executee a la fin de la fonction 
+ * get_data. Retourne TRUE pour continuer, FALSE pour arreter.
+ * @param free_data fonction appelee lorsque la tache est liberee pour 
+ * liberer la memoire partagee (optionnel).
+ * @param pSharedMemory structure passee en parametre a 'get_data' et 
+ * 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
+ * @return la nouvelle tache alouee a lancer avec #cid_launch_task. 
+ * A liberer avec #cid_free_task.
  */
-CidTask *cid_new_task_full (int iPeriod, CidGetDataAsyncFunc get_data, CidUpdateSyncFunc update, GFreeFunc free_data, gpointer pSharedMemory);
+CidTask *cid_new_task_full (int iPeriod, 
+                            CidGetDataAsyncFunc get_data, 
+                            CidUpdateSyncFunc update, 
+                            GFreeFunc free_data, 
+                            gpointer pSharedMemory);
 
 /** 
  * Cree une tache periodique
- * @param iPeriod temps entre 2 iteration. Si 0, la tache n'est executee qu'une seule fois.
- * @param get_data fonction asynchrone executee dans un thread parallele.
- * @param update fonction synchrone executee a la fin de la fonction get_data. Retourne TRUE pour continuer, FALSE pour arreter.
- * @param pSharedMemory structure passee en parametre a 'get_data' et 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
- * @return la nouvelle tache alouee a lancer avec #cid_launch_task. A liberer avec #cid_free_task.
+ * @param iPeriod temps entre 2 iteration. Si 0, la tache n'est 
+ * executee qu'une seule fois.
+ * @param get_data fonction asynchrone executee dans un thread 
+ * parallele.
+ * @param update fonction synchrone executee a la fin de la fonction 
+ * get_data. Retourne TRUE pour continuer, FALSE pour arreter.
+ * @param pSharedMemory structure passee en parametre a 'get_data' et 
+ * 'update'. Ne doit jamais etre modifiee en dehors de ces 2 fonctions !
+ * @return la nouvelle tache alouee a lancer avec #cid_launch_task. 
+ * A liberer avec #cid_free_task.
  */
-#define cid_new_task(iPeriod, get_data, update, pSharedMemory) cid_new_task_full (iPeriod, get_data, update, NULL, pSharedMemory)
+#define cid_new_task(iPeriod, get_data, update, pSharedMemory) \
+    cid_new_task_full (iPeriod, get_data, update, NULL, pSharedMemory)
 
 /** 
- * Arrete une tache. Si une tache est en cours, on attend que le thread asynchrone termine, et on saute l'update.
+ * Arrete une tache. Si une tache est en cours, on attend que le thread 
+ * asynchrone termine, et on saute l'update.
  * On peut relancer la tache avec #cid_launch_task.
  * @param pTask la tache.
  */
 void cid_stop_task (CidTask *pTask);
 
 /** 
- * Abandonne une tache. La fonction asynchrone continue, et la memoire est liberee a la fin. 
- * A utiliser avec precaution puisqu'on ne peut pas savoir quand la liberation a lieu (en particulier si on 
- * ajoute une fonction de callback free_data). 
+ * Abandonne une tache. La fonction asynchrone continue, et la memoire 
+ * est liberee a la fin. 
+ * A utiliser avec precaution puisqu'on ne peut pas savoir quand la 
+ * liberation a lieu (en particulier si on ajoute une fonction de 
+ * callback free_data). 
  * On peut considerer la tache detruite une fois cette fonction appelee.
  * @param pTask la tache.
  */
 void cid_discard_task (CidTask *pTask);
 
 /** 
- * Arrete et detruit une tacheen liberant les resources. A la difference de \ref cid_discard_task, 
- * la tache est arretee avant d'etre liberer, c'est donc un appel bloquant.
+ * Arrete et detruit une tacheen liberant les resources. A la 
+ * difference de \ref cid_discard_task, la tache est arretee avant 
+ * d'etre liberer, c'est donc un appel bloquant.
  * @param pTask la tache.
  */
 void cid_free_task (CidTask *pTask);
@@ -148,7 +174,8 @@ gboolean cid_task_is_active (CidTask *pTask);
 gboolean cid_task_is_running (CidTask *pTask);
 
 /** 
- * Change la frequence d'une tache. La prochaine iteration est re-plannifiee en fonction de la nouvelle periode.
+ * Change la frequence d'une tache. La prochaine iteration est 
+ * re-plannifiee en fonction de la nouvelle periode.
  * @param pTask la tache.
  * @param iNewPeriod la nouvelle periode entre deux iteration en s.
 */
@@ -157,7 +184,8 @@ void cid_change_task_frequency (CidTask *pTask, int iNewPeriod);
 /** 
  * Change la frequence d'une tache est la relance immediatement. 
  * @param pTask la tache.
- * @param iNewPeriod la nouvelle periode entre deux iteration en s (-1 pour ne rien changer).
+ * @param iNewPeriod la nouvelle periode entre deux iteration 
+ * en s (-1 pour ne rien changer).
  */
 void cid_relaunch_task_immediately (CidTask *pTask, int iNewPeriod);
 
@@ -168,7 +196,8 @@ void cid_relaunch_task_immediately (CidTask *pTask, int iNewPeriod);
 void cid_downgrade_task_frequency (CidTask *pTask);
 
 /** 
- * Reinitialise la frequence d'une tache (automatiquement fait au lancement d'une nouvelle tache).
+ * Reinitialise la frequence d'une tache (automatiquement fait au 
+ * lancement d'une nouvelle tache).
  * @param pTask la tache.
  */
 void cid_set_normal_task_frequency (CidTask *pTask);
