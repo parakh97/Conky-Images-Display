@@ -46,13 +46,15 @@ typedef struct _CidVisitCard CidVisitCard;
 typedef struct _CidInternalModule CidInternalModule;
 
 ///\______ Encapsulations
-typedef void (* CidReadConfigFunc) (CidMainContainer **pCid, gchar *cConfFile);
+typedef void (* CidReadConfigFunc) (CidMainContainer **pCid, 
+                                    gchar *cConfFile);
 typedef void (* CidControlFunction) (CidMainContainer **pCid);
 typedef void (* CidManagePlaylistFunction) (gchar *cSong);
 typedef void (* CidConnectPlayer) (gint iDelay);
 typedef void (* CidDisconnectPlayer) (void);
 
-/// Structure de données utilisée pour stocker les informations fournies par Rhythmbox et Amarok
+/// Structure de données utilisée pour stocker les informations 
+/// fournies par Rhythmbox et Amarok
 struct data {
     /// URI du fichier lu
     gchar *playing_uri;

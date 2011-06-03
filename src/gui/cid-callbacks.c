@@ -22,7 +22,6 @@
    *
 */
 
-//#include "cid.h"
 #include "cid-callbacks.h"
 #include "cid-gui-callback.h"
 #include "cid-menu-factory.h"
