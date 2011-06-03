@@ -27,10 +27,10 @@
 
 #include "cid-config.h"
 #include "cid-messages.h"
-#include "cid-utilities.h"
-#include "cid-gui-factory.h"
-#include "cid-callbacks.h"
-#include "cid-gui-callback.h"
+#include "tools/cid-utilities.h"
+#include "gui/cid-gui-factory.h"
+#include "gui/cid-callbacks.h"
+#include "gui/cid-gui-callback.h"
 #include "cid-constantes.h"
 #include "cid-draw.h"
 
@@ -522,7 +522,7 @@ cid_read_key_file (CidMainContainer **pCid, const gchar *f)
     }
 }
 
-int 
+void 
 cid_read_config (CidMainContainer **pCid, const char *f) 
 {
     CidMainContainer *cid = *pCid;
@@ -548,8 +548,6 @@ cid_read_config (CidMainContainer **pCid, const char *f)
     }
     
     iNbRead++;
-
-    return 0;
 }
 
 void 

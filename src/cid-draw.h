@@ -80,7 +80,9 @@ GtkWidget *cid_get_image_widget(gchar **imageURI);
  * @param non utilisé
  * @param pointeur de données (non utilisé)
  */
-void cid_set_colormap (GtkWidget *widget, GdkScreen *old_screen, gpointer userdata);
+void cid_set_colormap (GtkWidget *widget, 
+                       GdkScreen *old_screen, 
+                       gpointer userdata);
 
 /**
  * renvoie une image à partir d'un buffer de pixels 
@@ -96,7 +98,9 @@ cairo_surface_t *cid_get_image_from_pixbuf (GdkPixbuf **pixbuf);
  * @param iHeight Hauteur.
  * @return image.
  */
-cairo_surface_t *cid_get_cairo_image (gchar *cImagePath, gdouble iWidth, gdouble iHeight);
+cairo_surface_t *cid_get_cairo_image (gchar *cImagePath, 
+                                      gdouble iWidth, 
+                                      gdouble iHeight);
 
 /**
  * Fonction appelée pour dessiner la fenêtre
@@ -104,7 +108,9 @@ cairo_surface_t *cid_get_cairo_image (gchar *cImagePath, gdouble iWidth, gdouble
  * @param ?
  * @param non utilisé
  */
-void cid_draw_window (GtkWidget *widget, GdkEventExpose *event, gpointer *userdata);
+void cid_draw_window (GtkWidget *widget, 
+                      GdkEventExpose *event, 
+                      gpointer *userdata);
 
 /**
  * On dessine l'etat du lecteur

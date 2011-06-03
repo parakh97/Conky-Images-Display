@@ -63,20 +63,40 @@ void cid_log_init(gboolean bBlackTerminal);
  */
 void cid_log_set_level(GLogLevelFlags loglevel);
 
-#define cid_error(...)                                                  \
-  cid_log_location(G_LOG_LEVEL_ERROR, __FILE__, __PRETTY_FUNCTION__, __LINE__,__VA_ARGS__)
+#define cid_error(...)                                                 \
+  cid_log_location(G_LOG_LEVEL_ERROR, \
+                   __FILE__, \
+                   __PRETTY_FUNCTION__, \
+                   __LINE__, \
+                   __VA_ARGS__)
 
-#define cid_warning(...)                                                \
-  cid_log_location(G_LOG_LEVEL_WARNING, __FILE__, __PRETTY_FUNCTION__, __LINE__,__VA_ARGS__)
+#define cid_warning(...)                                               \
+  cid_log_location(G_LOG_LEVEL_WARNING, \
+                   __FILE__, \
+                   __PRETTY_FUNCTION__, \
+                   __LINE__, \
+                   __VA_ARGS__)
 
-#define cid_message(...)                                                \
-  cid_log_location(G_LOG_LEVEL_MESSAGE, __FILE__, __PRETTY_FUNCTION__, __LINE__,__VA_ARGS__)
+#define cid_message(...)                                               \
+  cid_log_location(G_LOG_LEVEL_MESSAGE, \
+                   __FILE__, \
+                   __PRETTY_FUNCTION__, \
+                   __LINE__, \
+                   __VA_ARGS__)
 
-#define cid_debug(...)                                                  \
-  cid_log_location(G_LOG_LEVEL_DEBUG, __FILE__, __PRETTY_FUNCTION__, __LINE__,__VA_ARGS__)
+#define cid_debug(...)                                                 \
+  cid_log_location(G_LOG_LEVEL_DEBUG, \
+                   __FILE__, \
+                   __PRETTY_FUNCTION__, \
+                   __LINE__, \
+                   __VA_ARGS__)
 
 #define cid_info(...)                                                  \
-  cid_log_location(G_LOG_LEVEL_INFO, __FILE__, __PRETTY_FUNCTION__, __LINE__,__VA_ARGS__)
+  cid_log_location(G_LOG_LEVEL_INFO, \
+                   __FILE__, \
+                   __PRETTY_FUNCTION__, \
+                   __LINE__, \
+                   __VA_ARGS__)
 
 /**
  * sort du programme avec le code de retour donné
@@ -84,7 +104,10 @@ void cid_log_set_level(GLogLevelFlags loglevel);
  * @param code de retour
  * @param message d'erreur à nombre variable de paramètres
  */
-void cid_exit (CidMainContainer **pCid, int code, const gchar *mess, ...);
+void cid_exit (CidMainContainer **pCid, 
+               int code, 
+               const gchar *mess, 
+               ...);
 
 G_END_DECLS
 #endif 

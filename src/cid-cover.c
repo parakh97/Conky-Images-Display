@@ -24,13 +24,13 @@
 */
 
 //#include "cid-constantes.h"
-#include "cid-callbacks.h"
+#include "gui/cid-callbacks.h"
 #include "cid-cover.h"
 #include "cid-struct.h"
 #include "cid-messages.h"
-#include "cid-utilities.h"
-#include "cid-md5.h"
-#include "cid-file-utilities.h"
+#include "tools/cid-utilities.h"
+#include "tools/cid-md5.h"
+#include "tools/cid-file-utilities.h"
 
 #include <curl/curl.h>
 #include <fcntl.h>
@@ -45,7 +45,8 @@ gboolean
 cid_get_xml_file (const gchar *artist, 
                   const gchar *album) 
 {
-    if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, G_FILE_TEST_EXISTS))
+    if (g_file_test (DEFAULT_DOWNLOADED_IMAGE_LOCATION, 
+                     G_FILE_TEST_EXISTS))
     {
         cid_file_remove (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     }
@@ -128,7 +129,8 @@ cid_download_missing_cover (const gchar *cURL)
     fclose(fp);
     curl_easy_cleanup(handle);
     
-    if (rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",DEFAULT_DOWNLOADED_IMAGE_LOCATION) == -1)
+    if (rename (DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",
+                DEFAULT_DOWNLOADED_IMAGE_LOCATION) == -1)
     {
         cid_warning ("Cannot rename '%s' to '%s'",
                      DEFAULT_DOWNLOADED_IMAGE_LOCATION".tmp",
@@ -174,7 +176,9 @@ cid_search_xml_xpath (const char *filename,
     }
     
     // Evaluation de l'expression XPath
-    //gchar *cXPath = g_strdup_printf (xpath,cid->config->iImageSize == MEDIUM_IMAGE ? "large" : "extralarge"/*TAB_IMAGE_SIZES[cid->config->iImageSize]*/);
+    //gchar *cXPath = g_strdup_printf (xpath,cid->config->iImageSize == 
+    //MEDIUM_IMAGE ? "large" : 
+    //"extralarge"/*TAB_IMAGE_SIZES[cid->config->iImageSize]*/);
     gchar *cXPath = g_strdup_vprintf (xpath, args);
     xmlXPathObjectPtr xpathRes = xmlXPathEvalExpression(cXPath, ctxt);
     g_free (cXPath);
@@ -193,7 +197,8 @@ cid_search_xml_xpath (const char *filename,
             for (i = 0; i < xpathRes->nodesetval->nodeNr; i++) 
             {
                 xmlNodePtr n = xpathRes->nodesetval->nodeTab[i];
-                if (n->type == XML_TEXT_NODE || n->type == XML_CDATA_SECTION_NODE) 
+                if (n->type == XML_TEXT_NODE || 
+                    n->type == XML_CDATA_SECTION_NODE) 
                 {
                     *cValue = g_strdup (n->content);
                 }
@@ -242,7 +247,8 @@ cid_db_store_cover (CidMainContainer **pCid,
     pKeyFile = g_key_file_new ();
     flags = G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS;
 
-    if (!g_file_test (cid->config->cDLPath, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE)) 
+    if (!g_file_test (cid->config->cDLPath, 
+                      G_FILE_TEST_EXISTS | G_FILE_TEST_IS_EXECUTABLE)) 
     {
         cid_info ("Creating path %s", cid->config->cDLPath);
         g_mkdir_with_parents (cid->config->cDLPath, 7*8*8+7*8+5);
@@ -316,7 +322,10 @@ cid_db_search_cover (CidMainContainer **pCid,
         return NULL;
     }
 
-    gchar *cVal = g_key_file_get_value (pKeyFile, DB_GROUP_DOWNLOAD, cKey, &error);
+    gchar *cVal = g_key_file_get_value (pKeyFile, 
+                                        DB_GROUP_DOWNLOAD, 
+                                        cKey, 
+                                        &error);
     if (error != NULL)
     {
         cid_warning ("%s",error->message);
