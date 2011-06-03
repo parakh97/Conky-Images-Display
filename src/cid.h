@@ -29,35 +29,40 @@
 #include <pthread.h>
 #include <curl/curl.h>
 
-#include "cid-amarok.h"
-#include "cid-amarok2.h"
 #include "cid-animation.h"
 #include "cid-applet-canvas.h"
 #include "cid-asynchrone.h"
-#include "cid-callbacks.h"
 #include "cid-config.h"
-#include "cid-console-call.h"
 #include "cid-constantes.h"
 #include "cid-cover.h"
-#include "cid-datatables.h"
-#include "cid-dbus.h"
 #include "cid-draw.h"
-#include "cid-exaile.h"
-#include "cid-file-utilities.h"
-#include "cid-gui-callback.h"
-#include "cid-gui-factory.h"
-#include "cid-md5.h"
-#include "cid-menu-factory.h"
 #include "cid-messages.h"
 #include "cid-modules.h"
-#include "cid-mpd.h"
-#include "cid-rhythmbox.h"
-#include "cid-string-utilities.h"
 #include "cid-struct.h"
-#include "cid-utilities.h"
+
+/* backends */
+#include "backends/cid-amarok.h"
+#include "backends/cid-amarok2.h"
+#include "backends/cid-exaile.h"
+#include "backends/cid-mpd.h"
+#include "backends/cid-rhythmbox.h"
+#include "backends/libmpdclient.h"
+
+/* gui */
+#include "gui/cid-callbacks.h"
+#include "gui/cid-gui-callback.h"
+#include "gui/cid-gui-factory.h"
+#include "gui/cid-menu-factory.h"
+
+/* tools */
+#include "tools/cid-console-call.h"
+#include "tools/cid-datatables.h"
+#include "tools/cid-dbus.h"
+#include "tools/cid-file-utilities.h"
+#include "tools/cid-md5.h"
+#include "tools/cid-string-utilities.h"
+#include "tools/cid-utilities.h"
 
 #include "config.h"
-
-#include "libmpdclient.h"
 
 #endif

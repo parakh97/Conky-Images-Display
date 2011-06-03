@@ -24,13 +24,13 @@
 */
 
 //#include "cid-constantes.h"
-#include "cid-callbacks.h"
+#include "gui/cid-callbacks.h"
 #include "cid-cover.h"
 #include "cid-struct.h"
 #include "cid-messages.h"
-#include "cid-utilities.h"
-#include "cid-md5.h"
-#include "cid-file-utilities.h"
+#include "tools/cid-utilities.h"
+#include "tools/cid-md5.h"
+#include "tools/cid-file-utilities.h"
 
 #include <curl/curl.h>
 #include <fcntl.h>

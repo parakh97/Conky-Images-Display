@@ -27,8 +27,8 @@
 
 #include "cid-draw.h"
 #include "cid-animation.h"
-#include "cid-utilities.h"
-#include "cid-callbacks.h"
+#include "tools/cid-utilities.h"
+#include "gui/cid-callbacks.h"
 #include "cid-messages.h"
 #include "cid-constantes.h"
 

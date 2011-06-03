@@ -26,7 +26,7 @@
 #define  __CID_STRUCT__
 
 #include <gtk/gtk.h>
-#include "cid-datatables.h"
+#include "tools/cid-datatables.h"
 #include "config.h"
 
 G_BEGIN_DECLS
