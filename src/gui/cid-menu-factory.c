@@ -23,7 +23,7 @@
 */
 
 #include "cid-menu-factory.h"
-#include "cid-callbacks.h"
+#include "../cid-callbacks.h"
 #include "../tools/cid-utilities.h"
 
 void

@@ -9,6 +9,7 @@ SET(cid_SRCS
     cid-animation.c         cid-animation.h
     cid-animation-thread.c  cid-animation-thread.h
     cid-asynchrone.c        cid-asynchrone.h
+    cid-callbacks.c         cid-callbacks.h
     cid-config.c            cid-config.h
     cid-cover.c             cid-cover.h
     cid-draw.c              cid-draw.h

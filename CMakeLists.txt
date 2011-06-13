@@ -39,6 +39,8 @@ endif()
 
 set (includedir ${prefix}/include)
 set (bindir ${prefix}/bin)
+set (modulesdir ${libdir}/${PACKAGE})
+set (modulesdatadir ${pkgdatadir}/modules)
 
 ########### project ###############
 

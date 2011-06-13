@@ -29,7 +29,7 @@
 #include "cid-messages.h"
 #include "tools/cid-utilities.h"
 #include "gui/cid-gui-factory.h"
-#include "gui/cid-callbacks.h"
+#include "cid-callbacks.h"
 #include "gui/cid-gui-callback.h"
 #include "cid-constantes.h"
 #include "cid-draw.h"

@@ -24,7 +24,7 @@
 */
 
 //#include "cid-constantes.h"
-#include "gui/cid-callbacks.h"
+#include "cid-callbacks.h"
 #include "cid-cover.h"
 #include "cid-struct.h"
 #include "cid-messages.h"

@@ -30,7 +30,7 @@
 #include "../tools/cid-dbus.h"
 #include "../tools/cid-utilities.h"
 
-#include "../gui/cid-callbacks.h"
+#include "../cid-callbacks.h"
 
 #include "../cid-messages.h"
 #include "../cid-struct.h"

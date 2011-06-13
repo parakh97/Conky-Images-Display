@@ -49,7 +49,7 @@
 #include "backends/libmpdclient.h"
 
 /* gui */
-#include "gui/cid-callbacks.h"
+#include "cid-callbacks.h"
 #include "gui/cid-gui-callback.h"
 #include "gui/cid-gui-factory.h"
 #include "gui/cid-menu-factory.h"

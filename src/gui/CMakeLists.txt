@@ -1,6 +1,5 @@
 
 SET(gui_SRC
-    cid-callbacks.c     cid-callbacks.h
     cid-gui-callback.c  cid-gui-callback.h
     cid-gui-factory.c   cid-gui-factory.h
     cid-menu-factory.c  cid-menu-factory.h)

@@ -25,7 +25,7 @@
 #include "cid-utilities.h"
 #include "cid-X-utilities.h"
 
-#include "../gui/cid-callbacks.h"
+#include "../cid-callbacks.h"
 
 #include "../cid-struct.h"
 #include "../cid-messages.h"

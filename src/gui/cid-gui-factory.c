@@ -24,7 +24,7 @@
 */
 
 #include "cid-gui-factory.h"
-#include "cid-callbacks.h"
+#include "../cid-callbacks.h"
 #include "cid-gui-callback.h"
 
 #include "../tools/cid-utilities.h"

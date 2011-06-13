@@ -35,7 +35,7 @@
 #include "../tools/cid-utilities.h"
 #include "../tools/cid-console-call.h"
 
-#include "../gui/cid-callbacks.h"
+#include "../cid-callbacks.h"
 
 #include <string.h>
 

@@ -2,10 +2,12 @@ prefix = @prefix@
 exec_prefix = @exec_prefix@
 libdir = @libdir@
 includedir = @includedir@
+modulesdir = @modulesdir@
+modulesdatadir = @modulesdatadir@
 
 Name:Conky Images Display
-Description:A little C written application which displays the cover of the file which is currently in play in your player (at the moment amarok and rhythmbox are supported)
-Requires: gtk+-2.0 dbus-1 dbus-glib-1 libxml-2.0 gthread-2.0 libcurl 
+Description: Displays the album-art of the song that is currently played by your multimedia player (if supported)
+Requires: gtk+-2.0 dbus-1 dbus-glib-1 libxml-2.0 gthread-2.0 libcurl cairo
 Libs:-L${libdir}
 Cflags:-I${includedir}/cid -I${includedir}/cid/cid
 Version: @PACKAGE_VERSION@

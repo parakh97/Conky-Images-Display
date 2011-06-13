@@ -32,7 +32,7 @@
 
 #include "../tools/cid-utilities.h"
 
-#include "../gui/cid-callbacks.h"
+#include "../cid-callbacks.h"
 
 extern CidMainContainer *cid;
 
