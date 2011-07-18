@@ -43,7 +43,7 @@ set (bindir ${prefix}/bin)
 ########### project ###############
 
 project ("cid")
-set (VERSION "1.1.6")
+set (VERSION "trunk")
 
 add_definitions (-W -Werror -fno-builtin) #-Wunreachable-code -Wno-unused-parameter -Wall 
 if (NOT ${CMAKE_BUILD_TYPE})
@@ -115,6 +115,8 @@ configure_file (${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake.in ${CMAKE_CURRENT_SO
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/data/cid.conf.in ${CMAKE_CURRENT_BINARY_DIR}/data/cid.conf)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cid.pc.in ${CMAKE_CURRENT_BINARY_DIR}/cid.pc)
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+configure_file (${CMAKE_CURRENT_SOURCE_DIR}/doc/dox.config.in
+${CMAKE_CURRENT_SOURCE_DIR}/doc/dox.config)
 
 ########### install files ###############
 

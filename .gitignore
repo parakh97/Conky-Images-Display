@@ -1,4 +1,5 @@
 doc/html
 doc/latex
+doc/dox.config
 src/config.h
 build
