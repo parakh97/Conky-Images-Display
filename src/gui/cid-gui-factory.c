@@ -504,7 +504,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile,
                             gtk_image_set_from_pixbuf (
                                         GTK_IMAGE (pImage), 
                                         pixbuf);
-                            gdk_pixbuf_unref (pixbuf);
+                            g_object_unref (pixbuf);
                             gtk_container_add (
                                         GTK_CONTAINER (pLabelContainer),
                                         pImage);
@@ -1982,7 +1982,7 @@ cid_generate_ihm_from_keyfile (GKeyFile *pKeyFile,
                                 if (pixbuf != NULL) 
                                 {
                                     gtk_image_set_from_pixbuf (GTK_IMAGE (pImage), pixbuf);
-                                    gdk_pixbuf_unref (pixbuf);
+                                    g_object_unref (pixbuf);
                                     gtk_container_add (GTK_CONTAINER (pLabelContainer),
                                         pImage);
                                 }

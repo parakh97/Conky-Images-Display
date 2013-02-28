@@ -158,7 +158,7 @@ cid_check_exaile_cover_exists (gchar *cURI)
     while (cCleanURI[cpt]!=NULL) 
         cpt++;
     gchar **cSplitedURI = g_strsplit (cCleanURI[cpt-1],".",0);
-    if (g_strcasecmp(cSplitedURI[0],"nocover")==0) 
+    if (g_ascii_strcasecmp(cSplitedURI[0],"nocover")==0) 
     {
         g_free (cCleanURI);
         g_free (cSplitedURI);
@@ -195,8 +195,8 @@ getExaileSongInfos(void)
     musicData.playing_track = 0;
     
     if ((bFirstLoop && cOldArtist==NULL && cOldTitle==NULL) || 
-        (g_strcasecmp(cOldArtist,musicData.playing_artist)!=0 && 
-         g_strcasecmp(cOldTitle,musicData.playing_title)!=0))
+        (g_ascii_strcasecmp(cOldArtist,musicData.playing_artist)!=0 && 
+         g_ascii_strcasecmp(cOldTitle,musicData.playing_title)!=0))
         bSongChanged = TRUE;
     else
         bSongChanged = FALSE;

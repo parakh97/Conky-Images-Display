@@ -148,7 +148,7 @@ cid_check_amarok_cover_exists (CidMainContainer **pCid, gchar *cURI)
     gchar *cRet = g_strdup(cURI);
     gchar **cCleanURI = g_strsplit (cRet,"@",0);
     gchar **cSplitedURI = g_strsplit (cCleanURI[1],".",0);
-    if (g_strcasecmp(cSplitedURI[0],"nocover")==0) 
+    if (g_ascii_strcasecmp(cSplitedURI[0],"nocover")==0) 
     {
         g_free (cRet);
         cRet = cid_db_search_cover (pCid, 

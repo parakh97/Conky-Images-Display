@@ -417,7 +417,7 @@ _cid_show_image_preview (GtkFileChooser *pFileChooser,
     if (pixbuf != NULL)
     {
         gtk_image_set_from_pixbuf (pPreviewImage, pixbuf);
-        gdk_pixbuf_unref (pixbuf);
+        g_object_unref (pixbuf);
         gtk_file_chooser_set_preview_widget_active (pFileChooser, TRUE);
     }
     else
@@ -658,7 +658,7 @@ _cid_selection_changed (GtkTreeModel *model,
                 1);
         }
         gtk_image_set_from_pixbuf (pPreviewImage, pPreviewPixbuf);
-        gdk_pixbuf_unref (pPreviewPixbuf);
+        g_object_unref (pPreviewPixbuf);
         
         if (bDistant)
         {

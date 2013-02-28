@@ -26,6 +26,7 @@
 
 #include <gtk/gtk.h>
 #include <gdk/gdkscreen.h>
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 

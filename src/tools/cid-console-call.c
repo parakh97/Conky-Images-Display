@@ -123,7 +123,7 @@ cid_console_get_boolean_with_error_full (const gchar *cCommand,
     }
     pclose(pPipe);
     strtok (cRead,"\n");
-    gboolean bRet = g_strcasecmp(cRead,"true")==0;
+    gboolean bRet = g_ascii_strcasecmp(cRead,"true")==0;
     g_free(cRead);
     return bRet;
 }

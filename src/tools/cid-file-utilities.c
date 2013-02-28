@@ -106,14 +106,23 @@ cid_file_remove (const gchar* cFilePath)
 gboolean 
 cid_file_check_config_version (CidMainContainer **pCid, const gchar *f) 
 {
+    CidMainContainer *cid = *pCid;
     gchar *cCommand=NULL;
     gchar line_f1[80], line_f2[80];
     FILE *f1, *f2;
+
+    if (cid->config->bDevMode)
+        return TRUE;
+
     gchar *cOrigFile = 
             g_strdup_printf("%s/%s",CID_DATA_DIR, CID_CONFIG_FILE);
+
     f1 = fopen ((const char *)cOrigFile,"r");
     f2 = fopen ((const char *)f,"r");
     g_free (cOrigFile);
+
+    if (!f1 || !f2)
+        cid_exit (pCid, 3, "couldn't read conf file, try to delete it");
     
     if (!fgets(line_f1,80,f1) || !fgets(line_f2,80,f2))
         cid_exit (pCid, 3,"couldn't read conf file, try to delete it");

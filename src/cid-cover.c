@@ -51,10 +51,10 @@ cid_get_xml_file (const gchar *artist,
         cid_file_remove (DEFAULT_DOWNLOADED_IMAGE_LOCATION);
     }
     
-    if (g_strcasecmp("Unknown",artist)==0 
-        || g_strcasecmp("Unknown",album)==0 
-        || g_strcasecmp("Inconnu",artist)==0 
-        || g_strcasecmp("Inconnu",album)==0)
+    if (g_ascii_strcasecmp("Unknown",artist)==0 
+        || g_ascii_strcasecmp("Unknown",album)==0 
+        || g_ascii_strcasecmp("Inconnu",artist)==0 
+        || g_ascii_strcasecmp("Inconnu",album)==0)
     {
         return FALSE;
     }
@@ -223,8 +223,8 @@ cid_db_store_cover (CidMainContainer **pCid,
                           && cArtist != NULL 
                           && cAlbum != NULL,
                           NULL);
-    g_return_val_if_fail (g_strcasecmp (cArtist, "unknown") != 0
-                          && g_strcasecmp (cAlbum, "unknown") != 0,
+    g_return_val_if_fail (g_ascii_strcasecmp (cArtist, "unknown") != 0
+                          && g_ascii_strcasecmp (cAlbum, "unknown") != 0,
                           NULL);
     CidMainContainer *cid = *pCid;
     GKeyFile *pKeyFile;
